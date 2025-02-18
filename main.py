@@ -1,13 +1,11 @@
 from fastapi import FastAPI, Form, HTTPException
-from fastapi.responses import RedirectResponse
 from fastapi.responses import HTMLResponse
 import pyodbc
-conexion = pyodbc.connect(
-    "DRIVER={SQL Server};"
-    "SERVER=DESKTOP-B1LS0KA\\SQLEXPRESS;"
-    "DATABASE=Neurona;"
-    "Trusted_Connection=yes;"
-)
+import os
+
+DATABASE_URL = os.getenv("DATABASE_URL", "DRIVER={SQL Server};SERVER=DESKTOP-B1LS0KA\\SQLEXPRESS;DATABASE=Neurona;Trusted_Connection=yes;")
+
+conexion = pyodbc.connect(DATABASE_URL)
 
 app = FastAPI()
 
@@ -42,26 +40,18 @@ def mostrar_pagina():
         <style>
             body {
                 font-family: Arial, sans-serif;
-                background: url('https://centromedicoabc.com/core/webp-express/webp-images/uploads/2023/01/salud-mental-1024x634.jpg.webp') no-repeat center center fixed;
-                background-size: cover;
+                background: #f4f4f4;
                 text-align: center;
                 padding: 50px;
-                color: white;
             }
             .container {
-                background: rgba(255, 255, 255, 0.8);
+                background: white;
                 padding: 30px;
                 border-radius: 10px;
                 box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
                 display: inline-block;
                 text-align: left;
                 width: 50%;
-                color: black;
-            }
-            img {
-                width: 150px;
-                height: auto;
-                margin-bottom: 20px;
             }
             input, select {
                 width: 100%;
@@ -91,7 +81,6 @@ def mostrar_pagina():
         </style>
     </head>
     <body>
-        <img src="https://centromedicoabc.com/core/webp-express/webp-images/uploads/2023/01/salud-mental-1024x634.jpg.webp" alt="Logo">
         <h1>Registro de Usuario</h1>
         <div class="container">
             <form action="/guardar_usuario" method="post">
@@ -139,4 +128,3 @@ def mostrar_pagina():
     </body>
     </html>
     """
-
