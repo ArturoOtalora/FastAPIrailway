@@ -3,7 +3,10 @@ from fastapi.responses import HTMLResponse
 import pyodbc
 import os
 
-DATABASE_URL = os.getenv("DATABASE_URL", "DRIVER={SQL Server};SERVER=DESKTOP-B1LS0KA\\SQLEXPRESS;DATABASE=Neurona;Trusted_Connection=yes;")
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL no está configurada")
 
 conexion = pyodbc.connect(DATABASE_URL)
 
