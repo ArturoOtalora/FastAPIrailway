@@ -1,14 +1,5 @@
 from fastapi import FastAPI, Form, HTTPException
 from fastapi.responses import HTMLResponse
-import pyodbc
-import os
-
-DATABASE_URL = os.getenv("DATABASE_URL")
-
-if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL no está configurada")
-
-conexion = pyodbc.connect(DATABASE_URL)
 
 app = FastAPI()
 
@@ -25,12 +16,6 @@ def guardar_usuario(
     antiguedad: str = Form(...),
     ciudad: str = Form(...),
 ):
-    cursor = conexion.cursor()
-    cursor.execute("""
-        INSERT INTO usuarios (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, rango_edad, grado_escolaridad, antiguedad, ciudad)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, rango_edad, grado_escolaridad, antiguedad, ciudad))
-    conexion.commit()
     return {"message": "Usuario guardado", "usuario": {"nombre": nombre, "apellidos": apellidos, "correo": correo}}
 
 @app.get("/", response_class=HTMLResponse)
@@ -130,4 +115,4 @@ def mostrar_pagina():
         </div>
     </body>
     </html>
-    """
+    "
