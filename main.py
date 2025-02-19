@@ -166,8 +166,8 @@ def mostrar_pagina():
     """
 @app.get("/preguntas", response_class=HTMLResponse)
 def mostrar_preguntas(usuario_id: int):
-     preguntas = random.choice(preguntas_sets)
-     preguntas_html = "".join([
+      preguntas = random.choice(preguntas_sets)
+      preguntas_html = "".join([
         f'<label>{pregunta}</label><br>' +
         '<div class="star-rating">' +
         "".join([
@@ -178,16 +178,16 @@ def mostrar_preguntas(usuario_id: int):
         for i, pregunta in enumerate(preguntas)
     ])
     
-     return f'''
+      return f'''
         <!DOCTYPE html>
         <html>
         <head>
             <title>Preguntas Adicionales</title>
             <style>
                 .star-rating {{
-                    display: flex;
-                    flex-direction: row-reverse;
-                    justify-content: flex-start;
+                    display: inline-block;
+                    direction: rtl;
+                    unicode-bidi: bidi-override;
                 }}
                 .star-rating input {{
                     display: none;
