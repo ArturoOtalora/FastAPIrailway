@@ -172,8 +172,8 @@ def mostrar_preguntas(usuario_id: int):
         '<div class="star-rating">' +
         "".join([
             f'<input type="radio" id="star{j}_{i}" name="respuesta_{i}" value="{j}" required>'
-            f'<label for="star{j}_{i}">&#9733;</label>'
-            for j in range(1, 11)
+            f'<label for="star{j}_{i}" class="star">&#9733;</label>'
+            for j in range(10, 0, -1)  # Orden inverso para correcta selección visual
         ]) + '</div><br><br>'
         for i, pregunta in enumerate(preguntas)
     ])
@@ -184,17 +184,25 @@ def mostrar_preguntas(usuario_id: int):
         <head>
             <title>Preguntas Adicionales</title>
             <style>
-                .star-rating input {
+                .star-rating {{
+                    display: flex;
+                    flex-direction: row-reverse;
+                    justify-content: flex-start;
+                }}
+                .star-rating input {{
                     display: none;
-                }
-                .star-rating label {
-                    font-size: 25px;
+                }}
+                .star-rating label {{
+                    font-size: 30px;
                     color: gray;
                     cursor: pointer;
-                }
-                .star-rating input:checked ~ label {
+                    transition: color 0.3s;
+                }}
+                .star-rating input:checked ~ label,
+                .star-rating label:hover,
+                .star-rating label:hover ~ label {{
                     color: gold;
-                }
+                }}
             </style>
         </head>
         <body>
