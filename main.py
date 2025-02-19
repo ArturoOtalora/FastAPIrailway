@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 import mysql.connector
+import random
 
 
 # Configurar la conexión a MySQL desde Railway
