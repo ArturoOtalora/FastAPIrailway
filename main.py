@@ -1,7 +1,23 @@
 from fastapi import FastAPI, Form, HTTPException
 from fastapi.responses import HTMLResponse
+import mysql.connector
+import os
+
+# Configurar la conexión a MySQL desde Railway
+DB_HOST = os.getenv("DB_HOST", "mysql.railway.internal")
+DB_USER = os.getenv("DB_USER", "root")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "umzzdISTaNglzBNhBcTqxNMamqkCUJfs")
+DB_NAME = os.getenv("DB_NAME", "railway")
 
 app = FastAPI()
+
+def get_db_connection():
+    return mysql.connector.connect(
+        host=DB_HOST,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        database=DB_NAME
+    )
 
 @app.post("/guardar_usuario")
 def guardar_usuario(
@@ -16,6 +32,18 @@ def guardar_usuario(
     antiguedad: str = Form(...),
     ciudad: str = Form(...),
 ):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        INSERT INTO usuarios (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, rango_edad, grado_escolaridad, antiguedad, ciudad)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """,
+        (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, rango_edad, grado_escolaridad, antiguedad, ciudad)
+    )
+    conn.commit()
+    cursor.close()
+    conn.close()
     return {"message": "Usuario guardado", "usuario": {"nombre": nombre, "apellidos": apellidos, "correo": correo}}
 
 @app.get("/", response_class=HTMLResponse)
