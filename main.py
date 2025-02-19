@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 import mysql.connector
-import random
 
 
 # Configurar la conexión a MySQL desde Railway
@@ -166,44 +165,17 @@ def mostrar_pagina():
     """
 @app.get("/preguntas", response_class=HTMLResponse)
 def mostrar_preguntas(usuario_id: int):
-    preguntas = random.choice(preguntas_sets)
-    preguntas_html = "".join([
-        f'<label>{pregunta}</label><br>' +
-        '<div class="star-rating">' +
-        "".join([
-            f'<input type="radio" id="star{j}_{i}" name="respuesta_{i}" value="{j}" required>'
-            f'<label for="star{j}_{i}" class="star">&#9733;</label>'
-            for j in range(10, 0, -1)  # Orden inverso para correcta selección visual
-        ]) + '</div><br><br>'
+     preguntas = random.choice(preguntas_sets)
+     preguntas_html = "".join([
+        f'<label>{pregunta}</label><input type="text" name="respuesta_{i}" required><br>' 
         for i, pregunta in enumerate(preguntas)
     ])
     
-    return f'''
+     return f'''
         <!DOCTYPE html>
         <html>
         <head>
             <title>Preguntas Adicionales</title>
-            <style>
-                .star-rating {{
-                    display: flex;
-                    flex-direction: row-reverse;
-                    justify-content: flex-start;
-                }}
-                .star-rating input {{
-                    display: none;
-                }}
-                .star-rating label {{
-                    font-size: 30px;
-                    color: gray;
-                    cursor: pointer;
-                    transition: color 0.3s;
-                }}
-                .star-rating input:checked ~ label,
-                .star-rating label:hover,
-                .star-rating label:hover ~ label {{
-                    color: gold;
-                }}
-            </style>
         </head>
         <body>
             <h1>Responde las siguientes preguntas:</h1>
