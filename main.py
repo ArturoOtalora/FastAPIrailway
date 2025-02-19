@@ -169,10 +169,12 @@ def mostrar_preguntas(usuario_id: int):
     preguntas = random.choice(preguntas_sets)
     preguntas_html = "".join([
         f'<label>{pregunta}</label><br>' +
+        '<div class="star-rating">' +
         "".join([
-            f'<input type="radio" name="respuesta_{i}" value="{j}" required> {j} ' 
+            f'<input type="radio" id="star{j}_{i}" name="respuesta_{i}" value="{j}" required>'
+            f'<label for="star{j}_{i}">&#9733;</label>'
             for j in range(1, 11)
-        ]) + '<br><br>'
+        ]) + '</div><br><br>'
         for i, pregunta in enumerate(preguntas)
     ])
     
@@ -181,6 +183,19 @@ def mostrar_preguntas(usuario_id: int):
         <html>
         <head>
             <title>Preguntas Adicionales</title>
+            <style>
+                .star-rating input {
+                    display: none;
+                }
+                .star-rating label {
+                    font-size: 25px;
+                    color: gray;
+                    cursor: pointer;
+                }
+                .star-rating input:checked ~ label {
+                    color: gold;
+                }
+            </style>
         </head>
         <body>
             <h1>Responde las siguientes preguntas:</h1>
