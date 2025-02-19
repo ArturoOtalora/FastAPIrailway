@@ -52,9 +52,9 @@ def guardar_usuario(
     conn.commit()
     cursor.close()
     conn.close()
-    return {"message": "Usuario guardado", "usuario": {"nombre": nombre, "apellidos": apellidos, "correo": correo}}
+    
 
-    # return RedirectResponse(url="/preguntas", status_code=303)
+    return RedirectResponse(url="/preguntas", status_code=303)
 
 
 @app.get("/mostrar_pagina", response_class=HTMLResponse)
