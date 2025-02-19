@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Form, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 import mysql.connector
-import os
 
 # Configurar la conexión a MySQL desde Railway
 DB_HOST = "shuttle.proxy.rlwy.net"
@@ -46,104 +45,52 @@ def guardar_usuario(
     conn.commit()
     cursor.close()
     conn.close()
-    return {"message": "Usuario guardado", "usuario": {"nombre": nombre, "apellidos": apellidos, "correo": correo}}
+    return RedirectResponse(url="/preguntas", status_code=303)
 
-@app.get("/", response_class=HTMLResponse)
-def mostrar_pagina():
+@app.get("/preguntas", response_class=HTMLResponse)
+def mostrar_preguntas():
     return """
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Turing - Registro de Usuario</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                background: #f4f4f4;
-                text-align: center;
-                padding: 50px;
-            }
-            .container {
-                background: white;
-                padding: 30px;
-                border-radius: 10px;
-                box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-                display: inline-block;
-                text-align: left;
-                width: 50%;
-            }
-            input, select {
-                width: 100%;
-                padding: 10px;
-                margin: 10px 0;
-                border-radius: 5px;
-                border: 1px solid #ccc;
-            }
-            label {
-                font-weight: bold;
-                display: block;
-                margin-top: 10px;
-            }
-            button {
-                background: #2575fc;
-                color: white;
-                padding: 10px 20px;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-                font-size: 16px;
-                margin-top: 15px;
-            }
-            button:hover {
-                background: #1e5bc6;
-            }
-        </style>
+        <title>Preguntas Adicionales</title>
     </head>
     <body>
-        <h1>Registro de Usuario</h1>
-        <div class="container">
-            <form action="/guardar_usuario" method="post">
-                <label for="nombre">Nombre:</label>
-                <input type="text" id="nombre" name="nombre" required>
-                
-                <label for="apellidos">Apellidos:</label>
-                <input type="text" id="apellidos" name="apellidos" required>
-                
-                <label for="tipo_documento">Tipo de Documento:</label>
-                <select id="tipo_documento" name="tipo_documento" required>
-                    <option value="CC">Cédula de Ciudadanía</option>
-                    <option value="TI">Tarjeta de Identidad</option>
-                    <option value="CE">Cédula de Extranjería</option>
-                </select>
-                
-                <label for="numero_identificacion">Número de Identificación:</label>
-                <input type="text" id="numero_identificacion" name="numero_identificacion" required>
-                
-                <label for="correo">Correo Electrónico:</label>
-                <input type="email" id="correo" name="correo" required>
-                
-                <label for="sexo">Sexo:</label>
-                <select id="sexo" name="sexo" required>
-                    <option value="Masculino">Masculino</option>
-                    <option value="Femenino">Femenino</option>
-                    <option value="Otro">Otro</option>
-                </select>
-                
-                <label for="rango_edad">Rango de Edad:</label>
-                <input type="text" id="rango_edad" name="rango_edad" required>
-                
-                <label for="grado_escolaridad">Grado de Escolaridad:</label>
-                <input type="text" id="grado_escolaridad" name="grado_escolaridad" required>
-                
-                <label for="antiguedad">Antigüedad:</label>
-                <input type="text" id="antiguedad" name="antiguedad" required>
-                
-                <label for="ciudad">Ciudad:</label>
-                <input type="text" id="ciudad" name="ciudad" required>
-                
-                <button type="submit">Registrar</button>
-            </form>
-        </div>
+        <h1>Responde las siguientes preguntas:</h1>
+        <form action="/guardar_respuestas" method="post">
+            <label>1. ¿Cuál es tu color favorito?</label>
+            <input type="text" name="color_favorito" required><br>
+            
+            <label>2. ¿Cuál es tu comida favorita?</label>
+            <input type="text" name="comida_favorita" required><br>
+            
+            <label>3. ¿Cuál es tu pasatiempo favorito?</label>
+            <input type="text" name="pasatiempo_favorito" required><br>
+            
+            <label>4. ¿Cuál es tu deporte favorito?</label>
+            <input type="text" name="deporte_favorito" required><br>
+            
+            <label>5. ¿Cuál es tu animal favorito?</label>
+            <input type="text" name="animal_favorito" required><br>
+            
+            <button type="submit">Enviar Respuestas</button>
+        </form>
     </body>
     </html>
     """
 
+@app.post("/guardar_respuestas")
+def guardar_respuestas(
+    color_favorito: str = Form(...),
+    comida_favorita: str = Form(...),
+    pasatiempo_favorito: str = Form(...),
+    deporte_favorito: str = Form(...),
+    animal_favorito: str = Form(...),
+):
+    return {"message": "Respuestas guardadas", "respuestas": {
+        "color_favorito": color_favorito,
+        "comida_favorita": comida_favorita,
+        "pasatiempo_favorito": pasatiempo_favorito,
+        "deporte_favorito": deporte_favorito,
+        "animal_favorito": animal_favorito
+    }}
