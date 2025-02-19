@@ -166,13 +166,17 @@ def mostrar_pagina():
     """
 @app.get("/preguntas", response_class=HTMLResponse)
 def mostrar_preguntas(usuario_id: int):
-     preguntas = random.choice(preguntas_sets)
-     preguntas_html = "".join([
-        f'<label>{pregunta}</label><input type="text" name="respuesta_{i}" required><br>' 
+    preguntas = random.choice(preguntas_sets)
+    preguntas_html = "".join([
+        f'<label>{pregunta}</label><br>' +
+        "".join([
+            f'<input type="radio" name="respuesta_{i}" value="{j}" required> {j} ' 
+            for j in range(1, 11)
+        ]) + '<br><br>'
         for i, pregunta in enumerate(preguntas)
     ])
     
-     return f'''
+    return f'''
         <!DOCTYPE html>
         <html>
         <head>
