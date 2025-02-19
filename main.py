@@ -3,9 +3,6 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 import mysql.connector
 
 
-@app.get("/")
-def home():
-    return RedirectResponse(url="/mostrar_pagina")
 # Configurar la conexión a MySQL desde Railway
 DB_HOST = "shuttle.proxy.rlwy.net"
 DB_USER = "root"
@@ -14,6 +11,11 @@ DB_NAME = "railway"
 DB_PORT = 17125
 
 app = FastAPI()
+
+
+@app.get("/")
+def home():
+    return RedirectResponse(url="/mostrar_pagina")
 
 def get_db_connection():
     return mysql.connector.connect(
