@@ -10,6 +10,7 @@ DB_PASSWORD = "umzzdISTaNglzBNhBcTqxNMamqkCUJfs"
 DB_NAME = "railway"
 DB_PORT = 17125
 
+
 app = FastAPI()
 
 
@@ -51,7 +52,9 @@ def guardar_usuario(
     conn.commit()
     cursor.close()
     conn.close()
-    return RedirectResponse(url="/preguntas", status_code=303)
+    return {"message": "Usuario guardado", "usuario": {"nombre": nombre, "apellidos": apellidos, "correo": correo}}
+
+    # return RedirectResponse(url="/preguntas", status_code=303)
 
 
 @app.get("/mostrar_pagina", response_class=HTMLResponse)
