@@ -54,7 +54,7 @@ def guardar_usuario(
     return RedirectResponse(url="/preguntas", status_code=303)
 
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/mostrar_pagina", response_class=HTMLResponse)
 def mostrar_pagina():
     return """
     <!DOCTYPE html>
