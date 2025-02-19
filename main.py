@@ -4,7 +4,7 @@ import mysql.connector
 import os
 
 # Configurar la conexión a MySQL desde Railway
-DB_HOST = os.getenv("DB_HOST", "mysql.railway.internal")
+DB_HOST = os.getenv("DB_HOST", "mysql://root:umzzdISTaNglzBNhBcTqxNMamqkCUJfs@shuttle.proxy.rlwy.net:17125/railway")
 DB_USER = os.getenv("DB_USER", "root")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "umzzdISTaNglzBNhBcTqxNMamqkCUJfs")
 DB_NAME = os.getenv("DB_NAME", "railway")
@@ -24,7 +24,7 @@ def guardar_usuario(
     nombre: str = Form(...),
     apellidos: str = Form(...),
     tipo_documento: str = Form(...),
-    numero_identificacion: str = Form(...),
+    numero_identificacion: int = Form(...),
     correo: str = Form(...),
     sexo: str = Form(...),
     rango_edad: str = Form(...),
@@ -144,3 +144,4 @@ def mostrar_pagina():
     </body>
     </html>
     """
+
