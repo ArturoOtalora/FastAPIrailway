@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 import mysql.connector
+import random
 
 
 # Configurar la conexión a MySQL desde Railway
@@ -12,6 +13,14 @@ DB_PORT = 17125
 
 
 app = FastAPI()
+
+preguntas_sets = [
+    ["¿Piensas que tu alimentación te nutre?", "¿Practicas ejercicios?", "¿Duermes bien?", "¿Tus hábitos ayudan a cuidar tu cuerpo?"],
+    ["Cuando fracasas en una tarea, ¿lo superas con facilidad?", "¿Cuando sabes que estás siendo evaluado por los demás, ¿consigues mantenerte tranquila/o?", "¿Si alguien critica el trabajo que haces, ¿Cómo te sientes?", "¿Crees tener buena autoestima?"],
+    ["Cuando no alcanzas un objetivo para el que te creías capaz, ¿Qué haces?", "¿Te gusta el desafío de hacer tareas nuevas?", "¿Cuando fracasas en una tarea, ¿eres capaz de reírte de ti mismo?", "¿Cuando fracasas en una tarea, ¿sientes que la gente que te quiere te seguirá apoyando?"],
+    ["¿Acostumbras lamentarte con amigos y familiares de las cualidades o habilidades que no tienes?", "¿Piensas con frecuencia en las veces que no lograste lo que querías?", "¿Eres una persona competitiva?", "¿Si la persona que te gusta te deja plantada/o, ¿Qué haces?"],
+    ["¿Te preparaste para un reto importante y crees que no te fue bien. ¿Cómo te sientes?", "¿Tienes poco interés o placer en hacer las cosas?", "¿Te sientes desanimado/a, triste, o sin esperanza?", "¿Sientes que tienes control sobre tu vida?"]
+]
 
 
 @app.get("/")
@@ -54,7 +63,7 @@ def guardar_usuario(
     conn.close()
     
 
-    return RedirectResponse(url="/preguntas", status_code=303)
+    return RedirectResponse(url=f"/preguntas?usuario_id={numero_identificacion}", status_code=303)
 
 
 @app.get("/mostrar_pagina", response_class=HTMLResponse)
@@ -156,50 +165,43 @@ def mostrar_pagina():
     </html>
     """
 @app.get("/preguntas", response_class=HTMLResponse)
-def mostrar_preguntas():
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Preguntas Adicionales</title>
-    </head>
-    <body>
-        <h1>Responde las siguientes preguntas:</h1>
-        <form action="/guardar_respuestas" method="post">
-            <label>1. ¿Cuál es tu color favorito?</label>
-            <input type="text" name="color_favorito" required><br>
-            
-            <label>2. ¿Cuál es tu comida favorita?</label>
-            <input type="text" name="comida_favorita" required><br>
-            
-            <label>3. ¿Cuál es tu pasatiempo favorito?</label>
-            <input type="text" name="pasatiempo_favorito" required><br>
-            
-            <label>4. ¿Cuál es tu deporte favorito?</label>
-            <input type="text" name="deporte_favorito" required><br>
-            
-            <label>5. ¿Cuál es tu animal favorito?</label>
-            <input type="text" name="animal_favorito" required><br>
-            
-            <button type="submit">Enviar Respuestas</button>
-        </form>
-    </body>
-    </html>
-    """
+def mostrar_preguntas(usuario_id: int):
+     preguntas = random.choice(preguntas_sets)
+     preguntas_html = "".join([
+        f'<label>{pregunta}</label><input type="text" name="respuesta_{i}" required><br>' 
+        for i, pregunta in enumerate(preguntas)
+    ])
+    
+     return f'''
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Preguntas Adicionales</title>
+        </head>
+        <body>
+            <h1>Responde las siguientes preguntas:</h1>
+            <form action="/guardar_respuestas" method="post">
+                <input type="hidden" name="usuario_id" value="{usuario_id}">
+                {preguntas_html}
+                <button type="submit">Enviar Respuestas</button>
+            </form>
+        </body>
+        </html>
+        '''
 
 @app.post("/guardar_respuestas")
-def guardar_respuestas(
-    color_favorito: str = Form(...),
-    comida_favorita: str = Form(...),
-    pasatiempo_favorito: str = Form(...),
-    deporte_favorito: str = Form(...),
-    animal_favorito: str = Form(...),
-):
-    return {"message": "Respuestas guardadas", "respuestas": {
-        "color_favorito": color_favorito,
-        "comida_favorita": comida_favorita,
-        "pasatiempo_favorito": pasatiempo_favorito,
-        "deporte_favorito": deporte_favorito,
-        "animal_favorito": animal_favorito
-    }}
-
+def guardar_respuestas(usuario_id: int = Form(...), **respuestas: str):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    for pregunta_id, respuesta in respuestas.items():
+        cursor.execute(
+            "INSERT INTO respuestasForm (usuario_id, pregunta, respuesta) VALUES (%s, %s, %s)",
+            (usuario_id, pregunta_id, respuesta)
+        )
+    
+    conn.commit()
+    cursor.close()
+    conn.close()
+    
+    return {"message": "Respuestas guardadas", "usuario_id": usuario_id, "respuestas": respuestas}
