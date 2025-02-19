@@ -4,10 +4,11 @@ import mysql.connector
 import os
 
 # Configurar la conexión a MySQL desde Railway
-DB_HOST = os.getenv("DB_HOST", "mysql://root:umzzdISTaNglzBNhBcTqxNMamqkCUJfs@shuttle.proxy.rlwy.net:17125/railway")
-DB_USER = os.getenv("DB_USER", "root")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "umzzdISTaNglzBNhBcTqxNMamqkCUJfs")
-DB_NAME = os.getenv("DB_NAME", "railway")
+DB_HOST = "shuttle.proxy.rlwy.net"
+DB_USER = "root"
+DB_PASSWORD = "umzzdISTaNglzBNhBcTqxNMamqkCUJfs"
+DB_NAME = "railway"
+DB_PORT = 17125
 
 app = FastAPI()
 
@@ -16,7 +17,8 @@ def get_db_connection():
         host=DB_HOST,
         user=DB_USER,
         password=DB_PASSWORD,
-        database=DB_NAME
+        database=DB_NAME,
+        port=DB_PORT
     )
 
 @app.post("/guardar_usuario")
