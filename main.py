@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Form, HTTPException
+from fastapi import FastAPI, Form, Request,Query 
 from fastapi.responses import HTMLResponse, RedirectResponse
 import mysql.connector
 import random
@@ -14,14 +14,17 @@ DB_PORT = 17125
 
 app = FastAPI()
 
-preguntas_sets = [
-    ["¿Piensas que tu alimentación te nutre?", "¿Practicas ejercicios?", "¿Duermes bien?", "¿Tus hábitos ayudan a cuidar tu cuerpo?"],
-    ["Cuando fracasas en una tarea, ¿lo superas con facilidad?", "¿Cuando sabes que estás siendo evaluado por los demás, ¿consigues mantenerte tranquila/o?", "¿Si alguien critica el trabajo que haces, ¿Cómo te sientes?", "¿Crees tener buena autoestima?"],
-    ["Cuando no alcanzas un objetivo para el que te creías capaz, ¿Qué haces?", "¿Te gusta el desafío de hacer tareas nuevas?", "¿Cuando fracasas en una tarea, ¿eres capaz de reírte de ti mismo?", "¿Cuando fracasas en una tarea, ¿sientes que la gente que te quiere te seguirá apoyando?"],
-    ["¿Acostumbras lamentarte con amigos y familiares de las cualidades o habilidades que no tienes?", "¿Piensas con frecuencia en las veces que no lograste lo que querías?", "¿Eres una persona competitiva?", "¿Si la persona que te gusta te deja plantada/o, ¿Qué haces?"],
-    ["¿Te preparaste para un reto importante y crees que no te fue bien. ¿Cómo te sientes?", "¿Tienes poco interés o placer en hacer las cosas?", "¿Te sientes desanimado/a, triste, o sin esperanza?", "¿Sientes que tienes control sobre tu vida?"]
+preguntas_lista = [
+    "¿Piensas que tu alimentación te nutre?", "¿Practicas ejercicios?", "¿Duermes bien?", "¿Tus hábitos ayudan a cuidar tu cuerpo?",
+    "Cuando fracasas en una tarea, ¿lo superas con facilidad?", "¿Cuando sabes que estás siendo evaluado por los demás, ¿consigues mantenerte tranquila/o?",
+    "¿Si alguien critica el trabajo que haces, ¿Cómo te sientes?", "¿Crees tener buena autoestima?",
+    "Cuando no alcanzas un objetivo para el que te creías capaz, ¿Qué haces?", "¿Te gusta el desafío de hacer tareas nuevas?",
+    "¿Cuando fracasas en una tarea, ¿eres capaz de reírte de ti mismo?", "¿Cuando fracasas en una tarea, ¿sientes que la gente que te quiere te seguirá apoyando?",
+    "¿Acostumbras lamentarte con amigos y familiares de las cualidades o habilidades que no tienes?", "¿Piensas con frecuencia en las veces que no lograste lo que querías?",
+    "¿Eres una persona competitiva?", "¿Si la persona que te gusta te deja plantada/o, ¿Qué haces?",
+    "¿Te preparaste para un reto importante y crees que no te fue bien. ¿Cómo te sientes?", "¿Tienes poco interés o placer en hacer las cosas?",
+    "¿Te sientes desanimado/a, triste, o sin esperanza?", "¿Sientes que tienes control sobre tu vida?"
 ]
-
 
 @app.get("/")
 def home():
@@ -165,29 +168,37 @@ def mostrar_pagina():
     </html>
     """
 @app.get("/preguntas", response_class=HTMLResponse)
-def mostrar_preguntas(usuario_id: int):
-      preguntas = random.choice(preguntas_sets)
-      preguntas_html = "".join([
+def mostrar_preguntas(usuario_id: int, pagina: int = Query(1, alias="pagina")):
+    inicio = (pagina - 1) * 10
+    fin = inicio + 10
+    preguntas = preguntas_lista[inicio:fin]
+    
+    preguntas_html = "".join([
+        f'<div class="pregunta-container">'
         f'<label>{pregunta}</label><br>' +
         '<div class="star-rating">' +
         "".join([
-            f'<input type="radio" id="star{j}_{i}" name="respuesta_{i}" value="{j}" required>'
-            f'<label for="star{j}_{i}" class="star">&#9733;</label>'
-            for j in range(10, 0, -1)  # Orden inverso para correcta selección visual
-        ]) + '</div><br><br>'
+            f'<input type="radio" id="star{j}_{inicio + i}" name="respuesta_{inicio + i}" value="{j}" required>'
+            f'<label for="star{j}_{inicio + i}" class="star">&#9733;</label>'
+            for j in range(10, 0, -1)
+        ]) + '</div></div>'
         for i, pregunta in enumerate(preguntas)
     ])
     
-      return f'''
+    return f'''
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Preguntas Adicionales</title>
+            <title>Preguntas</title>
             <style>
+                .pregunta-container {{
+                    margin-bottom: 20px;
+                }}
                 .star-rating {{
-                    display: inline-block;
-                    direction: rtl;
-                    unicode-bidi: bidi-override;
+                    display: flex;
+                    flex-direction: row-reverse; /* Para que las estrellas vayan de derecha a izquierda */
+                    justify-content: flex-start; /* Alinear las estrellas a la izquierda */
+                    gap: 5px;
                 }}
                 .star-rating input {{
                     display: none;
@@ -212,19 +223,29 @@ def mostrar_preguntas(usuario_id: int):
                 {preguntas_html}
                 <button type="submit">Enviar Respuestas</button>
             </form>
+            <br>
+            <a href="/preguntas?usuario_id={usuario_id}&pagina={pagina+1}">Siguiente</a>
         </body>
         </html>
-        '''
-
+    '''
 @app.post("/guardar_respuestas")
-def guardar_respuestas(usuario_id: int = Form(...), **respuestas: str):
+async def guardar_respuestas(request: Request, usuario_id: int = Form(...)):
+    form_data = await request.form()
+    respuestas = {}
+
+    for key, value in form_data.items():
+        if key.startswith("respuesta_"):
+            index = int(key.split("_")[1])
+            pregunta = preguntas_lista[index]
+            respuestas[pregunta] = value
+
     conn = get_db_connection()
     cursor = conn.cursor()
-    
-    for pregunta_id, respuesta in respuestas.items():
+
+    for pregunta, respuesta in respuestas.items():
         cursor.execute(
             "INSERT INTO respuestasForm (usuario_id, pregunta, respuesta) VALUES (%s, %s, %s)",
-            (usuario_id, pregunta_id, respuesta)
+            (usuario_id, pregunta, respuesta)
         )
     
     conn.commit()
@@ -232,3 +253,9 @@ def guardar_respuestas(usuario_id: int = Form(...), **respuestas: str):
     conn.close()
     
     return {"message": "Respuestas guardadas", "usuario_id": usuario_id, "respuestas": respuestas}
+
+
+      
+if __name__ == '__main__':
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8000)
