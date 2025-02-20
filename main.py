@@ -169,35 +169,64 @@ def mostrar_pagina():
     """
 @app.get("/preguntas", response_class=HTMLResponse)
 def mostrar_preguntas(usuario_id: int, pagina: int = Query(1, alias="pagina")):
-    inicio = (pagina - 1) * 10
-    fin = inicio + 10
+    total_preguntas = len(preguntas_lista)
+    preguntas_por_pagina = 10
+    inicio = (pagina - 1) * preguntas_por_pagina
+    fin = min(inicio + preguntas_por_pagina, total_preguntas)
     preguntas = preguntas_lista[inicio:fin]
-    
+
+    es_ultima_pagina = fin >= total_preguntas
+    progreso = (fin / total_preguntas) * 100
+
     preguntas_html = "".join([
-        f'<div class="pregunta-container">'
-        f'<label>{pregunta}</label><br>' +
-        '<div class="star-rating">' +
-        "".join([
-            f'<input type="radio" id="star{j}_{inicio + i}" name="respuesta_{inicio + i}" value="{j}" required>'
-            f'<label for="star{j}_{inicio + i}" class="star">&#9733;</label>'
-            for j in range(10, 0, -1)
-        ]) + '</div></div>'
+        f'''
+        <div class="pregunta-container">
+            <p class="pregunta">{pregunta}</p>
+            <div class="star-rating">
+                {"".join([
+                    f'<input type="radio" id="star{j}_{inicio + i}" name="respuesta_{inicio + i}" value="{j}" required>'
+                    f'<label for="star{j}_{inicio + i}" class="star">&#9733;</label>'
+                    for j in range(10, 0, -1)
+                ])}
+            </div>
+        </div>
+        '''
         for i, pregunta in enumerate(preguntas)
     ])
-    
+
     return f'''
         <!DOCTYPE html>
         <html>
         <head>
             <title>Preguntas</title>
             <style>
+                body {{
+                    font-family: Arial, sans-serif;
+                    background-color: #f4f4f4;
+                    text-align: center;
+                    padding: 20px;
+                }}
+                h1 {{
+                    color: #333;
+                }}
                 .pregunta-container {{
-                    margin-bottom: 20px;
+                    background: white;
+                    padding: 15px;
+                    margin: 15px auto;
+                    border-radius: 10px;
+                    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+                    width: 80%;
+                    text-align: left;
+                }}
+                .pregunta {{
+                    font-size: 18px;
+                    font-weight: bold;
+                    margin-bottom: 10px;
                 }}
                 .star-rating {{
                     display: flex;
-                    flex-direction: row-reverse; /* Para que las estrellas vayan de derecha a izquierda */
-                    justify-content: flex-start; /* Alinear las estrellas a la izquierda */
+                    flex-direction: row-reverse;
+                    justify-content: flex-start;
                     gap: 5px;
                 }}
                 .star-rating input {{
@@ -214,22 +243,69 @@ def mostrar_preguntas(usuario_id: int, pagina: int = Query(1, alias="pagina")):
                 .star-rating label:hover ~ label {{
                     color: gold;
                 }}
+                .progress-bar-container {{
+                    width: 80%;
+                    background-color: #e0e0e0;
+                    border-radius: 15px;
+                    margin: 20px auto;
+                    overflow: hidden;
+                    position: relative;
+                    height: 25px;
+                    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+                }}
+                .progress-bar {{
+                    height: 100%;
+                    width: {progreso}%;
+                    background: linear-gradient(90deg, #28a745, #218838);
+                    transition: width 0.5s;
+                    border-radius: 15px;
+                }}
+                .progress-text {{
+                    position: absolute;
+                    width: 100%;
+                    text-align: center;
+                    font-weight: bold;
+                    top: 0;
+                    left: 0;
+                    line-height: 25px;
+                    color: #fff;
+                    font-size: 14px;
+                }}
+                button {{
+                    background-color: #28a745;
+                    color: white;
+                    font-size: 16px;
+                    padding: 10px 20px;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    transition: background 0.3s;
+                }}
+                button:hover {{
+                    background-color: #218838;
+                }}
             </style>
         </head>
         <body>
             <h1>Responde las siguientes preguntas:</h1>
+            <div class="progress-bar-container">
+                <div class="progress-bar"></div>
+                <div class="progress-text">{progreso:.0f}%</div>
+            </div>
             <form action="/guardar_respuestas" method="post">
                 <input type="hidden" name="usuario_id" value="{usuario_id}">
+                <input type="hidden" name="pagina" value="{pagina}">
                 {preguntas_html}
-                <button type="submit">Enviar Respuestas</button>
+                <button type="submit">{'Finalizar' if es_ultima_pagina else 'Siguiente'}</button>
             </form>
-            <br>
-            <a href="/preguntas?usuario_id={usuario_id}&pagina={pagina+1}">Siguiente</a>
         </body>
         </html>
-    '''
+        '''
+
+
+
 @app.post("/guardar_respuestas")
-async def guardar_respuestas(request: Request, usuario_id: int = Form(...)):
+async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagina: int = Form(...)):
     form_data = await request.form()
     respuestas = {}
 
@@ -244,17 +320,23 @@ async def guardar_respuestas(request: Request, usuario_id: int = Form(...)):
 
     for pregunta, respuesta in respuestas.items():
         cursor.execute(
-            "INSERT INTO respuestasForm (usuario_id, pregunta, respuesta) VALUES (%s, %s, %s)",
+            "INSERT INTO respuestasForm (usuario_id, pregunta, respuesta) VALUES (%s, %s, %s) "
+            "ON DUPLICATE KEY UPDATE respuesta = VALUES(respuesta)",
             (usuario_id, pregunta, respuesta)
         )
-    
+
     conn.commit()
     cursor.close()
     conn.close()
-    
-    return {"message": "Respuestas guardadas", "usuario_id": usuario_id, "respuestas": respuestas}
 
+    total_preguntas = len(preguntas_lista)
+    preguntas_por_pagina = 10
+    es_ultima_pagina = (pagina * preguntas_por_pagina) >= total_preguntas
 
+    if es_ultima_pagina:
+        return {"message": "Respuestas finalizadas", "usuario_id": usuario_id}
+    else:
+        return RedirectResponse(url=f"/preguntas?usuario_id={usuario_id}&pagina={pagina+1}", status_code=303)
       
 if __name__ == '__main__':
     import uvicorn
