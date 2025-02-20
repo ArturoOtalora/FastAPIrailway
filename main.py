@@ -384,9 +384,43 @@ async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagi
     es_ultima_pagina = (pagina * preguntas_por_pagina) >= total_preguntas
 
     if es_ultima_pagina:
-        return {"message": "Respuestas finalizadas", "usuario_id": usuario_id}
+        return HTMLResponse(content='''
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>¡Buen trabajo!</title>
+                <style>
+                    body {{
+                        font-family: Arial, sans-serif;
+                        text-align: center;
+                        padding: 50px;
+                        background-color: #d4edda;
+                    }}
+                    .mensaje {{
+                        font-size: 24px;
+                        font-weight: bold;
+                        color: #155724;
+                    }}
+                    .container {{
+                        background: white;
+                        padding: 20px;
+                        border-radius: 10px;
+                        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+                        display: inline-block;
+                    }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <p class="mensaje">¡Buen trabajo! Has completado todas las preguntas.</p>
+                    <p>Gracias por tu tiempo y esfuerzo.</p>
+                </div>
+            </body>
+            </html>
+        ''')
     else:
         return RedirectResponse(url=f"/preguntas?usuario_id={usuario_id}&pagina={pagina+1}", status_code=303)
+
       
 if __name__ == '__main__':
     import uvicorn
