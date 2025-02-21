@@ -18,15 +18,15 @@ app = FastAPI()
 app.mount("/statics", StaticFiles(directory="statics"), name="statics")
 
 preguntas_lista = [
-    "¿Piensas que tu alimentación te nutre?", "¿Practicas ejercicios?", "¿Duermes bien?", "¿Tus hábitos ayudan a cuidar tu cuerpo?",
-    "Cuando fracasas en una tarea, ¿lo superas con facilidad?", "¿Cuando sabes que estás siendo evaluado por los demás, ¿consigues mantenerte tranquila/o?",
-    "¿Si alguien critica el trabajo que haces, ¿Cómo te sientes?", "¿Crees tener buena autoestima?",
-    "Cuando no alcanzas un objetivo para el que te creías capaz, ¿Qué haces?", "¿Te gusta el desafío de hacer tareas nuevas?",
-    "¿Cuando fracasas en una tarea, ¿eres capaz de reírte de ti mismo?", "¿Cuando fracasas en una tarea, ¿sientes que la gente que te quiere te seguirá apoyando?",
-    "¿Acostumbras lamentarte con amigos y familiares de las cualidades o habilidades que no tienes?", "¿Piensas con frecuencia en las veces que no lograste lo que querías?",
-    "¿Eres una persona competitiva?", "¿Si la persona que te gusta te deja plantada/o, ¿Qué haces?",
-    "¿Te preparaste para un reto importante y crees que no te fue bien. ¿Cómo te sientes?", "¿Tienes poco interés o placer en hacer las cosas?",
-    "¿Te sientes desanimado/a, triste, o sin esperanza?", "¿Sientes que tienes control sobre tu vida?"
+    "¿Consideras que tu alimentación te nutre lo suficientemente bien?", "¿Practicas semanal mínimo tres veces algún tipo de ejercicio?", "¿Consideras que tus habito de sueño te dan el descanso necesario?", "¿Durante los últimos seis meses has visitado o realizado un chequeo médico?",
+    "Piensas que los hábitos que hoy ocupan gran parte de tu tiempo te ayudan para tener un cuerpo más saludable?", "¿Cuando sabes que estás siendo evaluado por los demás, ¿consigues mantenerte tranquila/o?",
+    "¿Consideras que tus experiencias vividas te han ayudado a crecer como ser humano?", "¿A pesar de las dificultades sientes que te han ayudado a tener mejor calidad de vida?",
+    "Cada que obtienes un logro practicas la celebración de la victoria?", "¿Te adaptas fácil a diferentes situaciones o nuevas ideas?",
+    "¿Tu bienestar personal es prioridad en tu vida?", "¿Te has sentido impotente y dudando de ti por algún momento prolongado?",
+    "¿Sientes que tu circulo cercano te animan a lograr tus metas?", "¿te sientes agradecido por los logros obtenidos?",
+    "¿Durante los últimos seis meses has visitado o realizado un chequeo médico?", "¿Te siente valorado y respetado por los demás?",
+    "¿Sientes que la autoimagen que tienes de ti representa tu más alto valor como ser humano?", "¿Cuándo reflexionas de tu valor personal que tan consciente eres del valor que aportas al mundo?",
+    "¿Desde lo que hoy haces que pasión te motiva para seguir haciendolo por un tiempo más?", "¿Los pensamientos que más tienes sustentan la vida que hoy tienes?","Cuándo encuentras una verdad personal, por difícil que sea logras hacerla parte de ti","De tus ingresos dejas mínimo un 10% para ahorro","Realizas un presupuesto familiar mensual para tener una idea clara de tus ingresos y gastos","Tienes una o más inversiones de largo plazo que me permitan tener una base económica","Calculas la calidad de tus deudas sin poner en riesgo tu salud financiera","Con los ingresos que tienes podrías tener los gastos de subsistencia de 3 a 6 meses"
 ]
 
 @app.get("/")
@@ -199,7 +199,12 @@ def mostrar_pagina():
             </select>
             
             <label for="antiguedad">Antigüedad laborando en la compañía:</label>
-            <input type="text" id="antiguedad" name="antiguedad" required>
+            <select id="antiguedad" name="antiguedad" required>
+                <option value="Menos de 1 año">Menos de 1 año</option>
+                <option value="Entre 1 y 2 años ">Entre 1 y 2 años </option>
+                <option value="Entre 2 y 5 años">Entre 2 y 5 años</option>
+                <option value="Mas de 5 años">Mas de 5 añoso</option>
+            </select>
             
             <label for="ciudad">Ciudad:</label>
             <input type="text" id="ciudad" name="ciudad" required>
