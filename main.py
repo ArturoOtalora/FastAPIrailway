@@ -18,15 +18,15 @@ app = FastAPI()
 app.mount("/statics", StaticFiles(directory="statics"), name="statics")
 
 preguntas_lista = [
-    "¿Consideras que tu alimentación te nutre lo suficientemente bien?", "¿Practicas semanal mínimo tres veces algún tipo de ejercicio?", "¿Consideras que tus habito de sueño te dan el descanso necesario?", "¿Durante los últimos seis meses has visitado o realizado un chequeo médico?",
-    "Piensas que los hábitos que hoy ocupan gran parte de tu tiempo te ayudan para tener un cuerpo más saludable?", "¿Cuando sabes que estás siendo evaluado por los demás, ¿consigues mantenerte tranquila/o?",
-    "¿Consideras que tus experiencias vividas te han ayudado a crecer como ser humano?", "¿A pesar de las dificultades sientes que te han ayudado a tener mejor calidad de vida?",
-    "Cada que obtienes un logro practicas la celebración de la victoria?", "¿Te adaptas fácil a diferentes situaciones o nuevas ideas?",
-    "¿Tu bienestar personal es prioridad en tu vida?", "¿Te has sentido impotente y dudando de ti por algún momento prolongado?",
-    "¿Sientes que tu circulo cercano te animan a lograr tus metas?", "¿te sientes agradecido por los logros obtenidos?",
-    "¿Durante los últimos seis meses has visitado o realizado un chequeo médico?", "¿Te siente valorado y respetado por los demás?",
-    "¿Sientes que la autoimagen que tienes de ti representa tu más alto valor como ser humano?", "¿Cuándo reflexionas de tu valor personal que tan consciente eres del valor que aportas al mundo?",
-    "¿Desde lo que hoy haces que pasión te motiva para seguir haciendolo por un tiempo más?", "¿Los pensamientos que más tienes sustentan la vida que hoy tienes?","¿Cuándo encuentras una verdad personal, por difícil que sea logras hacerla parte de ti?","¿De tus ingresos dejas mínimo un 10% para ahorro?","¿Realizas un presupuesto familiar mensual para tener una idea clara de tus ingresos y gastos?","¿Tienes una o más inversiones de largo plazo que me permitan tener una base económica?","¿Calculas la calidad de tus deudas sin poner en riesgo tu salud financiera?","¿Con los ingresos que tienes podrías tener los gastos de subsistencia de 3 a 6 meses?"
+    "¿En qué medida consideras que tu alimentación te nutre adecuadamente?", "¿En qué medida realizas ejercicio físico al menos tres veces por semana?", "¿En qué medida tus hábitos de sueño te proporcionan un descanso óptimo?",
+    "¿En qué medida has realizado chequeos médicos en los últimos seis meses?", "¿En qué medida tus hábitos diarios contribuyen a tu salud física?",
+    "¿En qué medida tus experiencias pasadas han impulsado tu crecimiento personal?", "¿En qué medida las dificultades han mejorado tu calidad de vida?",
+    "¿En qué medida celebras tus logros o victorias?", "¿En qué medida te adaptas a cambios o nuevas situaciones?",
+    "¿En qué medida priorizas tu bienestar emocional?", "¿En qué medida experimentas sentimientos de impotencia o duda prolongados? (Invertida: Muy alto = negativo)",
+    "¿En qué medida tu círculo cercano apoya tus metas?", "¿En qué medida te sientes agradecido por tus logros?",
+    "¿En qué medida has evaluado tu salud mental con profesionales en los últimos seis meses?", "¿En qué medida te sientes valorado y respetado por otros?",
+    "¿En qué medida tu autoimagen refleja tu valor como ser humano?", "¿En qué medida eres consciente del impacto positivo que aportas al mundo?",
+    "¿En qué medida la pasión impulsa lo que haces actualmente?", "¿En qué medida tus pensamientos sostienen la vida que deseas tener?","¿En qué medida integras verdades personales difíciles en tu vida?","¿En qué medida ahorras al menos el 10% de tus ingresos mensuales?","¿En qué medida elaboras y sigues un presupuesto familiar?","¿En qué medida tienes inversiones a largo plazo para tu estabilidad económica?","¿En qué medida gestionas tus deudas sin afectar tu salud financiera?","¿En qué medida tus ahorros cubrirían gastos básicos por 3 a 6 meses?"
 ]
 
 @app.get("/")
