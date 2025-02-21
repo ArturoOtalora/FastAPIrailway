@@ -26,7 +26,7 @@ preguntas_lista = [
     "¿Sientes que tu circulo cercano te animan a lograr tus metas?", "¿te sientes agradecido por los logros obtenidos?",
     "¿Durante los últimos seis meses has visitado o realizado un chequeo médico?", "¿Te siente valorado y respetado por los demás?",
     "¿Sientes que la autoimagen que tienes de ti representa tu más alto valor como ser humano?", "¿Cuándo reflexionas de tu valor personal que tan consciente eres del valor que aportas al mundo?",
-    "¿Desde lo que hoy haces que pasión te motiva para seguir haciendolo por un tiempo más?", "¿Los pensamientos que más tienes sustentan la vida que hoy tienes?","Cuándo encuentras una verdad personal, por difícil que sea logras hacerla parte de ti","De tus ingresos dejas mínimo un 10% para ahorro","Realizas un presupuesto familiar mensual para tener una idea clara de tus ingresos y gastos","Tienes una o más inversiones de largo plazo que me permitan tener una base económica","Calculas la calidad de tus deudas sin poner en riesgo tu salud financiera","Con los ingresos que tienes podrías tener los gastos de subsistencia de 3 a 6 meses"
+    "¿Desde lo que hoy haces que pasión te motiva para seguir haciendolo por un tiempo más?", "¿Los pensamientos que más tienes sustentan la vida que hoy tienes?","¿Cuándo encuentras una verdad personal, por difícil que sea logras hacerla parte de ti","¿De tus ingresos dejas mínimo un 10% para ahorro?","¿Realizas un presupuesto familiar mensual para tener una idea clara de tus ingresos y gastos?","¿Tienes una o más inversiones de largo plazo que me permitan tener una base económica?","¿Calculas la calidad de tus deudas sin poner en riesgo tu salud financiera?","¿Con los ingresos que tienes podrías tener los gastos de subsistencia de 3 a 6 meses?"
 ]
 
 @app.get("/")
@@ -389,11 +389,64 @@ async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagi
     es_ultima_pagina = (pagina * preguntas_por_pagina) >= total_preguntas
 
     if es_ultima_pagina:
-        # Ruta absoluta o relativa al PDF dentro del proyecto
-        pdf_path = "statics/APB.pdf"
-        return FileResponse(pdf_path, media_type="application/pdf", filename="informe_final.pdf")
+        return HTMLResponse(content=f'''
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>¡Buen trabajo!</title>
+                <script>
+                    function descargarPDF() {{
+                        alert("¡Buen trabajo! Has completado todas las preguntas.");
+                        window.location.href = "/descargar_pdf";
+                    }}
+                </script>
+                <style>
+                    body {{
+                        font-family: Arial, sans-serif;
+                        text-align: center;
+                        padding: 50px;
+                        background-color: #d4edda;
+                    }}
+                    .container {{
+                        background: white;
+                        padding: 20px;
+                        border-radius: 10px;
+                        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+                        display: inline-block;
+                    }}
+                    .mensaje {{
+                        font-size: 24px;
+                        font-weight: bold;
+                        color: #155724;
+                    }}
+                    button {{
+                        background-color: #28a745;
+                        color: white;
+                        font-size: 16px;
+                        padding: 10px 20px;
+                        border: none;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        transition: background 0.3s;
+                        margin-top: 20px;
+                    }}
+                    button:hover {{
+                        background-color: #218838;
+                    }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <p class="mensaje">¡Buen trabajo! Has completado todas las preguntas.</p>
+                    <p>Gracias por tu tiempo y esfuerzo.</p>
+                    <button onclick="descargarPDF()">Descargar Informe</button>
+                </div>
+            </body>
+            </html>
+        ''')
     else:
         return RedirectResponse(url=f"/preguntas?usuario_id={usuario_id}&pagina={pagina+1}", status_code=303)
+
 
       
 if __name__ == '__main__':
