@@ -449,7 +449,7 @@ async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagi
 
 @app.get("/descargar_pdf")
 async def descargar_pdf():
-    pdf_path = "statics/mi_documento.pdf"
+    pdf_path = "statics/APB.pdf"
     return FileResponse(pdf_path, media_type="application/pdf", filename="APB.pdf")
       
 if __name__ == '__main__':
