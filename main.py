@@ -447,7 +447,10 @@ async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagi
     else:
         return RedirectResponse(url=f"/preguntas?usuario_id={usuario_id}&pagina={pagina+1}", status_code=303)
 
-
+@app.get("/descargar_pdf")
+async def descargar_pdf():
+    pdf_path = "statics/mi_documento.pdf"
+    return FileResponse(pdf_path, media_type="application/pdf", filename="APB.pdf")
       
 if __name__ == '__main__':
     import uvicorn
