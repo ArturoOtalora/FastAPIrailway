@@ -3,7 +3,16 @@ from fastapi.responses import HTMLResponse, RedirectResponse,FileResponse
 from fastapi.staticfiles import StaticFiles
 import mysql.connector
 import random
-
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib import colors
+from reportlab.lib.units import inch
+from reportlab.lib.utils import simpleSplit
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+from math import pi
+import textwrap
 
 # Configurar la conexión a MySQL desde Railway
 DB_HOST = "shuttle.proxy.rlwy.net"
@@ -356,8 +365,253 @@ def mostrar_preguntas(usuario_id: int, pagina: int = Query(1, alias="pagina")):
         </body>
         </html>
         '''
+def generar_graficos_por_categoria(valores_respuestas):
+    categorias = ["Vital", "Emocional", "Mental", "Existencial", "Financiera"]
+    colores = ["red", "green", "blue", "purple", "orange"]
+    valores = np.interp(valores_respuestas[:len(categorias)], (1, 10), (0, 1))  # Normalizar valores
 
+    if len(valores) < len(categorias):
+        print("Error: No hay suficientes respuestas para todas las categorías.")
+        return
 
+    angulos = [n / float(len(categorias)) * 2 * pi for n in range(len(categorias))]
+    angulos.append(angulos[0])  # Cerrar la gráfica
+    valores = np.append(valores, valores[0])  # Cerrar la gráfica con el primer valor
+
+    interpretaciones = {
+        "Vital": {
+            "muy_bajo": "⚠️ Energía y vitalidad muy bajas. Es importante mejorar hábitos de sueño y alimentación.",
+            "bajo": "🔄 Necesitas más actividad física y descanso adecuado.",
+            "medio": "✅ Nivel aceptable, pero aún puedes optimizar tu bienestar físico.",
+            "alto": "🌟 Te mantienes activo y con buena energía. ¡Sigue así!",
+            "muy_alto": "🔥 Excelente estado físico y bienestar general."
+        },
+        "Emocional": {
+            "muy_bajo": "⚠️ Estado emocional crítico. Considera buscar apoyo profesional.",
+            "bajo": "🔄 Hay altibajos en tu estado emocional. Trabaja en tu inteligencia emocional.",
+            "medio": "✅ Manejas bien tus emociones, pero aún puedes mejorar en resiliencia.",
+            "alto": "🌟 Tienes un gran equilibrio emocional. Mantente atento a tu bienestar.",
+            "muy_alto": "🔥 Fortaleza emocional sobresaliente. Inspiras a los demás."
+        },
+        "Mental": {
+            "muy_bajo": "⚠️ Bajo enfoque y claridad mental. Evalúa técnicas para mejorar la concentración.",
+            "bajo": "🔄 Necesitas fortalecer tu agilidad mental y manejo del estrés.",
+            "medio": "✅ Buen nivel, pero podrías mejorar en gestión de pensamientos.",
+            "alto": "🌟 Mente clara y activa. Excelente manejo de desafíos mentales.",
+            "muy_alto": "🔥 Dominio mental excepcional. Gran capacidad de aprendizaje y análisis."
+        },
+        "Existencial": {
+            "muy_bajo": "⚠️ Falta de propósito o conexión. Reflexiona sobre lo que te motiva.",
+            "bajo": "🔄 Buscas sentido a tu vida, sigue explorando lo que te hace feliz.",
+            "medio": "✅ Tienes claridad en algunos aspectos, pero aún puedes definir mejor tu propósito.",
+            "alto": "🌟 Buena conexión con tus valores y propósitos. Continúa creciendo.",
+            "muy_alto": "🔥 Plenitud y propósito bien definidos. Inspiras a los demás."
+        },
+        "Financiera": {
+            "muy_bajo": "⚠️ Inseguridad financiera alta. Evalúa mejorar tu educación financiera.",
+            "bajo": "🔄 Es momento de planificar mejor tus finanzas y controlar gastos.",
+            "medio": "✅ Manejas bien tus finanzas, pero aún hay áreas de mejora.",
+            "alto": "🌟 Finanzas saludables. Buen control de ingresos y gastos.",
+            "muy_alto": "🔥 Excelente estabilidad financiera. Gran visión para inversiones."
+        }
+    } 
+
+    for i, categoria in enumerate(categorias):
+        fig = plt.figure(figsize=(6, 6), facecolor="white")  # Fondo del cuadrado en blanco
+        ax = plt.subplot(111, polar=True)
+        
+        ax.set_facecolor("white")  # Fondo del gráfico en blanco
+        ax.set_theta_offset(pi / 2)
+        ax.set_theta_direction(-1)
+        
+        # Configuración de etiquetas en negro
+        ax.set_xticks(angulos[:-1])
+        ax.set_xticklabels(categorias, fontsize=12, fontweight="bold", color="black")
+
+        # Configuración de la cuadrícula y bordes en gris claro
+        ax.yaxis.grid(color="lightgray", linestyle="dashed", alpha=0.7)
+        ax.spines["polar"].set_color("lightgray")
+
+        # Resaltar la categoría actual
+        valores_resaltados = np.zeros(len(valores) - 1)
+        valores_resaltados[i] = valores[i]
+        valores_resaltados = np.append(valores_resaltados, valores_resaltados[0])
+
+        # Dibujar la gráfica con líneas en gris claro y área resaltada en azul claro
+        ax.plot(angulos, valores, linewidth=1, linestyle='solid', color="gray", alpha=0.5)
+        ax.fill(angulos, valores, 'gray', alpha=0.1)
+        ax.plot(angulos, valores_resaltados, linewidth=2, linestyle='solid', color="blue")
+        ax.fill(angulos, valores_resaltados, 'blue', alpha=0.3)
+
+        # Determinar nivel e interpretación
+        if valores[i] <= 0.2:
+            nivel = "muy_bajo"
+        elif valores[i] <= 0.4:
+            nivel = "bajo"
+        elif valores[i] <= 0.6:
+            nivel = "medio"
+        elif valores[i] <= 0.8:
+            nivel = "alto"
+        else:
+            nivel = "muy_alto"
+
+        interpretacion = interpretaciones[categoria][nivel]
+
+        # Título alineado a la izquierda, fuera del gráfico
+        plt.title(f"Perfil en {categoria}", fontsize=15, fontweight="bold", color="black", pad=40)
+
+        # Agregar recomendación debajo del gráfico con ajuste para texto largo
+        plt.figtext(
+            0.5, -0.05,  # Ajuste en Y para evitar corte
+            interpretacion, 
+            ha="center", 
+            fontsize=12, 
+            fontweight="bold", 
+            fontfamily="serif", 
+            color="black",
+            bbox={"facecolor": "whitesmoke", "edgecolor": "black", "boxstyle": "round,pad=0.5", "alpha": 0.8},
+            wrap=True  # Ajuste para que no se corte el texto
+        )
+
+        # Guardar imagen con fondo blanco completo
+        plt.savefig(f"statics/radar_{categoria.lower()}.png", transparent=False, dpi=300, facecolor="white", bbox_inches="tight")
+
+        plt.close()
+
+def generar_pdf_con_analisis(usuario_id):
+    """Genera un PDF con un análisis de las respuestas del usuario."""
+    pdf_path = f"statics/analisis_usuario_{usuario_id}.pdf"
+    c = canvas.Canvas(pdf_path, pagesize=letter)
+    width, height = letter
+     # Establecer fondo de pantalla más pequeño y con transparencia
+    background_path = "statics/VITAL.png"
+    
+    if os.path.exists(background_path):
+        img_width, img_height = width * 0.1, height * 0.1  # Reducir tamaño
+        x_position = width - img_width - 10  # Ajustar margen derecho
+        y_position = height - img_height - 10  # Ajustar margen superior
+        c.drawImage(background_path, x_position, y_position, width=img_width, height=img_height, mask=[255, 255, 255, 255, 255, 255])
+        # Obtener respuestas de la base de datos
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT pregunta, respuesta FROM respuestasForm WHERE usuario_id = %s", (usuario_id,))
+    respuestas = cursor.fetchall()
+    conn.close()
+
+    if not respuestas:
+        return None  # Si no hay respuestas, no generamos el PDF.
+
+    # Convertir respuestas a valores numéricos
+    valores_respuestas = np.array([int(respuesta) for _, respuesta in respuestas])
+    generar_graficos_por_categoria(valores_respuestas)
+    # Análisis básico
+    promedio = np.mean(valores_respuestas)
+    min_valor = np.min(valores_respuestas)
+    max_valor = np.max(valores_respuestas)
+
+    # Determinar tendencias
+    if promedio >= 8:
+        interpretacion = "Se muestra con una alta capacidad de resiliencia, además puede soportar las demandas de la vida diaria. Tiene una percepción de bienestar que le proporciona la sensación de que todas las áreas de su vida se encuentran en un estado de aparente plenitud. Su energía vital se ubica por encima del promedio, lo que quiere decir que siente que todo en su vida marcha de la mejor manera. Tiende a tener un estado de ánimo elevado, lo cual representa una situación no retadora para la persona, pues puede llegar a no permitirse la expresión de emociones, así como la transformación de las mismas."
+        recomendaciones = [
+            "•	Permitirse identificar sus emociones y las reacciones que presenta cuando experimenta alguna situación desfavorable, gestionándolas y equilibrándolas.",
+            "•	Ser consciente de sus oportunidades de mejora, con el propósito de tomar acciones para transformarlas",
+            "•	Continuar potenciando sus capacidades y habilidades, a través del reconocimiento de otras facultades, y de herramientas del medio que pueda emplear para dicho fin",
+            "•	Darse momentos de descanso, quietud y desconexión."
+        ]
+    elif promedio >= 7:
+        interpretacion = "Tiene alta capacidad de percepción de los estímulos ambientales, puede responder de manera adecuada y oportuna frente a los mismos, lo cual la ubica en una posición de consciencia. En este nivel, se reconocen las oportunidades de mejora y se buscan estrategias que permitan transformarlas. La percepción de bienestar que tiene la persona sobre sí misma y el ambiente es óptima, reconoce que se encuentra en equilibrio y tiene todas las potencialidades para llevar una vida plena; lo anterior, le permite sentir vitalidad y motivación para emprender acciones que la lleven al logro de objetivos, así como para enfrentarse a nuevos retos relacionales, personales y/o laborales."
+        recomendaciones = [
+            "•	Continuar fortaleciendo la inteligencia emocional a través de la empatía, las habilidades sociales, la autoconsciencia y el autoconocimiento",
+            "•	Seguir potenciando su proyecto de vida por medio de acciones asertivas que permitan el logro de objetivos",
+            "•	Generar relaciones de valor con las personas a su alrededor; buscando que la relación consigo mismo y los demás, sean motivadores para seguir cargando de sentido las áreas de su vida, encontrando en ellas equilibrio"
+        ]
+    elif promedio >= 5:
+        interpretacion = "puede experimentar cambios en el estado de ánimo por periodos de tiempo intermitente, llevándola a tener sensación de cansancio y malestar frente algunos acontecimientos de la vida diaria. Si bien puede reconocer tener cierta capacidad para enfrentar diferentes situaciones, esta persona puede experimentar sensaciones de impotencia y una consciencia moderada frente al sentido de vida, sin embargo, resalta la importancia de la integralidad del ser (cuerpo, mente, emociones y espíritu), aunque se le dificulta tomar acción para resolver determinados momentos de crisis. Su proceso de aprendizaje resulta más efectivo, debido a la capacidad de autorreflexión y la búsqueda de mejoras continuas."
+        recomendaciones = [
+            "•	Gestionar sus emociones, identificando reacciones frente a situaciones y buscando alternativas para su manejo",
+            "•	Transformar pensamientos limitantes o negativos",
+            "•	Practicar actividades de interés personal, y donde se vincule sus relaciones interpersonales",
+            "•	Identificar los propios recursos psicológicos y las herramientas empleadas en otros momentos de la vida, para hace frente a situaciones adversas",
+            "•	Tener consciencia del aquí y el ahora, viviendo en el presente",
+            "•	Buscar técnicas para aumentar la productividad",
+        ]
+    elif promedio >= 3:
+        interpretacion = "Puede actuar de manera lenta para captar situaciones o demandas del entorno; se percibe con agotamiento y falta de energía, lo que hace que se presenten alteraciones a nivel físico, emocional, mental y espiritual, que producen sensación de malestar, poca actividad, desmotivación y baja productividad. Puede no estar conectada con su sentido existencial y su fuente de energía, es decir, repite comportamientos que la hacen permanecer en el mismo ciclo, dificultándosele encontrar motivadores alineados con su propósito de vida."
+        recomendaciones = [
+            "•	Mejorar hábitos alimenticios y del sueño",
+            "•	Buscar motivadores para encontrar su propósito y trabajar en su proyecto de vida",
+            "•	Exteriorizar y gestionar sus emociones.",
+            "•	Realizar actividades que solía hacer y disfrutar; tener un diario de bienestar donde se consigne la rutina diaria",
+            "•	Practicar acciones para el autocuidado, tales como: actividad física, chequeos médicos, dedicarse momentos de esparcimiento, darse regalos, etc.",
+            "•	Emplear técnicas de meditación",
+            "•	Trabajar la gestión del tiempo"
+        ]
+    else:
+        interpretacion = "Puede experimentar una alta resistencia para resolver situaciones que se le presentan en la vida cotidiana, adicional a ello, puede presentar una escasa consciencia para comprender y actuar ante situaciones nuevas e inesperadas. Puede presentarse agotamiento físico, mental, emocional y espiritual de carácter extremo y persistente en el tiempo, perjudicando a la persona en las diferentes esferas de la vida. La desesperanza y frustración continúan en un crecimiento exponencial."
+        recomendaciones = [
+            "•	Dedicarse tiempos de descanso y reposo acordes a la necesidad identificada",
+            "•	Emplear técnicas de respiración, relajación muscular y meditación (consciencia plena)",
+            "•	Llevar una dieta balanceada.",
+            "•	Higiene del sueño",
+            "•	Diseñar y emplear un cronograma de actividades gratificantes y/o rutina diaria.",
+            "•	Propiciar la autorreflexión, buscando fortalecer su dimensión espiritual.",
+            "•	Trabajar el sentido de vida, buscando motivadores, encontrando su misión, pasión y vocación de vida",
+            "•	Identificar/transformar creencias y patrones de comportamiento.",
+            "•	Buscar y establecer redes de apoyo.",
+            "•	Practicar actividades artísticas tales como: dibujo, pintura, escritura, baile."
+        ]
+                        
+    
+    # Crear el PDF
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(100, height - 50, "Análisis de tus Respuestas")
+
+    c.setFont("Helvetica", 12)
+    y_position = height - 100
+    max_width = width - 150  
+    lineas_interpretacion = simpleSplit(interpretacion, "Helvetica", 12, max_width)
+
+    for linea in lineas_interpretacion:
+        c.drawString(100, y_position, linea)
+        y_position -= 20  
+    
+    y_position -= 20
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(100, y_position, "Recomendaciones:")
+    y_position -= 20
+    c.setFont("Helvetica", 12)
+    
+    for recomendacion in recomendaciones:
+        lineas_recomendacion = simpleSplit(recomendacion, "Helvetica", 12, max_width)
+        for linea in lineas_recomendacion:
+            c.drawString(120, y_position, linea)
+            y_position -= 20
+        y_position -= 10
+
+    # Saltar a una nueva página para los gráficos si no hay suficiente espacio
+    c.showPage()    
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(100, height - 50, "Gráficos por Categoría")
+
+    y_position = height - 100
+    img_width = 250
+    img_height = 250
+    x_position = (width - img_width) / 2
+
+    for categoria in ["vital", "emocional", "mental", "existencial", "financiera"]:
+        image_path = f"statics/radar_{categoria}.png"
+        if os.path.exists(image_path):
+            if y_position - img_height < 50:
+                c.showPage()  # Crear una nueva página si no hay suficiente espacio
+                y_position = height - 100
+                c.setFont("Helvetica-Bold", 16)
+                c.drawString(100, height - 50, "Gráficos por Categoría")
+            
+            c.drawImage(image_path, x_position, y_position - img_height, width=img_width, height=img_height)
+            y_position -= img_height + 20  # Espacio entre gráficos
+
+    c.save()
+    return pdf_path
 
 @app.post("/guardar_respuestas")
 async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagina: int = Form(...)):
@@ -390,67 +644,66 @@ async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagi
 
     if es_ultima_pagina:
         return HTMLResponse(content=f'''
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>¡Buen trabajo!</title>
-                <script>
-                    function descargarPDF() {{
-                        alert("¡Buen trabajo! Has completado todas las preguntas.");
-                        window.location.href = "/descargar_pdf";
-                    }}
-                </script>
-                <style>
-                    body {{
-                        font-family: Arial, sans-serif;
-                        text-align: center;
-                        padding: 50px;
-                        background-color: #d4edda;
-                    }}
-                    .container {{
-                        background: white;
-                        padding: 20px;
-                        border-radius: 10px;
-                        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-                        display: inline-block;
-                    }}
-                    .mensaje {{
-                        font-size: 24px;
-                        font-weight: bold;
-                        color: #155724;
-                    }}
-                    button {{
-                        background-color: #28a745;
-                        color: white;
-                        font-size: 16px;
-                        padding: 10px 20px;
-                        border: none;
-                        border-radius: 5px;
-                        cursor: pointer;
-                        transition: background 0.3s;
-                        margin-top: 20px;
-                    }}
-                    button:hover {{
-                        background-color: #218838;
-                    }}
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <p class="mensaje">¡Buen trabajo! Has completado todas las preguntas.</p>
-                    <p>Gracias por tu tiempo y esfuerzo.</p>
-                    <button onclick="descargarPDF()">Descargar Informe</button>
-                </div>
-            </body>
-            </html>
-        ''')
-    else:
-        return RedirectResponse(url=f"/preguntas?usuario_id={usuario_id}&pagina={pagina+1}", status_code=303)
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>¡Buen trabajo!</title>
+            <script>
+                function descargarPDF() {{
+                    alert("Generando informe...");
+                    window.location.href = "/descargar_pdf?usuario_id={usuario_id}";
+                }}
+            </script>
+            <style>
+                body {{
+                    font-family: Arial, sans-serif;
+                    text-align: center;
+                    padding: 50px;
+                    background-color: #d4edda;
+                }}
+                .container {{
+                    background: white;
+                    padding: 20px;
+                    border-radius: 10px;
+                    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+                    display: inline-block;
+                }}
+                .mensaje {{
+                    font-size: 24px;
+                    font-weight: bold;
+                    color: #155724;
+                }}
+                button {{
+                    background-color: #28a745;
+                    color: white;
+                    font-size: 16px;
+                    padding: 10px 20px;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    transition: background 0.3s;
+                    margin-top: 20px;
+                }}
+                button:hover {{
+                    background-color: #218838;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <p class="mensaje">¡Buen trabajo! Has completado todas las preguntas.</p>
+                <p>Gracias por tu tiempo y esfuerzo.</p>
+                <button onclick="descargarPDF()">Descargar Informe</button>
+            </div>
+        </body>
+        </html>
+    ''')
 
 @app.get("/descargar_pdf")
-async def descargar_pdf():
-    pdf_path = "statics/APB.pdf"
-    return FileResponse(pdf_path, media_type="application/pdf", filename="APB.pdf")
+async def descargar_pdf(usuario_id: int):
+    pdf_path = generar_pdf_con_analisis(usuario_id)  # Genera el PDF cuando el usuario lo solicita
+    return FileResponse(pdf_path, media_type="application/pdf", filename=f"Analisis_Respuestas_{usuario_id}.pdf")
+
       
 if __name__ == '__main__':
     import uvicorn
