@@ -643,16 +643,71 @@ async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagi
     es_ultima_pagina = (pagina * preguntas_por_pagina) >= total_preguntas
 
     if es_ultima_pagina:
-        
         # Generar el PDF con el análisis de respuestas
+
+            contenido_html = f"""
+            <html>
+            <head>
+                <title>¡Buen trabajo!</title>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+                <style>
+                    body {{
+                        font-family: 'Roboto', sans-serif;
+                        text-align: center;
+                        padding: 50px;
+                        background-color: #f4f4f4;
+                    }}
+                    .container {{
+                        background: white;
+                        padding: 30px;
+                        border-radius: 12px;
+                        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+                        display: inline-block;
+                        max-width: 500px;
+                    }}
+                    h1 {{
+                        color: #333;
+                    }}
+                    p {{
+                        font-size: 18px;
+                        color: #666;
+                    }}
+                    button {{
+                        background-color: #007bff;
+                        color: white;
+                        border: none;
+                        padding: 15px 25px;
+                        font-size: 18px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        margin-top: 20px;
+                        transition: background 0.3s ease-in-out;
+                    }}
+                    button:hover {{
+                        background-color: #0056b3;
+                    }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>¡Gracias por tu tiempo!</h1>
+                    <p>Haz clic en el botón para generar y descargar tu análisis de respuestas:</p>
+                    <button onclick="window.location.href='/descargar_pdf?usuario_id={usuario_id}'">Generar y Descargar Análisis</button>
+                </div>
+            </body>
+            </html>
+            """
+            return HTMLResponse(content=contenido_html)
+    else:
+            return RedirectResponse(url=f"/preguntas?usuario_id={usuario_id}&pagina={pagina+1}", status_code=303)
+@app.get("/descargar_pdf")
+def descargar_pdf(usuario_id: int):
         pdf_path = generar_pdf_con_analisis(usuario_id)
         if pdf_path:
             return FileResponse(pdf_path, media_type="application/pdf", filename=f"Analisis_Respuestas_{usuario_id}.pdf")
-        else:
-            return HTMLResponse(content="<h1>No se encontraron respuestas para generar el análisis.</h1>")
-    else:
-        return RedirectResponse(url=f"/preguntas?usuario_id={usuario_id}&pagina={pagina+1}", status_code=303)
-      
+        return HTMLResponse(content="<h1>Error al generar el PDF.</h1>")
+
 if __name__ == '__main__':
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=8000)
