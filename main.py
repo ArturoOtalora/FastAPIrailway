@@ -643,67 +643,15 @@ async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagi
     es_ultima_pagina = (pagina * preguntas_por_pagina) >= total_preguntas
 
     if es_ultima_pagina:
-        return HTMLResponse(content=f'''
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>¡Buen trabajo!</title>
-            <script>
-                function descargarPDF() {{
-                    alert("Generando informe...");
-                    window.location.href = "/descargar_pdf?usuario_id={usuario_id}";
-                }}
-            </script>
-            <style>
-                body {{
-                    font-family: Arial, sans-serif;
-                    text-align: center;
-                    padding: 50px;
-                    background-color: #d4edda;
-                }}
-                .container {{
-                    background: white;
-                    padding: 20px;
-                    border-radius: 10px;
-                    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-                    display: inline-block;
-                }}
-                .mensaje {{
-                    font-size: 24px;
-                    font-weight: bold;
-                    color: #155724;
-                }}
-                button {{
-                    background-color: #28a745;
-                    color: white;
-                    font-size: 16px;
-                    padding: 10px 20px;
-                    border: none;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    transition: background 0.3s;
-                    margin-top: 20px;
-                }}
-                button:hover {{
-                    background-color: #218838;
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <p class="mensaje">¡Buen trabajo! Has completado todas las preguntas.</p>
-                <p>Gracias por tu tiempo y esfuerzo.</p>
-                <button onclick="descargarPDF()">Descargar Informe</button>
-            </div>
-        </body>
-        </html>
-    ''')
-
-@app.get("/descargar_pdf")
-async def descargar_pdf(usuario_id: int):
-    pdf_path = generar_pdf_con_analisis(usuario_id)  # Genera el PDF cuando el usuario lo solicita
-    return FileResponse(pdf_path, media_type="application/pdf", filename=f"Analisis_Respuestas_{usuario_id}.pdf")
-
+        
+        # Generar el PDF con el análisis de respuestas
+        pdf_path = generar_pdf_con_analisis(usuario_id)
+        if pdf_path:
+            return FileResponse(pdf_path, media_type="application/pdf", filename=f"Analisis_Respuestas_{usuario_id}.pdf")
+        else:
+            return HTMLResponse(content="<h1>No se encontraron respuestas para generar el análisis.</h1>")
+    else:
+        return RedirectResponse(url=f"/preguntas?usuario_id={usuario_id}&pagina={pagina+1}", status_code=303)
       
 if __name__ == '__main__':
     import uvicorn
