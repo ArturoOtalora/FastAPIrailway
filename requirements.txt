@@ -6,4 +6,4 @@ mysql-connector-python
 reportlab
 numpy
 matplotlib
-
+pandas

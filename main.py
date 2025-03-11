@@ -8,11 +8,14 @@ from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 from reportlab.lib.utils import simpleSplit
+from reportlab.lib import colors
+from matplotlib.patches import Rectangle
 import os
 import numpy as np
 import matplotlib.pyplot as plt
 from math import pi
 import textwrap
+import pandas as pd
 
 # Configurar la conexión a MySQL desde Railway
 DB_HOST = "shuttle.proxy.rlwy.net"
@@ -27,7 +30,7 @@ app = FastAPI()
 app.mount("/statics", StaticFiles(directory="statics"), name="statics")
 
 preguntas_lista = [
-    "¿En qué medida consideras que tu alimentación te nutre adecuadamente?", "¿En qué medida realizas ejercicio físico al menos tres veces por semana?", "¿En qué medida tus hábitos de sueño te proporcionan un descanso óptimo?",
+    "¿En qué medida      que tu alimentación te nutre adecuadamente?", "¿En qué medida realizas ejercicio físico al menos tres veces por semana?", "¿En qué medida tus hábitos de sueño te proporcionan un descanso óptimo?",
     "¿En qué medida has realizado chequeos médicos en los últimos seis meses?", "¿En qué medida tus hábitos diarios contribuyen a tu salud física?",
     "¿En qué medida tus experiencias pasadas han impulsado tu crecimiento personal?", "¿En qué medida las dificultades han mejorado tu calidad de vida?",
     "¿En qué medida celebras tus logros o victorias?", "¿En qué medida te adaptas a cambios o nuevas situaciones?",
@@ -227,171 +230,174 @@ def mostrar_pagina():
     """
 @app.get("/preguntas", response_class=HTMLResponse)
 def mostrar_preguntas(usuario_id: int, pagina: int = Query(1, alias="pagina")):
+    # Definición de categorías y preguntas asociadas
+    categorias_preguntas = {
+        "Salud Vital Corporal": preguntas_lista[0:5],
+        "Salud Emocional": preguntas_lista[5:10],
+        "Salud Mental": preguntas_lista[10:15],
+        "Sentido Existencial": preguntas_lista[15:20],
+        "Salud Financiera": preguntas_lista[20:25]
+    }
+
     total_preguntas = len(preguntas_lista)
     preguntas_por_pagina = 10
     inicio = (pagina - 1) * preguntas_por_pagina
     fin = min(inicio + preguntas_por_pagina, total_preguntas)
-    preguntas = preguntas_lista[inicio:fin]
-
     es_ultima_pagina = fin >= total_preguntas
     progreso = (fin / total_preguntas) * 100
 
-    preguntas_html = "".join([
-        f'''
-        <div class="pregunta-container">
-            <p class="pregunta">{pregunta}</p>
-            <div class="star-rating">
-                {"".join([
-                    f'<input type="radio" id="star{j}_{inicio + i}" name="respuesta_{inicio + i}" value="{j}" required>'
-                    f'<label for="star{j}_{inicio + i}" class="star">&#9733;</label>'
-                    for j in range(10, 0, -1)
-                ])}
-            </div>
-        </div>
-        '''
-        for i, pregunta in enumerate(preguntas)
-    ])
+    # Generación dinámica de HTML para preguntas organizadas por categorías
+    preguntas_html = ""
+    contador = 0
+    for categoria, preguntas in categorias_preguntas.items():
+        preguntas_html += f'<h2>{categoria}</h2>'
+        for pregunta in preguntas:
+            if inicio <= contador < fin:
+                preguntas_html += f'''
+                <div class="pregunta-container">
+                    <p class="pregunta">{pregunta}</p>
+                    <div class="star-rating">
+                        {"".join([
+                            f'<input type="radio" id="star{j}_{contador}" name="respuesta_{contador}" value="{j}" required>'
+                            f'<label for="star{j}_{contador}" class="star">&#9733;</label>'
+                            for j in range(10, 0, -1)
+                        ])}
+                    </div>
+                </div>
+                '''
+            contador += 1
 
     return f'''
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Preguntas</title>
-            <style>
-                body {{
-                    font-family: Arial, sans-serif;
-                    background: url('/statics/VITALV.jpg') no-repeat center center fixed;
-            background-size: contain;  /* No estira la imagen */
-            background-attachment: fixed; /* Mantiene la imagen en su lugar */
-            background-color: #f4f4f4; /* Color de respaldo en caso de que la imagen no cargue */
-            
-                    background-color: #f4f4f4;
-                    text-align: center;
-                    padding: 20px;
-                }}
-                h1 {{
-                    color: #333;
-                }}
-                .pregunta-container {{
-                    background: white;
-                    padding: 15px;
-                    margin: 15px auto;
-                    border-radius: 10px;
-                    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-                    width: 80%;
-                    text-align: left;
-                }}
-                .pregunta {{
-                    font-size: 18px;
-                    font-weight: bold;
-                    margin-bottom: 10px;
-                }}
-                .star-rating {{
-                    display: flex;
-                    flex-direction: row-reverse;
-                    justify-content: flex-start;
-                    gap: 5px;
-                }}
-                .star-rating input {{
-                    display: none;
-                }}
-                .star-rating label {{
-                    font-size: 30px;
-                    color: gray;
-                    cursor: pointer;
-                    transition: color 0.3s;
-                }}
-                .star-rating input:checked ~ label,
-                .star-rating label:hover,
-                .star-rating label:hover ~ label {{
-                    color: gold;
-                }}
-                .progress-bar-container {{
-                    width: 80%;
-                    background-color: #e0e0e0;
-                    border-radius: 15px;
-                    margin: 20px auto;
-                    overflow: hidden;
-                    position: relative;
-                    height: 25px;
-                    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
-                }}
-                .progress-bar {{
-                    height: 100%;
-                    width: {progreso}%;
-                    background: linear-gradient(90deg, #28a745, #218838);
-                    transition: width 0.5s;
-                    border-radius: 15px;
-                }}
-                .progress-text {{
-                    position: absolute;
-                    width: 100%;
-                    text-align: center;
-                    font-weight: bold;
-                    top: 0;
-                    left: 0;
-                    line-height: 25px;
-                    color: #fff;
-                    font-size: 14px;
-                }}
-                button {{
-                    background-color: #28a745;
-                    color: white;
-                    font-size: 16px;
-                    padding: 10px 20px;
-                    border: none;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    transition: background 0.3s;
-                }}
-                button:hover {{
-                    background-color: #218838;
-                }}
-            </style>
-        </head>
-        <body>
-             <h1>Bienvenidos a un lugar seguro donde tus pensamientos y emociones pueden ser escuchados y comprendidos:</h1>
-        <p class="instrucciones">Selecciona el número de estrellas que mejor represente tu opinión: 1 ⭐ significa 'Muy Bajo' y 10 ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ significa 'Muy Alto</p>
-    <div class="progress-bar-container">
-        <div class="progress-bar"></div>
-        <div class="progress-text">{progreso:.0f}%</div>
-    </div>
-    <form action="/guardar_respuestas" method="post">
-        <input type="hidden" name="usuario_id" value="{usuario_id}">
-        <input type="hidden" name="pagina" value="{pagina}">
-        {preguntas_html}
-        <button type="submit">{'Finalizar' if es_ultima_pagina else 'Siguiente'}</button>
-            </form>
-        </body>
-        </html>
-        '''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Preguntas</title>
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                background: url('/statics/VITALV.jpg') no-repeat center center fixed;
+                background-size: contain;
+                background-attachment: fixed;
+                background-color: #f4f4f4;
+                text-align: center;
+                padding: 20px;
+            }}
+            h1, h2 {{
+                color: #333;
+            }}
+            .pregunta-container {{
+                background: white;
+                padding: 15px;
+                margin: 15px auto;
+                border-radius: 10px;
+                box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+                width: 80%;
+                text-align: left;
+            }}
+            .star-rating {{
+                display: flex;
+                flex-direction: row-reverse;
+                justify-content: flex-start;
+                gap: 5px;
+            }}
+            .star-rating input {{
+                display: none;
+            }}
+            .star-rating label {{
+                font-size: 30px;
+                color: gray;
+                cursor: pointer;
+                transition: color 0.3s;
+            }}
+            .star-rating input:checked ~ label,
+            .star-rating label:hover,
+            .star-rating label:hover ~ label {{
+                color: gold;
+            }}
+            .progress-bar-container {{
+                width: 80%;
+                background-color: #e0e0e0;
+                border-radius: 15px;
+                margin: 20px auto;
+                overflow: hidden;
+                position: relative;
+                height: 25px;
+                box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+            }}
+            .progress-bar {{
+                height: 100%;
+                width: {progreso}%;
+                background: linear-gradient(90deg, #28a745, #218838);
+                transition: width 0.5s;
+                border-radius: 15px;
+            }}
+            .progress-text {{
+                position: absolute;
+                width: 100%;
+                text-align: center;
+                font-weight: bold;
+                top: 0;
+                left: 0;
+                line-height: 25px;
+                color: #fff;
+                font-size: 14px;
+            }}
+            button {{
+                background-color: #28a745;
+                color: white;
+                font-size: 16px;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: background 0.3s;
+            }}
+            button:hover {{
+                background-color: #218838;
+            }}
+        </style>
+    </head>
+    <body>
+        <h1>Bienvenidos a un lugar seguro donde tus pensamientos y emociones pueden ser escuchados y comprendidos:</h1>
+        <p class="instrucciones">Selecciona el número de estrellas que mejor represente tu opinión: 1 ⭐ significa 'Muy Bajo' y 10 ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ significa 'Muy Alto'</p>
+        <div class="progress-bar-container">
+            <div class="progress-bar"></div>
+            <div class="progress-text">{progreso:.0f}%</div>
+        </div>
+        <form action="/guardar_respuestas" method="post">
+            <input type="hidden" name="usuario_id" value="{usuario_id}">
+            <input type="hidden" name="pagina" value="{pagina}">
+            {preguntas_html}
+            <button type="submit">{'Finalizar' if es_ultima_pagina else 'Siguiente'}</button>
+        </form>
+    </body>
+    </html>
+    '''
 def generar_graficos_por_categoria(valores_respuestas):
     categorias = ["Vital", "Emocional", "Mental", "Existencial", "Financiera"]
-    colores = ["red", "green", "blue", "purple", "orange"]
-    valores = np.interp(valores_respuestas[:len(categorias)], (1, 10), (0, 1))  # Normalizar valores
+    dimensiones = {
+        "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
+        "Emocional": ["Autoconocimiento", "Autoregulación", "Cuidado Personal", "Motivación", "Resiliencia"],
+        "Mental": ["Disfruta De La Realidad", "Manejo Del Stress", "Relaciones Saludables", "Conexión Con Otros", "Seguridad Y Confianza"],
+        "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Por Qué Estoy Aquí?", "Propósito De Vida", "Quién Soy"],
+        "Financiera": ["Ahorro", "Deuda", "Ingresos", "Inversión", "Presupuesto"]
+    }
 
-    if len(valores) < len(categorias):
-        print("Error: No hay suficientes respuestas para todas las categorías.")
-        return
-
-    angulos = [n / float(len(categorias)) * 2 * pi for n in range(len(categorias))]
-    angulos.append(angulos[0])  # Cerrar la gráfica
-    valores = np.append(valores, valores[0])  # Cerrar la gráfica con el primer valor
-
+    # Interpretaciones
     interpretaciones = {
         "Vital": {
-            "muy_bajo": "⚠️ Energía y vitalidad muy bajas. Es importante mejorar hábitos de sueño y alimentación.",
-            "bajo": "🔄 Necesitas más actividad física y descanso adecuado.",
-            "medio": "✅ Nivel aceptable, pero aún puedes optimizar tu bienestar físico.",
-            "alto": "🌟 Te mantienes activo y con buena energía. ¡Sigue así!",
-            "muy_alto": "🔥 Excelente estado físico y bienestar general."
+            "muy_bajo": "⚠️ Energía y vitalidad muy bajas.",
+            "bajo": "🔄 Necesitas más actividad física.",
+            "medio": "✅ Nivel aceptable.",
+            "alto": "🌟 Buena energía.",
+            "muy_alto": "🔥 Excelente estado físico."
         },
         "Emocional": {
-            "muy_bajo": "⚠️ Estado emocional crítico. Considera buscar apoyo profesional.",
-            "bajo": "🔄 Hay altibajos en tu estado emocional. Trabaja en tu inteligencia emocional.",
-            "medio": "✅ Manejas bien tus emociones, pero aún puedes mejorar en resiliencia.",
-            "alto": "🌟 Tienes un gran equilibrio emocional. Mantente atento a tu bienestar.",
-            "muy_alto": "🔥 Fortaleza emocional sobresaliente. Inspiras a los demás."
+            "muy_bajo": "⚠️ Estado emocional crítico.",
+            "bajo": "🔄 Altibajos emocionales.",
+            "medio": "✅ Bien, pero se puede mejorar.",
+            "alto": "🌟 Gran equilibrio emocional.",
+            "muy_alto": "🔥 Fortaleza emocional sobresaliente."
         },
         "Mental": {
             "muy_bajo": "⚠️ Bajo enfoque y claridad mental. Evalúa técnicas para mejorar la concentración.",
@@ -413,69 +419,100 @@ def generar_graficos_por_categoria(valores_respuestas):
             "medio": "✅ Manejas bien tus finanzas, pero aún hay áreas de mejora.",
             "alto": "🌟 Finanzas saludables. Buen control de ingresos y gastos.",
             "muy_alto": "🔥 Excelente estabilidad financiera. Gran visión para inversiones."
-        }
-    } 
+        },
+    }
 
-    for i, categoria in enumerate(categorias):
-        fig = plt.figure(figsize=(6, 6), facecolor="white")  # Fondo del cuadrado en blanco
-        ax = plt.subplot(111, polar=True)
-        
-        ax.set_facecolor("white")  # Fondo del gráfico en blanco
-        ax.set_theta_offset(pi / 2)
-        ax.set_theta_direction(-1)
-        
-        # Configuración de etiquetas en negro
-        ax.set_xticks(angulos[:-1])
-        ax.set_xticklabels(categorias, fontsize=12, fontweight="bold", color="black")
+    inicio = 0
+    for categoria in categorias:
+        dim = dimensiones[categoria]
+        respuestas_categoria = valores_respuestas[inicio:inicio + len(dim)]
+        inicio += len(dim)
 
-        # Configuración de la cuadrícula y bordes en gris claro
-        ax.yaxis.grid(color="lightgray", linestyle="dashed", alpha=0.7)
-        ax.spines["polar"].set_color("lightgray")
+        # Normalización
+        valores = np.interp(respuestas_categoria, (1, 10), (0, 1))
 
-        # Resaltar la categoría actual
-        valores_resaltados = np.zeros(len(valores) - 1)
-        valores_resaltados[i] = valores[i]
-        valores_resaltados = np.append(valores_resaltados, valores_resaltados[0])
+        # Tabla de porcentajes
+        porcentajes = [f"{int(v * 100)}%" for v in valores]
+        tabla = pd.DataFrame({
+            "Dimensión": dim,
+            "Porcentaje": porcentajes
+        })
 
-        # Dibujar la gráfica con líneas en gris claro y área resaltada en azul claro
-        ax.plot(angulos, valores, linewidth=1, linestyle='solid', color="gray", alpha=0.5)
-        ax.fill(angulos, valores, 'gray', alpha=0.1)
-        ax.plot(angulos, valores_resaltados, linewidth=2, linestyle='solid', color="blue")
-        ax.fill(angulos, valores_resaltados, 'blue', alpha=0.3)
-
-        # Determinar nivel e interpretación
-        if valores[i] <= 0.2:
+        # Interpretación basada en el promedio de la categoría
+        promedio = np.mean(valores)
+        if promedio <= 0.2:
             nivel = "muy_bajo"
-        elif valores[i] <= 0.4:
+        elif promedio <= 0.4:
             nivel = "bajo"
-        elif valores[i] <= 0.6:
+        elif promedio <= 0.6:
             nivel = "medio"
-        elif valores[i] <= 0.8:
+        elif promedio <= 0.8:
             nivel = "alto"
         else:
             nivel = "muy_alto"
+        interpretacion = interpretaciones.get(categoria, {}).get(nivel, "")
 
-        interpretacion = interpretaciones[categoria][nivel]
+        
+         # Gráfico Radar
+        angulos = [n / float(len(dim)) * 2 * pi for n in range(len(dim))]
+        angulos += angulos[:1]
+        valores = np.append(valores, valores[0])
 
-        # Título alineado a la izquierda, fuera del gráfico
-        plt.title(f"Perfil en {categoria}", fontsize=15, fontweight="bold", color="black", pad=40)
+        fig, ax = plt.subplots(figsize=(6, 9), subplot_kw=dict(polar=True))
+        ax.fill(angulos, valores, color="#90EE90", alpha=0.5)
+        ax.plot(angulos, valores, color="#2E8B57", linewidth=2.5)
 
-        # Agregar recomendación debajo del gráfico con ajuste para texto largo
+        ax.set_xticks(angulos[:-1])
+        ax.set_xticklabels(dim, fontsize=15, fontweight='bold', color='#333333')
+        ax.set_title(f"Perfil en {categoria}", fontsize=16, fontweight='bold', color="#2F4F4F", pad=20)
+
+        # Recuadro alrededor del gráfico
+        for spine in ax.spines.values():
+            spine.set_edgecolor("#333333")
+            spine.set_linewidth(1.5)
+
+        # Estilo mejorado para la tabla de porcentajes
+        tabla_estilo = plt.table(
+            cellText=tabla.values,
+            colLabels=tabla.columns,
+            cellLoc='center',
+            loc='bottom',
+            bbox=[-0.30, -1.10, 1.80, 0.90]
+        )
+        tabla_estilo.auto_set_font_size(False)
+        tabla_estilo.set_fontsize(14)
+        tabla_estilo.scale(1.9, 1.9)
+
+        # Mejorar estilo de la tabla
+        for (i, j), cell in tabla_estilo.get_celld().items():
+            cell.set_edgecolor('grey')
+            cell.set_linewidth(0.6)
+            if i == 0:
+                cell.set_facecolor('#E0F7FA')
+                cell.set_text_props(weight='bold', color='#1E88E5')
+            else:
+                cell.set_facecolor('#ffffff' if i % 2 == 0 else '#f2f2f2')
+
+        # Recuadro alrededor de la tabla
+        plt.gca().add_patch(Rectangle(
+            (0.1, -0.35), 0.8, 0.25,  # Posición y tamaño del recuadro
+            fill=False, edgecolor='#333333', linewidth=1.5, linestyle='-'
+        ))
+
+        # Ajuste de espacio vertical
+        plt.subplots_adjust(bottom=0.4)
+
+        # Interpretación más cerca de la tabla
         plt.figtext(
-            0.5, -0.05,  # Ajuste en Y para evitar corte
-            interpretacion, 
-            ha="center", 
-            fontsize=12, 
-            fontweight="bold", 
-            fontfamily="serif", 
-            color="black",
-            bbox={"facecolor": "whitesmoke", "edgecolor": "black", "boxstyle": "round,pad=0.5", "alpha": 0.8},
-            wrap=True  # Ajuste para que no se corte el texto
+            0.5, -0.25,
+            interpretacion,
+            ha="center",
+            fontsize=16,
+            bbox={"facecolor": "whitesmoke", "edgecolor": "black", "boxstyle": "round,pad=0.5", "alpha": 0.8}
         )
 
-        # Guardar imagen con fondo blanco completo
-        plt.savefig(f"statics/radar_{categoria.lower()}.png", transparent=False, dpi=300, facecolor="white", bbox_inches="tight")
-
+        # Guardar imagen
+        plt.savefig(f"statics/radar_{categoria.lower()}.png", dpi=300, bbox_inches="tight")
         plt.close()
 
 def generar_pdf_con_analisis(usuario_id):
@@ -562,25 +599,30 @@ def generar_pdf_con_analisis(usuario_id):
         ]
                         
     
-    # Crear el PDF
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(100, height - 50, "Análisis de tus Respuestas")
+    
+        # Crear el PDF
+    c.setFont("Helvetica-Bold", 18)
+    c.setFillColor(colors.HexColor("#2E4053"))  # Color azul oscuro para el título principal
+    c.drawCentredString(width / 2, height - 60, "Análisis de tus Respuestas")
 
     c.setFont("Helvetica", 12)
-    y_position = height - 100
+    c.setFillColor(colors.black)  # Color negro para el contenido
+    y_position = height - 120
     max_width = width - 150  
     lineas_interpretacion = simpleSplit(interpretacion, "Helvetica", 12, max_width)
 
     for linea in lineas_interpretacion:
         c.drawString(100, y_position, linea)
         y_position -= 20  
-    
+
     y_position -= 20
-    c.setFont("Helvetica-Bold", 12)
+    c.setFont("Helvetica-Bold", 14)
+    c.setFillColor(colors.HexColor("#1F618D"))  # Color azul medio para subtítulos
     c.drawString(100, y_position, "Recomendaciones:")
     y_position -= 20
     c.setFont("Helvetica", 12)
-    
+    c.setFillColor(colors.black)  # Regresar a color negro para el contenido
+
     for recomendacion in recomendaciones:
         lineas_recomendacion = simpleSplit(recomendacion, "Helvetica", 12, max_width)
         for linea in lineas_recomendacion:
@@ -590,10 +632,11 @@ def generar_pdf_con_analisis(usuario_id):
 
     # Saltar a una nueva página para los gráficos si no hay suficiente espacio
     c.showPage()    
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(100, height - 50, "Gráficos por Categoría")
+    c.setFont("Helvetica-Bold", 18)
+    c.setFillColor(colors.HexColor("#2E4053"))  # Título principal para gráficos
+    c.drawCentredString(width / 2, height - 60, "Gráficos por Categoría")
 
-    y_position = height - 100
+    y_position = height - 120
     img_width = 250
     img_height = 250
     x_position = (width - img_width) / 2
@@ -601,17 +644,33 @@ def generar_pdf_con_analisis(usuario_id):
     for categoria in ["vital", "emocional", "mental", "existencial", "financiera"]:
         image_path = f"statics/radar_{categoria}.png"
         if os.path.exists(image_path):
-            if y_position - img_height < 50:
-                c.showPage()  # Crear una nueva página si no hay suficiente espacio
-                y_position = height - 100
-                c.setFont("Helvetica-Bold", 16)
-                c.drawString(100, height - 50, "Gráficos por Categoría")
-            
+            c.showPage()
+
+            # Márgenes y ajustes
+            margen_horizontal = 50
+            margen_vertical = 100
+
+            # Título centrado y más abajo
+            c.setFont("Helvetica-Bold", 16)
+            c.setFillColor(colors.HexColor("#1F618D"))  # Color azul medio para subtítulos
+            titulo = f"Análisis - Salud {categoria.capitalize()}"
+            titulo_width = c.stringWidth(titulo, "Helvetica-Bold", 16)
+            c.drawCentredString(width / 2, height - margen_vertical, titulo)
+
+            # Ajustar posiciones y tamaños con más espacio
+            img_width = 300  # Ajustar ancho de imagen
+            img_height = 300  # Ajustar alto de imagen
+            x_position = (width - img_width) / 2
+            y_position = height - margen_vertical - 60  # Bajar la posición inicial para evitar cortes
+
+            # Dibujar gráfico centrado y más abajo
             c.drawImage(image_path, x_position, y_position - img_height, width=img_width, height=img_height)
-            y_position -= img_height + 20  # Espacio entre gráficos
+
+
 
     c.save()
     return pdf_path
+
 
 @app.post("/guardar_respuestas")
 async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagina: int = Form(...)):
@@ -628,6 +687,7 @@ async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagi
     cursor = conn.cursor()
 
     for pregunta, respuesta in respuestas.items():
+
         cursor.execute(
             "INSERT INTO respuestasForm (usuario_id, pregunta, respuesta) VALUES (%s, %s, %s) "
             "ON DUPLICATE KEY UPDATE respuesta = VALUES(respuesta)",
