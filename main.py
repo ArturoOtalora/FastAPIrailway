@@ -9,6 +9,7 @@ from reportlab.lib import colors
 from reportlab.lib.units import inch
 from reportlab.lib.utils import simpleSplit
 from reportlab.lib import colors
+from reportlab.lib.utils import ImageReader
 from matplotlib.patches import Rectangle
 import os
 import numpy as np
@@ -30,15 +31,19 @@ app = FastAPI()
 app.mount("/statics", StaticFiles(directory="statics"), name="statics")
 
 preguntas_lista = [
-    "¿En qué medida      que tu alimentación te nutre adecuadamente?", "¿En qué medida realizas ejercicio físico al menos tres veces por semana?", "¿En qué medida tus hábitos de sueño te proporcionan un descanso óptimo?",
-    "¿En qué medida has realizado chequeos médicos en los últimos seis meses?", "¿En qué medida tus hábitos diarios contribuyen a tu salud física?",
-    "¿En qué medida tus experiencias pasadas han impulsado tu crecimiento personal?", "¿En qué medida las dificultades han mejorado tu calidad de vida?",
-    "¿En qué medida celebras tus logros o victorias?", "¿En qué medida te adaptas a cambios o nuevas situaciones?",
-    "¿En qué medida priorizas tu bienestar emocional?", "¿En qué medida experimentas sentimientos de impotencia o duda prolongados? (Invertida: Muy alto = negativo)",
-    "¿En qué medida tu círculo cercano apoya tus metas?", "¿En qué medida te sientes agradecido por tus logros?",
-    "¿En qué medida has evaluado tu salud mental con profesionales en los últimos seis meses?", "¿En qué medida te sientes valorado y respetado por otros?",
-    "¿En qué medida tu autoimagen refleja tu valor como ser humano?", "¿En qué medida eres consciente del impacto positivo que aportas al mundo?",
-    "¿En qué medida la pasión impulsa lo que haces actualmente?", "¿En qué medida tus pensamientos sostienen la vida que deseas tener?","¿En qué medida integras verdades personales difíciles en tu vida?","¿En qué medida ahorras al menos el 10% de tus ingresos mensuales?","¿En qué medida elaboras y sigues un presupuesto familiar?","¿En qué medida tienes inversiones a largo plazo para tu estabilidad económica?","¿En qué medida gestionas tus deudas sin afectar tu salud financiera?","¿En qué medida tus ahorros cubrirían gastos básicos por 3 a 6 meses?"
+    "¿Consideras que tu alimentación te nutre lo suficientemente bien?", "¿Realizas ejercicio físico al menos tres veces por semana?", "¿Sientes que tus habito de sueño te dan el descanso necesario?",
+    "¿En los últimos seis meses te has realizado chequeos médicos?", "¿Piensas que los hábitos que hoy ocupan gran parte de tu tiempo te ayudan para tener un cuerpo más saludable?",
+    "¿Consideras que tus experiencias han contribuido a tu calidad de vida o crecimiento personal?", "¿Celebras los tus logros o victorias?",
+    "¿Cada que obtienes un logro practicas la celebración de la victoria?", "¿Sientes que te adaptas a cambios o nuevas situaciones con facilidad?",
+    "¿Tu bienestar emocional es prioridad en tu vida?", "¿Consideras que has manejado bien los sentimientos de impotencia o duda prolongados?",
+    "¿Sientes que tu círculo cercano te anima a lograr tus metas?", "¿te sientes agradecido por los logros obtenidos?",
+    "¿Has reflexionado personalmente o con un profesional sobre tu salud mental en los últimos seis meses?", "¿En qué medida te sientes valorado y respetado por otros?",
+    "¿Sientes que la autoimagen que tienes de ti representa tu más alto valor como ser humano?", "¿Cuándo reflexionas de tu valor personal que tan consciente eres del valor que aportas al mundo?",
+    "¿Desde lo que hoy haces que pasión te motiva para seguir haciéndolo a futuro ?", "¿Los pensamientos que más tienes sustentan o tienen sentido la vida que hoy tienes?","¿Cuándo conoces una verdad sobre tu vida la aceptas con facilidad?",
+    "¿De tus ingresos mensuales ahorras al menos el 10%?","¿En la actualidad tienes y sigues un presupuesto mensual?","¿Tienes una o más inversiones de largo plazo que me permitan tener una base económica?",
+    "¿Tienes un plan para gestionar tus deudas sin afectar tu salud financiera?","¿Hoy tienes un plan de ahorro que cubra tus gastos básicos por 3 a 6 meses?","¿Consideras que la calidad del aire en los espacios donde vives, trabajas o transitas diariamente es adecuada para proteger tu salud?",
+    "¿Incorporas prácticas sostenibles como el reciclaje, la reducción de residuos o la reutilización de materiales en tu día a día?","28.	¿Confías en que el agua que consumes (para beber, cocinar o higiene) es segura y cumple con estándares que protegen tu salud?","¿Conoces o tomas acciones para reducir tu huella de carbono en actividades como transporte, alimentación o consumo energético?",
+    "¿Reconoces cómo tus decisiones y hábitos cotidianos contribuyen al cambio climático y, a su vez, cómo este fenómeno afecta tu calidad de vida?"
 ]
 
 @app.get("/")
@@ -236,7 +241,8 @@ def mostrar_preguntas(usuario_id: int, pagina: int = Query(1, alias="pagina")):
         "Salud Emocional": preguntas_lista[5:10],
         "Salud Mental": preguntas_lista[10:15],
         "Sentido Existencial": preguntas_lista[15:20],
-        "Salud Financiera": preguntas_lista[20:25]
+        "Salud Financiera": preguntas_lista[20:25],
+        "Salud Ambiental": preguntas_lista[25:30]
     }
 
     total_preguntas = len(preguntas_lista)
@@ -250,7 +256,7 @@ def mostrar_preguntas(usuario_id: int, pagina: int = Query(1, alias="pagina")):
     preguntas_html = ""
     contador = 0
     for categoria, preguntas in categorias_preguntas.items():
-        
+        preguntas_html += f'<h2>{categoria}</h2>'
         for pregunta in preguntas:
             if inicio <= contador < fin:
                 preguntas_html += f'''
@@ -374,13 +380,14 @@ def mostrar_preguntas(usuario_id: int, pagina: int = Query(1, alias="pagina")):
     </html>
     '''
 def generar_graficos_por_categoria(valores_respuestas):
-    categorias = ["Vital", "Emocional", "Mental", "Existencial", "Financiera"]
+    categorias = ["Vital", "Emocional", "Mental", "Existencial", "Financiera","Ambiental"]
     dimensiones = {
         "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
         "Emocional": ["Autoconocimiento", "Autoregulación", "Cuidado Personal", "Motivación", "Resiliencia"],
         "Mental": ["Disfruta De La Realidad", "Manejo Del Stress", "Relaciones Saludables", "Conexión Con Otros", "Seguridad Y Confianza"],
         "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Por Qué Estoy Aquí?", "Propósito De Vida", "Quién Soy"],
-        "Financiera": ["Ahorro", "Deuda", "Ingresos", "Inversión", "Presupuesto"]
+        "Financiera": ["Ahorro", "Deuda", "Ingresos", "Inversión", "Presupuesto"],
+        "Ambiental": ["Autocuidado", "armonía ambiental", "Auto asistencia", "Atención preventiva", "Conciencia ambiental"]
     }
 
     # Interpretaciones
@@ -419,6 +426,13 @@ def generar_graficos_por_categoria(valores_respuestas):
             "medio": "✅ Manejas bien tus finanzas, pero aún hay áreas de mejora.",
             "alto": "🌟 Finanzas saludables. Buen control de ingresos y gastos.",
             "muy_alto": "🔥 Excelente estabilidad financiera. Gran visión para inversiones."
+        },
+        "Ambiental": {
+            "muy_bajo": "⚠️ Impacto ambiental alto. Es crucial reducir tu huella ecológica.",
+            "bajo": "🔄 Hay margen de mejora en tus hábitos ecológicos. Reduce, reutiliza y recicla.",
+            "medio": "✅ Buen compromiso con el medioambiente, pero aún puedes optimizar.",
+            "alto": "🌟 Excelente conciencia ambiental. Sigues prácticas sostenibles.",
+            "muy_alto": "🔥 Gran impacto positivo en el planeta. Inspiras con tu sostenibilidad."
         },
     }
 
@@ -459,13 +473,15 @@ def generar_graficos_por_categoria(valores_respuestas):
         valores = np.append(valores, valores[0])
 
         fig, ax = plt.subplots(figsize=(6, 9), subplot_kw=dict(polar=True))
+        ax.set_theta_offset(pi / 2)
+        ax.set_theta_direction(-1)
         ax.fill(angulos, valores, color="#90EE90", alpha=0.5)
         ax.plot(angulos, valores, color="#2E8B57", linewidth=2.5)
 
         ax.set_xticks(angulos[:-1])
         ax.set_xticklabels(dim, fontsize=15, fontweight='bold', color='#333333')
-        ax.set_title(f"Perfil en {categoria}", fontsize=16, fontweight='bold', color="#2F4F4F", pad=20)
-
+       # ax.set_title(f"Perfil en {categoria}", fontsize=16, fontweight='bold', color="#2F4F4F", pad=20)
+        ax.set_yticklabels([])
         # Recuadro alrededor del gráfico
         for spine in ax.spines.values():
             spine.set_edgecolor("#333333")
@@ -515,19 +531,32 @@ def generar_graficos_por_categoria(valores_respuestas):
         plt.savefig(f"statics/radar_{categoria.lower()}.png", dpi=300, bbox_inches="tight")
         plt.close()
 
+
+def agregar_fondo(c, width, height, background_path):
+    """Dibuja la imagen de fondo en cada página."""
+    if os.path.exists(background_path):
+        bg = ImageReader(background_path)
+        img_width = width  # Ancho igual al de la página
+        img_height = height * 0.10  # Alto del 25% de la página
+        c.drawImage(bg, 0, height - img_height, width=img_width, height=img_height)
+
+def agregar_pie_pagina(c, width, page_num):
+    """Dibuja el número de página en la parte inferior."""
+    c.setFont("Helvetica", 10)
+    c.setFillColor(colors.black)
+    c.drawCentredString(width - 40, 30, f"Página {page_num}")        
+
 def generar_pdf_con_analisis(usuario_id):
     """Genera un PDF con un análisis de las respuestas del usuario."""
     pdf_path = f"statics/analisis_usuario_{usuario_id}.pdf"
     c = canvas.Canvas(pdf_path, pagesize=letter)
     width, height = letter
-     # Establecer fondo de pantalla más pequeño y con transparencia
-    background_path = "statics/VITAL.png"
-    
-    if os.path.exists(background_path):
-        img_width, img_height = width * 0.1, height * 0.1  # Reducir tamaño
-        x_position = width - img_width - 10  # Ajustar margen derecho
-        y_position = height - img_height - 10  # Ajustar margen superior
-        c.drawImage(background_path, x_position, y_position, width=img_width, height=img_height, mask=[255, 255, 255, 255, 255, 255])
+    background_path = "statics/BKVITAL.PNG"
+    c = canvas.Canvas(pdf_path, pagesize=letter)
+    width, height = letter
+    page_num = 1
+    # Dibujar imagen de fondo en la primera página
+    agregar_fondo(c, width, height, background_path)
         # Obtener respuestas de la base de datos
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -630,22 +659,26 @@ def generar_pdf_con_analisis(usuario_id):
             y_position -= 20
         y_position -= 10
 
+    # Agregar número de página
+    agregar_pie_pagina(c, width, page_num) 
     # Saltar a una nueva página para los gráficos si no hay suficiente espacio
-    c.showPage()    
+    #c.showPage()    
     c.setFont("Helvetica-Bold", 18)
     c.setFillColor(colors.HexColor("#2E4053"))  # Título principal para gráficos
-    c.drawCentredString(width / 2, height - 60, "Gráficos por Categoría")
+    #c.drawCentredString(width / 2, height - 60, "Gráficos por Categoría")
 
     y_position = height - 120
     img_width = 250
     img_height = 250
     x_position = (width - img_width) / 2
 
-    for categoria in ["vital", "emocional", "mental", "existencial", "financiera"]:
+    for categoria in ["vital", "emocional", "mental", "existencial", "financiera","Ambiental"]:
         image_path = f"statics/radar_{categoria}.png"
         if os.path.exists(image_path):
             c.showPage()
-
+            page_num += 1
+            agregar_fondo(c, width, height, background_path)
+            agregar_pie_pagina(c, width, page_num)
             # Márgenes y ajustes
             margen_horizontal = 50
             margen_vertical = 100
