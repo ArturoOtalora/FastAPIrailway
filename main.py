@@ -256,7 +256,7 @@ def mostrar_preguntas(usuario_id: int, pagina: int = Query(1, alias="pagina")):
     preguntas_html = ""
     contador = 0
     for categoria, preguntas in categorias_preguntas.items():
-        preguntas_html += f'<h2>{categoria}</h2>'
+        #preguntas_html += f'<h2>{categoria}</h2>'
         for pregunta in preguntas:
             if inicio <= contador < fin:
                 preguntas_html += f'''
