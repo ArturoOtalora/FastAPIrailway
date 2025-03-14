@@ -584,7 +584,7 @@ def generar_pdf_con_analisis(usuario_id):
     page_num += 1
     for linea in lineas_intro:
         c.drawString(50, y_position, linea)
-        y_position -= 20
+        y_position -= 30
     c.showPage()
     # Dibujar imagen de fondo en la primera página
     agregar_fondo(c, width, height, background_path)
