@@ -465,12 +465,13 @@ def generar_graficos_por_categoria(valores_respuestas):
         else:
             nivel = "muy_alto"
         interpretacion = interpretaciones.get(categoria, {}).get(nivel, "")
-
+        
         
          # Gráfico Radar
         angulos = [n / float(len(dim)) * 2 * pi for n in range(len(dim))]
         angulos += angulos[:1]
         valores = np.append(valores, valores[0])
+        
 
         fig, ax = plt.subplots(figsize=(6, 9), subplot_kw=dict(polar=True))
         ax.set_theta_offset(pi / 2)
@@ -530,8 +531,7 @@ def generar_graficos_por_categoria(valores_respuestas):
         # Guardar imagen
         plt.savefig(f"statics/radar_{categoria.lower()}.png", dpi=300, bbox_inches="tight")
         plt.close()
-
-
+      
 def agregar_fondo(c, width, height, background_path):
     """Dibuja la imagen de fondo en cada página."""
     if os.path.exists(background_path):
@@ -544,7 +544,8 @@ def agregar_pie_pagina(c, width, page_num):
     """Dibuja el número de página en la parte inferior."""
     c.setFont("Helvetica", 10)
     c.setFillColor(colors.black)
-    c.drawCentredString(width - 40, 30, f"Página {page_num}")        
+    c.drawCentredString(width - 40, 30, f"Página {page_num}")       
+     
 
 def generar_pdf_con_analisis(usuario_id):
     """Genera un PDF con un análisis de las respuestas del usuario."""
@@ -562,7 +563,7 @@ def generar_pdf_con_analisis(usuario_id):
     # Texto introductorio
     c.setFont("Helvetica-Bold", 18)
     c.setFillColor(colors.HexColor("#2E4053"))
-    c.drawCentredString(width / 2, height - 80, "Análisis de percepción de bienestar")
+    c.drawCentredString(width / 2, height - 90, "Análisis de percepción de bienestar")
     c.setFont("Helvetica", 12)
     c.setFillColor(colors.black)
     texto_intro = (
@@ -584,7 +585,7 @@ def generar_pdf_con_analisis(usuario_id):
     page_num += 1
     for linea in lineas_intro:
         c.drawString(50, y_position, linea)
-        y_position -= 30
+        y_position -= 20
     c.showPage()
     # Dibujar imagen de fondo en la primera página
     agregar_fondo(c, width, height, background_path)
@@ -662,7 +663,7 @@ def generar_pdf_con_analisis(usuario_id):
         # Crear el PDF
     c.setFont("Helvetica-Bold", 18)
     c.setFillColor(colors.HexColor("#2E4053"))  # Color azul oscuro para el título principal
-    c.drawCentredString(width / 2, height - 80, "Análisis de tus Respuestas")
+    c.drawCentredString(width / 2, height - 90, "Análisis de tus Respuestas")
 
     c.setFont("Helvetica", 12)
     c.setFillColor(colors.black)  # Color negro para el contenido
