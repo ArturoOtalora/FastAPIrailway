@@ -558,6 +558,36 @@ def generar_pdf_con_analisis(usuario_id):
     # Dibujar imagen de fondo en la primera página
     agregar_fondo(c, width, height, background_path)
         # Obtener respuestas de la base de datos
+
+    # Texto introductorio
+    c.setFont("Helvetica-Bold", 18)
+    c.setFillColor(colors.HexColor("#2E4053"))
+    c.drawCentredString(width / 2, height - 80, "Análisis de percepción de bienestar")
+    c.setFont("Helvetica", 12)
+    c.setFillColor(colors.black)
+    texto_intro = (
+    "Este informe refleja tu percepción personal sobre las dimensiones clave que conforman tu bienestar integral. "
+    "Los resultados muestran fortalezas destacadas en múltiples dimensiones del Ser humano, evidenciando áreas donde te sientes confianza, motivación y alineación con tus propósitos. "
+    "Además, identifica oportunidades de mejora que, al abordarse, pueden potenciar tu crecimiento y estabilidad en el largo plazo.\n\n"
+
+    "Este documento no solo es una radiografía de tu percepción actual, sino también una herramienta de autoconocimiento diseñada para inspirar reflexión y acción. "
+    "Tu nivel de energía, interpretado como un indicador de tu capacidad para interactuar con desafíos y oportunidades, complementa esta visión, resaltando tu disposición para responder de manera consciente y proactiva. "
+    "Recuerda que el bienestar es un camino dinámico: celebrar tus logros y explorar áreas de desarrollo te acercará a una vida más plena y adaptativa. "
+    "Utiliza este informe como una guía para seguir cultivando tu equilibrio, reconociendo que cada dimensión es un paso hacia la versión más auténtica y realizada de ti.\n\n"
+    
+    "Este informe es, ante todo, una herramienta para que sigas explorando y potenciando aquellas áreas que te acerquen a la versión más auténtica y realizada de ti mismo(a)."
+    )
+    y_position = height - 120
+    max_width = width - 100
+    lineas_intro = simpleSplit(texto_intro, "Helvetica", 12, max_width)
+    
+    page_num += 1
+    for linea in lineas_intro:
+        c.drawString(50, y_position, linea)
+        y_position -= 20
+    c.showPage()
+    # Dibujar imagen de fondo en la primera página
+    agregar_fondo(c, width, height, background_path)
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT pregunta, respuesta FROM respuestasForm WHERE usuario_id = %s", (usuario_id,))
@@ -632,7 +662,7 @@ def generar_pdf_con_analisis(usuario_id):
         # Crear el PDF
     c.setFont("Helvetica-Bold", 18)
     c.setFillColor(colors.HexColor("#2E4053"))  # Color azul oscuro para el título principal
-    c.drawCentredString(width / 2, height - 60, "Análisis de tus Respuestas")
+    c.drawCentredString(width / 2, height - 80, "Análisis de tus Respuestas")
 
     c.setFont("Helvetica", 12)
     c.setFillColor(colors.black)  # Color negro para el contenido
