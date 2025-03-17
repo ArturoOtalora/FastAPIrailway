@@ -8,6 +8,8 @@ from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 from reportlab.lib.utils import simpleSplit
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import Paragraph
 from reportlab.lib import colors
 from reportlab.lib.utils import ImageReader
 from matplotlib.patches import Rectangle
@@ -437,14 +439,16 @@ def generar_graficos_por_categoria(valores_respuestas):
     }
 
     inicio = 0
+    promedios_categorias = []
     for categoria in categorias:
         dim = dimensiones[categoria]
         respuestas_categoria = valores_respuestas[inicio:inicio + len(dim)]
         inicio += len(dim)
-
+        
         # Normalización
         valores = np.interp(respuestas_categoria, (1, 10), (0, 1))
-
+        promedio = np.mean(valores)
+        promedios_categorias.append(promedio)
         # Tabla de porcentajes
         porcentajes = [f"{int(v * 100)}%" for v in valores]
         tabla = pd.DataFrame({
@@ -473,14 +477,14 @@ def generar_graficos_por_categoria(valores_respuestas):
         valores = np.append(valores, valores[0])
         
 
-        fig, ax = plt.subplots(figsize=(7, 7), subplot_kw=dict(polar=True))
+        fig, ax = plt.subplots(figsize=(6, 9), subplot_kw=dict(polar=True))
         ax.set_theta_offset(pi / 2)
         ax.set_theta_direction(-1)
         ax.fill(angulos, valores, color="#90EE90", alpha=0.5)
         ax.plot(angulos, valores, color="#2E8B57", linewidth=2.5)
 
         ax.set_xticks(angulos[:-1])
-        ax.set_xticklabels(dim, fontsize=14, fontweight='bold', color='#333333', va='center')
+        ax.set_xticklabels(dim, fontsize=14, fontweight='bold', color='#333333')
         ax.set_ylim(0, 1) 
        # ax.set_title(f"Perfil en {categoria}", fontsize=16, fontweight='bold', color="#2F4F4F", pad=20)
         ax.set_yticklabels([])
@@ -532,6 +536,51 @@ def generar_graficos_por_categoria(valores_respuestas):
         # Guardar imagen
         plt.savefig(f"statics/radar_{categoria.lower()}.png", dpi=300, bbox_inches="tight")
         plt.close()
+      # Gráfico radar consolidado
+    angulos_global = [n / float(len(categorias)) * 2 * pi for n in range(len(categorias))]
+    angulos_global += angulos_global[:1]
+    promedios_categorias.append(promedios_categorias[0])
+    # tabla = {"Categoría": categorias, "Porcentaje": [f"{v*100:.1f}%" for v in promedios_categorias]}
+    # tabla_df = pd.DataFrame(tabla)
+    fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
+    ax.set_theta_offset(pi / 2)
+    ax.set_theta_direction(-1)
+    ax.fill(angulos_global, promedios_categorias, color="#90EE90", alpha=0.5)
+    ax.plot(angulos_global, promedios_categorias, color="#2E8B57", linewidth=2.5)
+    ax.set_xticks(angulos_global[:-1])
+    ax.set_xticklabels(categorias, fontsize=14, fontweight='bold', color='#333333')
+    ax.set_ylim(0, 1)
+    ax.set_yticklabels([])
+    #     # Agregar tabla debajo del gráfico
+    # tabla_estilo = plt.table(
+    #     cellText=tabla_df.values,
+    #     colLabels=tabla_df.columns,
+    #     cellLoc='center',
+    #     loc='bottom',
+    #     bbox=[-0.25, -1.05, 1.5, 0.8]
+    # )
+    # tabla_estilo.auto_set_font_size(False)
+    # tabla_estilo.set_fontsize(12)
+    # tabla_estilo.scale(1.5, 1.5)
+
+    # # Estilo de la tabla
+    # for (i, j), cell in tabla_estilo.get_celld().items():
+    #     cell.set_edgecolor('grey')
+    #     cell.set_linewidth(0.6)
+    #     if i == 0:
+    #         cell.set_facecolor('#E0F7FA')
+    #         cell.set_text_props(weight='bold', color='#1E88E5')
+    #     else:
+    #         cell.set_facecolor('#ffffff' if i % 2 == 0 else '#f2f2f2')
+
+    # # Ajuste de espacio vertical para acomodar la tabla
+    # plt.subplots_adjust(bottom=0.3)
+        
+
+    # Guardar imagen del gráfico unificado
+    plt.savefig("statics/radar_general.png", dpi=300, bbox_inches="tight")
+    plt.close()
+
       
 def agregar_fondo(c, width, height, background_path):
     """Dibuja la imagen de fondo en cada página."""
@@ -567,6 +616,19 @@ def generar_pdf_con_analisis(usuario_id):
     c.drawCentredString(width / 2, height - 90, "Análisis de percepción de bienestar")
     c.setFont("Helvetica", 12)
     c.setFillColor(colors.black)
+
+    # Definir estilo de párrafo justificado
+    styles = getSampleStyleSheet()
+    style = ParagraphStyle(
+        "Justify",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=12,
+        textColor=colors.black,
+        leading=14,  # Espaciado entre líneas
+        alignment=10,  # 4 = Justificado
+    )
+
     texto_intro = (
     "Este informe refleja tu percepción personal sobre las dimensiones clave que conforman tu bienestar integral. "
     "Los resultados muestran fortalezas destacadas en múltiples dimensiones del Ser humano, evidenciando áreas donde te sientes confianza, motivación y alineación con tus propósitos. "
@@ -579,10 +641,11 @@ def generar_pdf_con_analisis(usuario_id):
     
     "Este informe es, ante todo, una herramienta para que sigas explorando y potenciando aquellas áreas que te acerquen a la versión más auténtica y realizada de ti mismo(a)."
     )
+    p = Paragraph(texto_intro, style)
     y_position = height - 120
     max_width = width - 100
     lineas_intro = simpleSplit(texto_intro, "Helvetica", 12, max_width)
-    
+   
     page_num += 1
     for linea in lineas_intro:
         c.drawString(50, y_position, linea)
@@ -624,7 +687,7 @@ def generar_pdf_con_analisis(usuario_id):
             "•	Generar relaciones de valor con las personas a su alrededor; buscando que la relación consigo mismo y los demás, sean motivadores para seguir cargando de sentido las áreas de su vida, encontrando en ellas equilibrio"
         ]
     elif promedio >= 5:
-        interpretacion = "puede experimentar cambios en el estado de ánimo por periodos de tiempo intermitente, llevándola a tener sensación de cansancio y malestar frente algunos acontecimientos de la vida diaria. Si bien puede reconocer tener cierta capacidad para enfrentar diferentes situaciones, esta persona puede experimentar sensaciones de impotencia y una consciencia moderada frente al sentido de vida, sin embargo, resalta la importancia de la integralidad del ser (cuerpo, mente, emociones y espíritu), aunque se le dificulta tomar acción para resolver determinados momentos de crisis. Su proceso de aprendizaje resulta más efectivo, debido a la capacidad de autorreflexión y la búsqueda de mejoras continuas."
+        interpretacion = "Puede experimentar cambios en el estado de ánimo por periodos de tiempo intermitente, llevándola a tener sensación de cansancio y malestar frente algunos acontecimientos de la vida diaria. Si bien puede reconocer tener cierta capacidad para enfrentar diferentes situaciones, esta persona puede experimentar sensaciones de impotencia y una consciencia moderada frente al sentido de vida, sin embargo, resalta la importancia de la integralidad del ser (cuerpo, mente, emociones y espíritu), aunque se le dificulta tomar acción para resolver determinados momentos de crisis. Su proceso de aprendizaje resulta más efectivo, debido a la capacidad de autorreflexión y la búsqueda de mejoras continuas."
         recomendaciones = [
             "•	Gestionar sus emociones, identificando reacciones frente a situaciones y buscando alternativas para su manejo",
             "•	Transformar pensamientos limitantes o negativos",
@@ -703,7 +766,28 @@ def generar_pdf_con_analisis(usuario_id):
     img_width = 250
     img_height = 250
     x_position = (width - img_width) / 2
+    # Agregar número de página
+    agregar_pie_pagina(c, width, page_num) 
 
+    # Agregar nueva página para el gráfico general
+    c.showPage()
+    page_num += 1
+    agregar_fondo(c, width, height, background_path)
+    agregar_pie_pagina(c, width, page_num)
+
+    c.setFont("Helvetica-Bold", 18)
+    c.setFillColor(colors.HexColor("#2E4053"))  # Título principal para gráficos
+    c.drawCentredString(width / 2, height - 90, "Análisis General")
+
+    image_path = "statics/radar_general.png"
+    margen_horizontal = 50
+    margen_vertical = 100
+    img_width = 300  # Ajustar ancho de imagen
+    img_height = 300  # Ajustar alto de imagen
+    x_position = (width - img_width) / 2
+    y_position = height - margen_vertical - 60  # Bajar la posición inicial para evitar cortes
+    c.drawImage(image_path, x_position, y_position - img_height, width=img_width, height=img_height)
+            
     for categoria in ["vital", "emocional", "mental", "existencial", "financiera","Ambiental"]:
         image_path = f"statics/radar_{categoria}.png"
         if os.path.exists(image_path):
@@ -738,6 +822,7 @@ def generar_pdf_con_analisis(usuario_id):
     agregar_pie_pagina(c, width, page_num)
     
     c.setFont("Helvetica-Bold", 14)
+    c.setFillColor(colors.HexColor("#2E4053")) 
     c.drawCentredString(width / 2, height - 80, "PLAN DE ACCIÓN")
     c.setFont("Helvetica", 12)
     texto_plan_accion = [
@@ -751,7 +836,7 @@ def generar_pdf_con_analisis(usuario_id):
     ("¿VALE LA PENA GASTAR TIEMPO, ESFUERZO Y DINERO EN ESTA META?", 1),
 ]
 
-    y_position = height - 100
+    y_position = height - 110
     for titulo, lineas in texto_plan_accion:
         c.setFont("Helvetica-Bold", 12)
         c.drawString(60, y_position, titulo)
@@ -772,7 +857,9 @@ def generar_pdf_con_analisis(usuario_id):
 
     # Título de la nueva sección
     c.setFont("Helvetica-Bold", 14)
+    c.setFillColor(colors.HexColor("#2E4053")) 
     c.drawCentredString(width / 2, height - 80, "SIETE AYUDAS PARA LA ACCIÓN")
+    
 
     # Lista de consejos
     ayudas_accion = [
@@ -798,7 +885,7 @@ def generar_pdf_con_analisis(usuario_id):
         "Cuando se sienta presionado/a o frustrado/a o cuando sienta que no está progresando en su Plan de Acción, evoque una ''memoria de éxito''. Recuerde uno de sus éxitos o logros pasados. Inunde su mente con esa memoria y permita que la misma cree pensamientos, emociones e imágenes positivas. Ud. se sentirá bien, su confianza aumentará, y podrá continuar con su plan de acción y trabajar en el logro de sus metas."),
         ]
 
-    y_position = height - 100
+    y_position = height - 120
     max_width = width - 120  # Ajuste del margen
 
     for titulo, contenido in ayudas_accion:
