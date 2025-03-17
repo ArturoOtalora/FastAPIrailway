@@ -39,9 +39,9 @@ preguntas_lista = [
     "¿Sientes que tu círculo cercano te anima a lograr tus metas?", "¿te sientes agradecido por los logros obtenidos?",
     "¿Has reflexionado personalmente o con un profesional sobre tu salud mental en los últimos seis meses?", "¿En qué medida te sientes valorado y respetado por otros?",
     "¿Sientes que la autoimagen que tienes de ti representa tu más alto valor como ser humano?", "¿Cuándo reflexionas de tu valor personal que tan consciente eres del valor que aportas al mundo?",
-    "¿Desde lo que hoy haces que pasión te motiva para seguir haciéndolo a futuro ?", "¿Los pensamientos que más tienes sustentan o tienen sentido la vida que hoy tienes?","¿Cuándo conoces una verdad sobre tu vida la aceptas con facilidad?",
+    "¿Desde lo que hoy haces que pasión te motiva para seguir haciéndolo a futuro ?", "¿Los pensamientos que más tienes sustentan tu valor mas alto?","¿Cuándo conoces una verdad sobre tu vida la aceptas con facilidad?",
     "¿De tus ingresos mensuales ahorras al menos el 10%?","¿En la actualidad tienes y sigues un presupuesto mensual?","¿Tienes una o más inversiones de largo plazo que me permitan tener una base económica?",
-    "¿Tienes un plan para gestionar tus deudas sin afectar tu salud financiera?","¿Hoy tienes un plan de ahorro que cubra tus gastos básicos por 3 a 6 meses?","¿Consideras que la calidad del aire en los espacios donde vives, trabajas o transitas diariamente es adecuada para proteger tu salud?",
+    "¿Tienes un plan para gestionar tus deudas sin afectar tu salud financiera?","¿Hoy tienes un plan de ahorro que cubra tus gastos básicos por 3 a 6 meses?","¿Consideras que la calidad del aire en los espacios donde vives, trabajas o transitas diariamente apoya tu salud?",
     "¿Incorporas prácticas sostenibles como el reciclaje, la reducción de residuos o la reutilización de materiales en tu día a día?","¿Confías en que el agua que consumes (para beber, cocinar o higiene) es segura y cumple con estándares que protegen tu salud?","¿Conoces o tomas acciones para reducir tu huella de carbono en actividades como transporte, alimentación o consumo energético?",
     "¿Reconoces cómo tus decisiones y hábitos cotidianos contribuyen al cambio climático y, a su vez, cómo este fenómeno afecta tu calidad de vida?"
 ]
@@ -473,21 +473,22 @@ def generar_graficos_por_categoria(valores_respuestas):
         valores = np.append(valores, valores[0])
         
 
-        fig, ax = plt.subplots(figsize=(6, 9), subplot_kw=dict(polar=True))
+        fig, ax = plt.subplots(figsize=(7, 7), subplot_kw=dict(polar=True))
         ax.set_theta_offset(pi / 2)
         ax.set_theta_direction(-1)
         ax.fill(angulos, valores, color="#90EE90", alpha=0.5)
         ax.plot(angulos, valores, color="#2E8B57", linewidth=2.5)
 
         ax.set_xticks(angulos[:-1])
-        ax.set_xticklabels(dim, fontsize=15, fontweight='bold', color='#333333')
+        ax.set_xticklabels(dim, fontsize=14, fontweight='bold', color='#333333', va='center')
+        ax.set_ylim(0, 1) 
        # ax.set_title(f"Perfil en {categoria}", fontsize=16, fontweight='bold', color="#2F4F4F", pad=20)
         ax.set_yticklabels([])
         # Recuadro alrededor del gráfico
         for spine in ax.spines.values():
             spine.set_edgecolor("#333333")
             spine.set_linewidth(1.5)
-
+        
         # Estilo mejorado para la tabla de porcentajes
         tabla_estilo = plt.table(
             cellText=tabla.values,
@@ -730,6 +731,89 @@ def generar_pdf_con_analisis(usuario_id):
             # Dibujar gráfico centrado y más abajo
             c.drawImage(image_path, x_position, y_position - img_height, width=img_width, height=img_height)
 
+        # Página de Plan de Acción
+    c.showPage()
+    page_num += 1
+    agregar_fondo(c, width, height, background_path)
+    agregar_pie_pagina(c, width, page_num)
+    
+    c.setFont("Helvetica-Bold", 14)
+    c.drawCentredString(width / 2, height - 80, "PLAN DE ACCIÓN")
+    c.setFont("Helvetica", 12)
+    texto_plan_accion = [
+    ("META (Qué es lo que quiero lograr)", 2),
+    ("BENEFICIOS (Qué voy a obtener de lograr esta meta)", 2),
+    ("PASOS PARA LOGRAR ESTA META (Qué debo hacer para lograr esta meta)", 2),
+    ("PLAZOS ESTABLECIDOS (Cuándo voy a completar estas acciones)", 2),
+    ("POSIBLES OBSTÁCULOS (Qué cosas podrían interferir en el logro de esta meta)", 2),
+    ("POSIBLES SOLUCIONES (Cómo voy a lograr eliminar los obstáculos de mi camino)", 2),
+    ("MÉTODO PARA MONITOREAR TU PROGRESO (¿Cómo sabré que estoy progresando?)", 2),
+    ("¿VALE LA PENA GASTAR TIEMPO, ESFUERZO Y DINERO EN ESTA META?", 1),
+]
+
+    y_position = height - 100
+    for titulo, lineas in texto_plan_accion:
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(60, y_position, titulo)
+        y_position -= 18  # Espacio después del título
+
+        c.setFont("Helvetica", 12)
+        for _ in range(lineas):
+            c.drawString(60, y_position, "_" * 80)
+            y_position -= 24  # Espacio entre líneas
+
+    # Última pregunta con opciones
+    c.setFont("Helvetica", 12)
+    c.drawString(60, y_position, "Sí _____   No _____   Sí, pero después _____   FECHA DE HOY ___________")
+    c.showPage()
+    page_num += 1
+    agregar_fondo(c, width, height, background_path)
+    agregar_pie_pagina(c, width, page_num)
+
+    # Título de la nueva sección
+    c.setFont("Helvetica-Bold", 14)
+    c.drawCentredString(width / 2, height - 80, "SIETE AYUDAS PARA LA ACCIÓN")
+
+    # Lista de consejos
+    ayudas_accion = [
+        ("1. Recuerde los beneficios que Ud. recibirá al alcanzar sus metas.",
+        "Identifique los beneficios que Ud. recibirá: mayor efectividad en el trabajo, mejorar su satisfacción laboral, incrementar sus habilidades interpersonales, etc. ¿Cuáles serán los beneficios?"),
+        
+        ("2. Recuerde su disponibilidad de tiempo.",
+        "Hay 525.600 minutos en un año. Si Ud. utiliza 15 minutos todos los días para desarrollarse, aplicará un total de 5.475 minutos por año. Esto da como resultado un 0,0104 de sus minutos anuales disponibles. ¿Puede Ud. ahorrar 0,0104 de sus minutos para desarrollarse?"),
+        
+        ("3. Haga las cosas de a una por vez.",
+        "La gran tarea de autodesarrollarse está compuesta de pequeñas tareas. Divida y conquiste: divida la gran tarea en varias y pequeñas subtareas. Entonces concéntrese en una subtarea por vez y finalícela."),
+        
+        ("4. Practique, practique, practique.",
+        "La práctica conduce al aprendizaje. Mientras más práctica, más aprende. Un poco de práctica todos los días es mejor que una gran sesión de práctica cada semana."),
+        
+        ("5. La perseverancia conquista.",
+        "Aférrese a su Plan de Acción. La perseverancia es la conducta crítica necesaria para que Ud. logre sus metas. Las personas a menudo se detienen al acercarse al triunfo. Siga adelante... no pare. Si Ud. para, nunca logrará sus metas."),
+        
+        ("6. Responda eficazmente ante sus errores.",
+        "Todos cometemos errores. Ud. los cometerá al llevar a cabo su Plan de Acción y al trabajar en el logro de sus metas. Responda eficazmente. Acepte la responsabilidad por sus errores, siéntase seguro a pesar de cometerlos, y aprenda de ellos. No piense que Ud. nunca debe cometer errores, no se preocupe y obsesione con ellos, y nunca se desanime por cometerlos."),
+        
+        ("7. Evoque sus 'recuerdos de éxitos'.",
+        "Cuando se sienta presionado/a o frustrado/a o cuando sienta que no está progresando en su Plan de Acción, evoque una ''memoria de éxito''. Recuerde uno de sus éxitos o logros pasados. Inunde su mente con esa memoria y permita que la misma cree pensamientos, emociones e imágenes positivas. Ud. se sentirá bien, su confianza aumentará, y podrá continuar con su plan de acción y trabajar en el logro de sus metas."),
+        ]
+
+    y_position = height - 100
+    max_width = width - 120  # Ajuste del margen
+
+    for titulo, contenido in ayudas_accion:
+        # Título en negrita
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(60, y_position, titulo)
+        y_position -= 18  # Espaciado después del título
+
+        # Contenido en texto normal
+        c.setFont("Helvetica", 12)
+        for linea in simpleSplit(contenido, "Helvetica", 12, max_width):
+            c.drawString(60, y_position, linea)
+            y_position -= 18
+
+        y_position -= 10  # Espacio adicional entre cada punto    
 
 
     c.save()
