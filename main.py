@@ -780,7 +780,7 @@ def generar_pdf_con_analisis(usuario_id):
     c.setFillColor(colors.HexColor("#2E4053"))  # Título principal para gráficos
     c.drawCentredString(width / 2, height - 90, "Análisis General")
 
-    image_path = "statics/radar_ambiental.png"
+    image_path = "statics/radar_general.png"
     margen_horizontal = 50
     margen_vertical = 100
     img_width = 300  # Ajustar ancho de imagen
@@ -789,7 +789,7 @@ def generar_pdf_con_analisis(usuario_id):
     y_position = height - margen_vertical - 60  # Bajar la posición inicial para evitar cortes
     c.drawImage(image_path, x_position, y_position - img_height, width=img_width, height=img_height)
             
-    for categoria in ["Ambiental","vital", "emocional", "mental", "existencial", "financiera"]:
+    for categoria in ["vital", "emocional", "mental", "existencial", "financiera","Ambiental"]:
         image_path = f"statics/radar_{categoria}.png"
         if os.path.exists(image_path):
             c.showPage()
@@ -816,6 +816,25 @@ def generar_pdf_con_analisis(usuario_id):
             # Dibujar gráfico centrado y más abajo
             c.drawImage(image_path, x_position, y_position - img_height, width=img_width, height=img_height)
 
+            # Agregar nueva página para el Salud Ambiental
+    c.showPage()
+    page_num += 1
+    agregar_fondo(c, width, height, background_path)
+    agregar_pie_pagina(c, width, page_num)
+
+    c.setFont("Helvetica-Bold", 18)
+    c.setFillColor(colors.HexColor("#2E4053"))  # Título principal para gráficos
+    c.drawCentredString(width / 2, height - 90, "Análisis - Salud Ambiental")
+
+    image_path = "statics/radar_ambiental.png"
+    margen_horizontal = 50
+    margen_vertical = 100
+    img_width = 300  # Ajustar ancho de imagen
+    img_height = 300  # Ajustar alto de imagen
+    x_position = (width - img_width) / 2
+    y_position = height - margen_vertical - 60  # Bajar la posición inicial para evitar cortes
+    c.drawImage(image_path, x_position, y_position - img_height, width=img_width, height=img_height)
+            
         # Página de Plan de Acción
     c.showPage()
     page_num += 1
