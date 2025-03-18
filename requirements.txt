@@ -7,4 +7,3 @@ reportlab
 numpy
 matplotlib
 pandas
-textwrap
