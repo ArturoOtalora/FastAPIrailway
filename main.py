@@ -63,7 +63,7 @@ def get_db_connection():
 
 @app.post("/guardar_usuario")
 def guardar_usuario(
-    nombre: str = Form(...),
+     nombre: str = Form(...),
     apellidos: str = Form(...),
     tipo_documento: str = Form(...),
     numero_identificacion: int = Form(...),
@@ -73,12 +73,13 @@ def guardar_usuario(
     grado_escolaridad: str = Form(...),
     antiguedad: str = Form(...),
     ciudad: str = Form(...),
+    
 ):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute(
         """
-        INSERT INTO usuarios (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, rango_edad, grado_escolaridad, antiguedad, ciudad)
+         INSERT INTO usuarios (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, rango_edad, grado_escolaridad, antiguedad, ciudad)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """,
         (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, rango_edad, grado_escolaridad, antiguedad, ciudad)
@@ -223,7 +224,7 @@ def mostrar_pagina():
                 <option value="Entre 1 y 2 años ">Entre 1 y 2 años </option>
                 <option value="Entre 2 y 5 años">Entre 2 y 5 años</option>
                 <option value="Mas de 5 años">Mas de 5 años</option>
-            </select>
+            </select>           
             
             <label for="ciudad">Ciudad:</label>
             <input type="text" id="ciudad" name="ciudad" required>
@@ -382,14 +383,14 @@ def mostrar_preguntas(usuario_id: int, pagina: int = Query(1, alias="pagina")):
     </html>
     '''
 def generar_graficos_por_categoria(valores_respuestas):
-    categorias = ["Vital", "Emocional", "Mental", "Existencial", "Financiera","Ambiental"]
+    categorias = ["Ambiental","Vital", "Emocional", "Mental", "Existencial", "Financiera"]
     dimensiones = {
         "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
         "Emocional": ["Autoconocimiento", "Autoregulación", "Cuidado Personal", "Motivación", "Resiliencia"],
         "Mental": ["Disfruta De La Realidad", "Manejo Del Stress", "Relaciones Saludables", "Conexión Con Otros", "Seguridad Y Confianza"],
         "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Por Qué Estoy Aquí?", "Propósito De Vida", "Quién Soy"],
         "Financiera": ["Ahorro", "Deuda", "Ingresos", "Inversión", "Presupuesto"],
-        "Ambiental": ["Autocuidado", "armonía ambiental", "Auto asistencia", "Atención preventiva", "Conciencia ambiental"]
+        "Ambiental": ["Autocuidado", "armonía ambiental", "Accesibilidad Ambiental", "Atención preventiva", "Conciencia ambiental"]
     }
 
     # Interpretaciones
@@ -788,7 +789,7 @@ def generar_pdf_con_analisis(usuario_id):
     y_position = height - margen_vertical - 60  # Bajar la posición inicial para evitar cortes
     c.drawImage(image_path, x_position, y_position - img_height, width=img_width, height=img_height)
             
-    for categoria in ["vital", "emocional", "mental", "existencial", "financiera","Ambiental"]:
+    for categoria in ["Ambiental","vital", "emocional", "mental", "existencial", "financiera"]:
         image_path = f"statics/radar_{categoria}.png"
         if os.path.exists(image_path):
             c.showPage()
