@@ -780,7 +780,7 @@ def generar_pdf_con_analisis(usuario_id):
     c.setFillColor(colors.HexColor("#2E4053"))  # Título principal para gráficos
     c.drawCentredString(width / 2, height - 90, "Análisis General")
 
-    image_path = "statics/radar_general.png"
+    image_path = "statics/radar_ambiental.png"
     margen_horizontal = 50
     margen_vertical = 100
     img_width = 300  # Ajustar ancho de imagen
