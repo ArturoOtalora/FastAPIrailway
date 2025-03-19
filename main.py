@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Form, Request,Query 
+from fastapi import FastAPI, Form, Request,Query, HTTPException 
 from fastapi.responses import HTMLResponse, RedirectResponse,FileResponse
 from fastapi.staticfiles import StaticFiles
 import mysql.connector
@@ -41,7 +41,7 @@ preguntas_lista = [
     "¿Sientes que tu círculo cercano te anima a lograr tus metas?", "¿te sientes agradecido por los logros obtenidos?",
     "¿Has reflexionado personalmente o con un profesional sobre tu salud mental en los últimos seis meses?", "¿En qué medida te sientes valorado y respetado por otros?",
     "¿Sientes que la autoimagen que tienes de ti representa tu más alto valor como ser humano?", "¿Cuándo reflexionas de tu valor personal que tan consciente eres del valor que aportas al mundo?",
-    "¿Desde lo que hoy haces que pasión te motiva para seguir haciéndolo a futuro ?", "¿Los pensamientos que más tienes sustentan tu valor mas alto?","¿Cuándo conoces una verdad sobre tu vida la aceptas con facilidad?",
+    "¿Desde lo que hoy haces, lo consideras tu pasión y te motiva para seguir haciéndolo ?", "¿Los pensamientos que más tienes sustentan tu valor mas alto?","¿Cuándo conoces una verdad sobre tu vida la aceptas con facilidad?",
     "¿De tus ingresos mensuales ahorras al menos el 10%?","¿En la actualidad tienes y sigues un presupuesto mensual?","¿Tienes una o más inversiones de largo plazo que me permitan tener una base económica?",
     "¿Tienes un plan para gestionar tus deudas sin afectar tu salud financiera?","¿Hoy tienes un plan de ahorro que cubra tus gastos básicos por 3 a 6 meses?","¿Consideras que la calidad del aire en los espacios donde vives, trabajas o transitas diariamente apoya tu salud?",
     "¿Incorporas prácticas sostenibles como el reciclaje, la reducción de residuos o la reutilización de materiales en tu día a día?","¿Confías en que el agua que consumes (para beber, cocinar o higiene) es segura y cumple con estándares que protegen tu salud?","¿Conoces o tomas acciones para reducir tu huella de carbono en actividades como transporte, alimentación o consumo energético?",
@@ -78,6 +78,16 @@ def guardar_usuario(
 ):
     conn = get_db_connection()
     cursor = conn.cursor()
+
+    # Verificar si el número de identificación ya existe
+    cursor.execute("SELECT COUNT(*) FROM usuarios WHERE numero_identificacion = %s", (numero_identificacion,))
+    (existe,) = cursor.fetchone()
+    
+    if existe:
+        cursor.close()
+        conn.close()
+        raise HTTPException(status_code=400, detail="El número de identificación ya está registrado.")
+
     cursor.execute(
         """
          INSERT INTO usuarios (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, rango_edad, grado_escolaridad, antiguedad, ciudad, Profesion)
