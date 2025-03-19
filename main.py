@@ -9,7 +9,7 @@ from reportlab.lib import colors
 from reportlab.lib.units import inch
 from reportlab.lib.utils import simpleSplit
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import Paragraph
+from reportlab.platypus import Paragraph, Frame
 from reportlab.lib import colors
 from reportlab.lib.utils import ImageReader
 from matplotlib.patches import Rectangle
@@ -21,11 +21,11 @@ import textwrap
 import pandas as pd
 
 # Configurar la conexión a MySQL desde Railway
-DB_HOST = "shuttle.proxy.rlwy.net"
+DB_HOST = "gondola.proxy.rlwy.net"
 DB_USER = "root"
-DB_PASSWORD = "umzzdISTaNglzBNhBcTqxNMamqkCUJfs"
+DB_PASSWORD = "nwzXTMUHabRgDchrDIQtXGsNhaNgFnrR"
 DB_NAME = "railway"
-DB_PORT = 17125
+DB_PORT = 53433
 
 
 app = FastAPI()
@@ -63,7 +63,7 @@ def get_db_connection():
 
 @app.post("/guardar_usuario")
 def guardar_usuario(
-     nombre: str = Form(...),
+    nombre: str = Form(...),
     apellidos: str = Form(...),
     tipo_documento: str = Form(...),
     numero_identificacion: int = Form(...),
@@ -73,16 +73,17 @@ def guardar_usuario(
     grado_escolaridad: str = Form(...),
     antiguedad: str = Form(...),
     ciudad: str = Form(...),
+    Profesion: str = Form(...),
     
 ):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute(
         """
-         INSERT INTO usuarios (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, rango_edad, grado_escolaridad, antiguedad, ciudad)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+         INSERT INTO usuarios (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, rango_edad, grado_escolaridad, antiguedad, ciudad, Profesion)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """,
-        (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, rango_edad, grado_escolaridad, antiguedad, ciudad)
+        (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, rango_edad, grado_escolaridad, antiguedad, ciudad, Profesion)
     )
     conn.commit()
     cursor.close()
@@ -119,49 +120,54 @@ def mostrar_pagina():
             height: 100vh;
           }
         .title-container {
-            background: rgba(0, 0, 0, 0.7); /* Fondo oscuro semitransparente */
+               background: rgba(0, 0, 0, 0.7);
             color: white;
             padding: 15px 40px;
             border-radius: 10px;
             text-align: center;
-            font-size: 28px;
+            font-size: 24px;
             font-weight: bold;
             margin-bottom: 20px;
+            width: 100%;
+            max-width: 500px;
         }
 
         .container {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 30px;
+             background: rgba(255, 255, 255, 0.9);
+            padding: 25px;
             border-radius: 10px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-            width: 90%;
+            width: 100%;
             max-width: 500px;
         }
 
         input, select {
-            width: 100%;
+             width: 100%;
             padding: 10px;
-            margin: 10px 0;
+            margin: 8px 0;
             border-radius: 5px;
             border: 1px solid #ccc;
+            font-size: 14px;
         }
 
         label {
             font-weight: bold;
             display: block;
             margin-top: 10px;
+            font-size: 14px;
         }
 
         button {
-            background: #2575fc;
+           background: #2575fc;
             color: white;
-            padding: 10px 20px;
+            padding: 12px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
-            margin-top: 15px;
             width: 100%;
+            margin-top: 15px;
+            transition: background 0.3s ease;
         }
 
         button:hover {
@@ -228,6 +234,9 @@ def mostrar_pagina():
             
             <label for="ciudad">Ciudad:</label>
             <input type="text" id="ciudad" name="ciudad" required>
+
+            <label for="Profesion">Profesion:</label>
+            <input type="text" id="Profesion" name="Profesion" required>
             
             <button type="submit">Registrar</button>
         </form>
@@ -622,19 +631,17 @@ def generar_pdf_con_analisis(usuario_id):
     c.drawCentredString(width / 2, height - 90, "Análisis de percepción de bienestar")
     c.setFont("Helvetica", 12)
     c.setFillColor(colors.black)
-
-    # Definir estilo de párrafo justificado
+       # Configurar estilos
     styles = getSampleStyleSheet()
-    style = ParagraphStyle(
-        "Justify",
+    estilo_justificado = ParagraphStyle(
+        "Justificado",
         parent=styles["Normal"],
         fontName="Helvetica",
         fontSize=12,
-        textColor=colors.black,
-        leading=14,  # Espaciado entre líneas
-        alignment=10,  # 4 = Justificado
+        leading=16,
+        alignment=4,  # 4 es para justificar el texto
     )
-
+    
     texto_intro = (
     "Este informe refleja tu percepción personal sobre las dimensiones clave que conforman tu bienestar integral. "
     "Los resultados muestran fortalezas destacadas en múltiples dimensiones del Ser humano, evidenciando áreas donde te sientes confianza, motivación y alineación con tus propósitos. "
@@ -647,15 +654,19 @@ def generar_pdf_con_analisis(usuario_id):
     
     "Este informe es, ante todo, una herramienta para que sigas explorando y potenciando aquellas áreas que te acerquen a la versión más auténtica y realizada de ti mismo(a)."
     )
-    p = Paragraph(texto_intro, style)
-    y_position = height - 120
-    max_width = width - 100
-    lineas_intro = simpleSplit(texto_intro, "Helvetica", 12, max_width)
+    parrafo_intro = Paragraph(texto_intro, estilo_justificado)
+     # Definir el marco de texto en el PDF
+    frame = Frame(60, height - 500, width - 100, 380)
+    frame.addFromList([parrafo_intro], c)
+    
+    # y_position = height - 120
+    # max_width = width - 100
+    # lineas_intro = simpleSplit(texto_intro, "Helvetica", 12, max_width)
    
     page_num += 1
-    for linea in lineas_intro:
-        c.drawString(50, y_position, linea)
-        y_position -= 20
+    # for linea in lineas_intro:
+    #      c.drawString(50, y_position, linea)
+    #      y_position -= 20
     c.showPage()
     # Dibujar imagen de fondo en la primera página
     agregar_fondo(c, width, height, background_path)
@@ -742,7 +753,7 @@ def generar_pdf_con_analisis(usuario_id):
     lineas_interpretacion = simpleSplit(interpretacion, "Helvetica", 12, max_width)
 
     for linea in lineas_interpretacion:
-        c.drawString(100, y_position, linea)
+        c.drawString(80, y_position, linea)
         y_position -= 20  
 
     y_position -= 20
