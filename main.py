@@ -390,7 +390,7 @@ def generar_graficos_por_categoria(valores_respuestas):
         "Mental": ["Disfruta De La Realidad", "Manejo Del Stress", "Relaciones Saludables", "Conexión Con Otros", "Seguridad Y Confianza"],
         "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Por Qué Estoy Aquí?", "Propósito De Vida", "Quién Soy"],
         "Financiera": ["Ahorro", "Deuda", "Ingresos", "Inversión", "Presupuesto"],
-        "Ambiental": ["Autocuidado", "armonía ambiental", "Accesibilidad Ambiental", "Atención preventiva", "Conciencia ambiental"]
+        "Ambiental": ["Autocuidado", "Armonía ambiental", "Accesibilidad Ambiental", "Atención preventiva", "Conciencia ambiental"]
     }
 
     # Interpretaciones
@@ -538,11 +538,16 @@ def generar_graficos_por_categoria(valores_respuestas):
         plt.savefig(f"statics/radar_{categoria.lower()}.png", dpi=300, bbox_inches="tight")
         plt.close()
       # Gráfico radar consolidado
+    tabla_promedios = promedios_categorias[:]    
     angulos_global = [n / float(len(categorias)) * 2 * pi for n in range(len(categorias))]
     angulos_global += angulos_global[:1]
     promedios_categorias.append(promedios_categorias[0])
-    # tabla = {"Categoría": categorias, "Porcentaje": [f"{v*100:.1f}%" for v in promedios_categorias]}
-    # tabla_df = pd.DataFrame(tabla)
+    # Convertir datos en porcentaje para la tabla
+    tabla = {
+        "Categoría": categorias,
+        "Porcentaje": [f"{v * 100:.1f}%" for v in tabla_promedios]
+            }
+    tabla_df = pd.DataFrame(tabla)
     fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
     ax.set_theta_offset(pi / 2)
     ax.set_theta_direction(-1)
@@ -552,30 +557,30 @@ def generar_graficos_por_categoria(valores_respuestas):
     ax.set_xticklabels(categorias, fontsize=14, fontweight='bold', color='#333333')
     ax.set_ylim(0, 1)
     ax.set_yticklabels([])
-    #     # Agregar tabla debajo del gráfico
-    # tabla_estilo = plt.table(
-    #     cellText=tabla_df.values,
-    #     colLabels=tabla_df.columns,
-    #     cellLoc='center',
-    #     loc='bottom',
-    #     bbox=[-0.25, -1.05, 1.5, 0.8]
-    # )
-    # tabla_estilo.auto_set_font_size(False)
-    # tabla_estilo.set_fontsize(12)
-    # tabla_estilo.scale(1.5, 1.5)
+        # Agregar tabla debajo del gráfico
+    tabla_estilo = plt.table(
+        cellText=tabla_df.values,
+        colLabels=tabla_df.columns,
+        cellLoc='center',
+        loc='bottom',
+        bbox=[-0.25, -1.05, 1.5, 0.8]
+    )
+    tabla_estilo.auto_set_font_size(False)
+    tabla_estilo.set_fontsize(12)
+    tabla_estilo.scale(1.5, 1.5)
 
-    # # Estilo de la tabla
-    # for (i, j), cell in tabla_estilo.get_celld().items():
-    #     cell.set_edgecolor('grey')
-    #     cell.set_linewidth(0.6)
-    #     if i == 0:
-    #         cell.set_facecolor('#E0F7FA')
-    #         cell.set_text_props(weight='bold', color='#1E88E5')
-    #     else:
-    #         cell.set_facecolor('#ffffff' if i % 2 == 0 else '#f2f2f2')
+    # Estilo de la tabla
+    for (i, j), cell in tabla_estilo.get_celld().items():
+        cell.set_edgecolor('grey')
+        cell.set_linewidth(0.6)
+        if i == 0:
+            cell.set_facecolor('#E0F7FA')
+            cell.set_text_props(weight='bold', color='#1E88E5')
+        else:
+            cell.set_facecolor('#ffffff' if i % 2 == 0 else '#f2f2f2')
 
-    # # Ajuste de espacio vertical para acomodar la tabla
-    # plt.subplots_adjust(bottom=0.3)
+    # Ajuste de espacio vertical para acomodar la tabla
+    plt.subplots_adjust(bottom=0.3)
         
 
     # Guardar imagen del gráfico unificado
@@ -755,6 +760,28 @@ def generar_pdf_con_analisis(usuario_id):
             y_position -= 20
         y_position -= 10
 
+    y_position -= 20
+    # Verificar si hay suficiente espacio en la página para la imagen
+    img_width = 300
+    img_height = 300
+    x_position = (width - img_width) / 2
+
+    if y_position - img_height < 50:  # Si no hay suficiente espacio, crear nueva página
+     c.showPage()
+    page_num += 1
+    agregar_fondo(c, width, height, background_path)
+    agregar_pie_pagina(c, width, page_num)
+    y_position = height - 120  # Reiniciar posición en la nueva página
+
+    # Dibujar la imagen de análisis general
+    c.setFont("Helvetica-Bold", 18)
+    c.setFillColor(colors.HexColor("#2E4053"))
+    c.drawCentredString(width / 2, y_position, "Análisis General")
+
+    y_position -= 40  # Ajuste de espacio para la imagen
+    image_path = "statics/radar_general.png"
+    c.drawImage(image_path, x_position, y_position - img_height, width=img_width, height=img_height)
+
     # Agregar número de página
     agregar_pie_pagina(c, width, page_num) 
     # Saltar a una nueva página para los gráficos si no hay suficiente espacio
@@ -770,24 +797,24 @@ def generar_pdf_con_analisis(usuario_id):
     # Agregar número de página
     agregar_pie_pagina(c, width, page_num) 
 
-    # Agregar nueva página para el gráfico general
-    c.showPage()
-    page_num += 1
-    agregar_fondo(c, width, height, background_path)
-    agregar_pie_pagina(c, width, page_num)
+    # # Agregar nueva página para el gráfico general
+    # c.showPage()
+    # page_num += 1
+    # agregar_fondo(c, width, height, background_path)
+    # agregar_pie_pagina(c, width, page_num)
 
-    c.setFont("Helvetica-Bold", 18)
-    c.setFillColor(colors.HexColor("#2E4053"))  # Título principal para gráficos
-    c.drawCentredString(width / 2, height - 90, "Análisis General")
+    # c.setFont("Helvetica-Bold", 18)
+    # c.setFillColor(colors.HexColor("#2E4053"))  # Título principal para gráficos
+    # c.drawCentredString(width / 2, height - 90, "Análisis General")
 
-    image_path = "statics/radar_general.png"
-    margen_horizontal = 50
-    margen_vertical = 100
-    img_width = 300  # Ajustar ancho de imagen
-    img_height = 300  # Ajustar alto de imagen
-    x_position = (width - img_width) / 2
-    y_position = height - margen_vertical - 60  # Bajar la posición inicial para evitar cortes
-    c.drawImage(image_path, x_position, y_position - img_height, width=img_width, height=img_height)
+    # image_path = "statics/radar_general.png"
+    # margen_horizontal = 50
+    # margen_vertical = 100
+    # img_width = 300  # Ajustar ancho de imagen
+    # img_height = 300  # Ajustar alto de imagen
+    # x_position = (width - img_width) / 2
+    # y_position = height - margen_vertical - 60  # Bajar la posición inicial para evitar cortes
+    # c.drawImage(image_path, x_position, y_position - img_height, width=img_width, height=img_height)
             
     for categoria in ["vital", "emocional", "mental", "existencial", "financiera","Ambiental"]:
         image_path = f"statics/radar_{categoria}.png"
