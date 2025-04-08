@@ -9,7 +9,7 @@ from reportlab.lib import colors
 from reportlab.lib.units import inch
 from reportlab.lib.utils import simpleSplit
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import Paragraph, Frame
+from reportlab.platypus import Paragraph, Frame, ListFlowable,KeepTogether,Spacer
 from reportlab.lib import colors
 from reportlab.lib.utils import ImageReader
 from matplotlib.patches import Rectangle
@@ -19,6 +19,10 @@ import matplotlib.pyplot as plt
 from math import pi
 import textwrap
 import pandas as pd
+from reportlab.lib.enums import TA_JUSTIFY
+
+import mysql.connector
+
 
 # Configurar la conexión a MySQL desde Railway
 DB_HOST = "gondola.proxy.rlwy.net"
@@ -29,6 +33,8 @@ DB_PORT = 53433
 
 
 app = FastAPI()
+
+
 
 app.mount("/statics", StaticFiles(directory="statics"), name="statics")
 
@@ -79,6 +85,12 @@ def guardar_usuario(
     conn = get_db_connection()
     cursor = conn.cursor()
 
+    cursor.execute("""
+        ALTER TABLE usuarios
+        ADD COLUMN fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+    """)
+    conn.commit()
+
     # Verificar si el número de identificación ya existe
     cursor.execute("SELECT COUNT(*) FROM usuarios WHERE numero_identificacion = %s", (numero_identificacion,))
     (existe,) = cursor.fetchone()
@@ -117,71 +129,83 @@ def mostrar_pagina():
             box-sizing: border-box;
         }
 
-      body {
+        body {
             font-family: Arial, sans-serif;
             background: url('/statics/VITAL.png') no-repeat center center fixed;
-            background-size: contain;  /* No estira la imagen */
-            background-attachment: fixed; /* Mantiene la imagen en su lugar */
-            background-color: #f4f4f4; /* Color de respaldo en caso de que la imagen no cargue */
+            background-size: contain;
+            background-attachment: fixed;
+            background-color: #f4f4f4;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: center;    
             justify-content: center;
-            height: 100vh;
-          }
-        .title-container {
-               background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 15px 40px;
-            border-radius: 10px;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+            .title-container {
             text-align: center;
-            font-size: 24px;
+            font-size: 25px;
             font-weight: bold;
-            margin-bottom: 20px;
-            width: 100%;
-            max-width: 500px;
+            margin-bottom: 30px;
+            margin-top: -20px;
+            color: #2C3E50;
         }
 
         .container {
-             background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.9);
             padding: 25px;
             border-radius: 10px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
             width: 100%;
-            max-width: 500px;
+            max-width: 800px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
         }
 
         input, select {
-             width: 100%;
             padding: 10px;
-            margin: 8px 0;
             border-radius: 5px;
             border: 1px solid #ccc;
             font-size: 14px;
         }
 
-        label {
-            font-weight: bold;
-            display: block;
-            margin-top: 10px;
-            font-size: 14px;
-        }
-
         button {
-           background: #2575fc;
+            background: #2575fc;
             color: white;
             padding: 12px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
+            margin-top: 20px;
             width: 100%;
-            margin-top: 15px;
             transition: background 0.3s ease;
         }
 
         button:hover {
             background: #1e5bc6;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -191,69 +215,92 @@ def mostrar_pagina():
     </div>
     <div class="container">
         <form action="/guardar_usuario" method="post">
-            <label for="nombre">Nombre:</label>
-            <input type="text" id="nombre" name="nombre" required>
-            
-            <label for="apellidos">Apellidos:</label>
-            <input type="text" id="apellidos" name="apellidos" required>
-            
-            <label for="tipo_documento">Tipo de Documento:</label>
-            <select id="tipo_documento" name="tipo_documento" required>
-                <option value="CC">Cédula de Ciudadanía</option>
-                <option value="TI">Tarjeta de Identidad</option>
-                <option value="CE">Cédula de Extranjería</option>
-            </select>
-            
-            <label for="numero_identificacion">Número de Identificación:</label>
-            <input type="text" id="numero_identificacion" name="numero_identificacion" required>
-            
-            <label for="correo">Correo Electrónico:</label>
-            <input type="email" id="correo" name="correo" required>
-            
-            <label for="sexo">Sexo:</label>
-            <select id="sexo" name="sexo" required>
-                <option value="Masculino">Masculino</option>
-                <option value="Femenino">Femenino</option>
-                <option value="Otro">Otro</option>
-            </select>
-            
-            <label for="rango_edad">Rango de Edad:</label>
-            <select id="rango_edad" name="rango_edad" required>
-                <option value="18-25">18 a 25 años</option>
-                <option value="26-40">26 a 40 años</option>
-                <option value="41-55">41 a 55 años</option>
-                <option value="56-76">56 a 76 años</option>
-            </select>
-            
-            <label for="grado_escolaridad">Grado de Escolaridad:</label>
-            <select id="grado_escolaridad" name="grado_escolaridad" required>
-                <option value="Basica Primaria">Básica Primaria</option>
-                <option value="Bachiller">Bachiller</option>
-                <option value="Pregado">Pregrado</option>
-                <option value="Posgrado">Posgrado</option>
-                <option value="Doctorado">Doctorado</option>
-            </select>
-            
-            <label for="antiguedad">Antigüedad laborando en la compañía:</label>
-            <select id="antiguedad" name="antiguedad" required>
-                <option value="Menos de 1 año">Menos de 1 año</option>
-                <option value="Entre 1 y 2 años ">Entre 1 y 2 años </option>
-                <option value="Entre 2 y 5 años">Entre 2 y 5 años</option>
-                <option value="Mas de 5 años">Mas de 5 años</option>
-            </select>           
-            
-            <label for="ciudad">Ciudad:</label>
-            <input type="text" id="ciudad" name="ciudad" required>
-
-            <label for="Profesion">Profesion:</label>
-            <input type="text" id="Profesion" name="Profesion" required>
-            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="nombre">Nombre:</label>
+                    <input type="text" id="nombre" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="apellidos">Apellidos:</label>
+                    <input type="text" id="apellidos" name="apellidos" required>
+                </div>
+                <div class="form-group">
+                    <label for="tipo_documento">Tipo de Documento:</label>
+                    <select id="tipo_documento" name="tipo_documento" required>
+                        <option value="CC">Cédula de Ciudadanía</option>
+                        <option value="TI">Tarjeta de Identidad</option>
+                        <option value="CE">Cédula de Extranjería</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="numero_identificacion">Número de Identificación:</label>
+                    <input type="text" id="numero_identificacion" name="numero_identificacion" required>
+                </div>
+                <div class="form-group">
+                    <label for="correo">Correo Electrónico:</label>
+                    <input type="email" id="correo" name="correo" required>
+                </div>
+                <div class="form-group">
+                    <label for="sexo">Sexo:</label>
+                    <select id="sexo" name="sexo" required>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Femenino">Femenino</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="rango_edad">Rango de Edad:</label>
+                    <select id="rango_edad" name="rango_edad" required>
+                        <option value="18-25">18 a 25 años</option>
+                        <option value="26-40">26 a 40 años</option>
+                        <option value="41-55">41 a 55 años</option>
+                        <option value="56-76">56 a 76 años</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="grado_escolaridad">Grado de Escolaridad:</label>
+                    <select id="grado_escolaridad" name="grado_escolaridad" required>
+                        <option value="Basica Primaria">Básica Primaria</option>
+                        <option value="Bachiller">Bachiller</option>
+                        <option value="Pregado">Pregrado</option>
+                        <option value="Posgrado">Posgrado</option>
+                        <option value="Doctorado">Doctorado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="antiguedad">Antigüedad laborando en la compañía:</label>
+                    <select id="antiguedad" name="antiguedad" required>
+                        <option value="Menos de 1 año">Menos de 1 año</option>
+                        <option value="Entre 1 y 2 años ">Entre 1 y 2 años </option>
+                        <option value="Entre 2 y 5 años">Entre 2 y 5 años</option>
+                        <option value="Mas de 5 años">Mas de 5 años</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="ciudad">Ciudad:</label>
+                    <input type="text" id="ciudad" name="ciudad" required>
+                </div>
+                <div class="form-group">
+                    <label for="Profesion">Profesión:</label>
+                    <input type="text" id="Profesion" name="Profesion" required>
+                </div>
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1; margin-top: 10px;">
+                <label style="font-weight: normal;">
+                    <input type="checkbox" name="autorizacion_datos" required>
+                    Autorizo de manera libre, voluntaria, previa, explícita e informada a Vital Value, para que en 
+                    los términos legales establecidos realice la recolección, almacenamiento, uso, circulación,
+                    supresión y, en general, el tratamiento de mis datos personales que he proporcionado o
+                    proporcionaré, con la finalidad de análisis y caracterización. Conozco que tengo derecho a
+                    conocer, actualizar, rectificar y suprimir mis datos personales, así como a revocar la
+                    autorización otorgada, de conformidad con la Ley 1581 de 2012 y demás normas aplicables.
+                </label>
+            </div>
             <button type="submit">Registrar</button>
         </form>
     </div>
 </body>
 </html>
-
     """
 @app.get("/preguntas", response_class=HTMLResponse)
 def mostrar_preguntas(usuario_id: int, pagina: int = Query(1, alias="pagina")):
@@ -615,6 +662,15 @@ def agregar_fondo(c, width, height, background_path):
         img_height = height * 0.10  # Alto del 25% de la página
         c.drawImage(bg, 0, height - img_height, width=img_width, height=img_height)
 
+        
+def agregar_fondopiepagina(c, width, height, background_path_pie):
+    """Dibuja la imagen pie de pagina de fondo en cada página."""
+    if os.path.exists(background_path_pie):
+        bg = ImageReader(background_path_pie)
+        img_width = width*0.95  # Ancho igual al de la página
+        img_height = height * 0.07 # Alto del 25% de la página
+        c.drawImage(bg, x=0, y=0, width=img_width, height=img_height, preserveAspectRatio=True, anchor='s')
+
 def agregar_pie_pagina(c, width, page_num):
     """Dibuja el número de página en la parte inferior."""
     c.setFont("Helvetica", 10)
@@ -628,11 +684,13 @@ def generar_pdf_con_analisis(usuario_id):
     c = canvas.Canvas(pdf_path, pagesize=letter)
     width, height = letter
     background_path = "statics/BKVITAL.PNG"
+    background_path_pie = "statics/pie.PNG"
     c = canvas.Canvas(pdf_path, pagesize=letter)
     width, height = letter
     page_num = 1
     # Dibujar imagen de fondo en la primera página
     agregar_fondo(c, width, height, background_path)
+    agregar_fondopiepagina(c, width, height, background_path_pie)
         # Obtener respuestas de la base de datos
 
     # Texto introductorio
@@ -669,17 +727,39 @@ def generar_pdf_con_analisis(usuario_id):
     frame = Frame(60, height - 500, width - 100, 380)
     frame.addFromList([parrafo_intro], c)
     
-    # y_position = height - 120
-    # max_width = width - 100
-    # lineas_intro = simpleSplit(texto_intro, "Helvetica", 12, max_width)
-   
     page_num += 1
-    # for linea in lineas_intro:
-    #      c.drawString(50, y_position, linea)
-    #      y_position -= 20
+    c.showPage()
+    agregar_fondo(c, width, height, background_path)
+    agregar_fondopiepagina(c, width, height, background_path_pie)
+    # Texto introductorio
+    c.setFont("Helvetica-Bold", 18)
+    c.setFillColor(colors.HexColor("#2E4053"))
+    c.drawCentredString(width / 2, height - 90, "Tratamiento de datos")
+    c.setFont("Helvetica", 12)
+    c.setFillColor(colors.black)
+       # Configurar estilos
+    styles = getSampleStyleSheet()
+    estilo_justificado = ParagraphStyle(
+        "Justificado",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=12,
+        leading=16,
+        alignment=4,  # 4 es para justificar el texto
+    )
+    
+    texto_TratamientoDatos = (
+    "Autorizo de manera libre, voluntaria, previa, explícita e informada a Vital Value, para que en los términos legales establecidos realice la recolección, almacenamiento, uso, circulación, supresión y, en general, el tratamiento de mis datos personales que he proporcionado o proporcionaré, con la finalidad de análisis y caracterizacion. Conozco que tengo derecho a conocer, actualizar, rectificar y suprimir mis datos personales, así como a revocar la autorización otorgada, de conformidad con la Ley 1581 de 2012 y demás normas aplicables"
+    )
+    parrafo_TratamientoDatos = Paragraph(texto_TratamientoDatos, estilo_justificado)
+     # Definir el marco de texto en el PDF
+    frame = Frame(60, height - 500, width - 100, 380)
+    frame.addFromList([parrafo_TratamientoDatos], c)
+    page_num += 1
     c.showPage()
     # Dibujar imagen de fondo en la primera página
     agregar_fondo(c, width, height, background_path)
+    agregar_fondopiepagina(c, width, height, background_path_pie)
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT pregunta, respuesta FROM respuestasForm WHERE usuario_id = %s", (usuario_id,))
@@ -762,14 +842,31 @@ def generar_pdf_con_analisis(usuario_id):
     max_width = width - 150  
     lineas_interpretacion = simpleSplit(interpretacion, "Helvetica", 12, max_width)
 
-    for linea in lineas_interpretacion:
-        c.drawString(80, y_position, linea)
-        y_position -= 20  
+     # Estilos de párrafo
+    styles = getSampleStyleSheet()
+    estilo_justificado = ParagraphStyle(
+        "Justificado",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=12,
+        leading=16,
+        alignment=4,  # 4 es para justificar el texto
+    )
+       # Texto de interpretación
+    parrafo_interpretacion = Paragraph(interpretacion, estilo_justificado) 
 
+        # Definir un marco para el párrafo
+    frame = Frame(80, height - 450, width - 160, 300)
+    frame.addFromList([parrafo_interpretacion], c)
+
+   
+
+
+    y_position = height - 350  # Ajustar espacio después de la interpretación
     y_position -= 20
     c.setFont("Helvetica-Bold", 14)
     c.setFillColor(colors.HexColor("#1F618D"))  # Color azul medio para subtítulos
-    c.drawString(100, y_position, "Recomendaciones:")
+    c.drawString(85, y_position, "Recomendaciones:")
     y_position -= 20
     c.setFont("Helvetica", 12)
     c.setFillColor(colors.black)  # Regresar a color negro para el contenido
@@ -777,7 +874,7 @@ def generar_pdf_con_analisis(usuario_id):
     for recomendacion in recomendaciones:
         lineas_recomendacion = simpleSplit(recomendacion, "Helvetica", 12, max_width)
         for linea in lineas_recomendacion:
-            c.drawString(120, y_position, linea)
+            c.drawString(85, y_position, linea)
             y_position -= 20
         y_position -= 10
 
@@ -786,11 +883,12 @@ def generar_pdf_con_analisis(usuario_id):
     img_width = 300
     img_height = 300
     x_position = (width - img_width) / 2
-
-    if y_position - img_height < 50:  # Si no hay suficiente espacio, crear nueva página
-     c.showPage()
+   
+    # if y_position - img_height < 50:  # Si no hay suficiente espacio, crear nueva página
+    c.showPage()
     page_num += 1
     agregar_fondo(c, width, height, background_path)
+    agregar_fondopiepagina(c, width, height, background_path_pie)
     agregar_pie_pagina(c, width, page_num)
     y_position = height - 120  # Reiniciar posición en la nueva página
 
@@ -817,32 +915,13 @@ def generar_pdf_con_analisis(usuario_id):
     x_position = (width - img_width) / 2
     # Agregar número de página
     agregar_pie_pagina(c, width, page_num) 
-
-    # # Agregar nueva página para el gráfico general
-    # c.showPage()
-    # page_num += 1
-    # agregar_fondo(c, width, height, background_path)
-    # agregar_pie_pagina(c, width, page_num)
-
-    # c.setFont("Helvetica-Bold", 18)
-    # c.setFillColor(colors.HexColor("#2E4053"))  # Título principal para gráficos
-    # c.drawCentredString(width / 2, height - 90, "Análisis General")
-
-    # image_path = "statics/radar_general.png"
-    # margen_horizontal = 50
-    # margen_vertical = 100
-    # img_width = 300  # Ajustar ancho de imagen
-    # img_height = 300  # Ajustar alto de imagen
-    # x_position = (width - img_width) / 2
-    # y_position = height - margen_vertical - 60  # Bajar la posición inicial para evitar cortes
-    # c.drawImage(image_path, x_position, y_position - img_height, width=img_width, height=img_height)
-            
     for categoria in ["vital", "emocional", "mental", "existencial", "financiera","Ambiental"]:
         image_path = f"statics/radar_{categoria}.png"
         if os.path.exists(image_path):
             c.showPage()
             page_num += 1
             agregar_fondo(c, width, height, background_path)
+            agregar_fondopiepagina(c, width, height, background_path_pie)
             agregar_pie_pagina(c, width, page_num)
             # Márgenes y ajustes
             margen_horizontal = 50
@@ -868,6 +947,7 @@ def generar_pdf_con_analisis(usuario_id):
     c.showPage()
     page_num += 1
     agregar_fondo(c, width, height, background_path)
+    agregar_fondopiepagina(c, width, height, background_path_pie)
     agregar_pie_pagina(c, width, page_num)
 
     c.setFont("Helvetica-Bold", 18)
@@ -887,6 +967,7 @@ def generar_pdf_con_analisis(usuario_id):
     c.showPage()
     page_num += 1
     agregar_fondo(c, width, height, background_path)
+    agregar_fondopiepagina(c, width, height, background_path_pie)
     agregar_pie_pagina(c, width, page_num)
     
     c.setFont("Helvetica-Bold", 14)
@@ -921,6 +1002,7 @@ def generar_pdf_con_analisis(usuario_id):
     c.showPage()
     page_num += 1
     agregar_fondo(c, width, height, background_path)
+    agregar_fondopiepagina(c, width, height, background_path_pie)
     agregar_pie_pagina(c, width, page_num)
 
     # Título de la nueva sección
