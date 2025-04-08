@@ -85,12 +85,7 @@ def guardar_usuario(
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("""
-        ALTER TABLE usuarios
-        ADD COLUMN fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
-    """)
-    conn.commit()
-
+    
     # Verificar si el número de identificación ya existe
     cursor.execute("SELECT COUNT(*) FROM usuarios WHERE numero_identificacion = %s", (numero_identificacion,))
     (existe,) = cursor.fetchone()
