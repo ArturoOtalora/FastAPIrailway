@@ -83,7 +83,6 @@ def guardar_usuario(
     
 ):
     
-
     conn = get_db_connection()
     cursor = conn.cursor()  
     
