@@ -12,6 +12,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import Paragraph, Frame, ListFlowable,KeepTogether,Spacer
 from reportlab.lib import colors
 from reportlab.lib.utils import ImageReader
+from matplotlib.patches import Rectangle, FancyBboxPatch
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -82,10 +83,11 @@ def guardar_usuario(
     
 ):
     
-  
+
     conn = get_db_connection()
     cursor = conn.cursor()
 
+    print("✅ Tabla 'proveedores' creada correctamente.")    
     
     # Verificar si el número de identificación ya existe
     cursor.execute("SELECT COUNT(*) FROM usuarios WHERE numero_identificacion = %s", (numero_identificacion,))
@@ -657,87 +659,7 @@ def generar_graficos_por_categoria(valores_respuestas):
 
     # Interpretaciones
     interpretaciones = {
-        "Vital": {
-          "muy_bajo": """
-        ⚠️ **Nivel Crítico de Energía**  
-        Tus resultados indican un agotamiento físico significativo. Esto puede manifestarse como fatiga crónica, dificultad para concentrarte o mayor susceptibilidad a enfermedades.  
-        🔹 **Acciones recomendadas**:  
-        • Prioriza 7-9 horas de sueño reparador  
-        • Incorpora alimentos ricos en hierro y vitamina B12  
-        • Comienza con caminatas diarias de 15 minutos  
-        • Considera exámenes médicos para descartar deficiencias nutricionales""",
-                
-                "bajo": """
-        🔄 **Energía por Debajo del Óptimo**  
-        Experimentas fluctuaciones de energía que afectan tu productividad. La recuperación tras esfuerzos es más lenta de lo deseable.  
-        🔹 **Estrategias de mejora**:  
-        • Establece horarios regulares para comidas principales  
-        • Prueba técnicas de respiración diafragmática  
-        • Reduce el consumo de cafeína después del mediodía  
-        • Incorpora ejercicios de fuerza 2 veces por semana""",
-                
-                "medio": """
-        ✅ **Base Sólida con Potencial**  
-        Mantienes un ritmo adecuado, pero con ocasionales bajones energéticos. Podrías optimizar tu resistencia y recuperación.  
-        🔹 **Optimización**:  
-        • Experimenta con ciclos de trabajo/descanso (ej. técnica Pomodoro)  
-        • Añade snacks proteicos entre comidas  
-        • Prueba suplementos naturales como maca o ginseng  
-        • Mejora tu hidratación con 2L de agua diarios""",
-                
-                "alto": """
-        🌟 **Vitalidad Notable**  
-        Tu cuerpo responde bien a las demandas diarias, con buena recuperación y resistencia.  
-        🔹 **Mantenimiento**:  
-        • Varía tu rutina de ejercicios cada 6-8 semanas  
-        • Practica ayuno intermitente 1-2 días por semana  
-        • Incluye sesiones de sauna o baños de contraste  
-        • Realiza chequeos preventivos anuales""",
-                
-                "muy_alto": """
-        🔥 **Energía Excepcional**  
-        Demuestras hábitos ejemplares que generan energía sostenible. Tu vitalidad impacta positivamente a tu entorno.  
-        🔹 **Siguiente nivel**:  
-        • Mentoría en wellness coaching  
-        • Entrenamiento de alto rendimiento  
-        • Biohacking avanzado (medición de marcadores)  
-        • Terapias de regeneración celular"""
-            },
-        "Emocional": {
-            "muy_bajo": "⚠️ Estado emocional crítico.",
-            "bajo": "🔄 Altibajos emocionales.",
-            "medio": "✅ Bien, pero se puede mejorar.",
-            "alto": "🌟 Gran equilibrio emocional.",
-            "muy_alto": "🔥 Fortaleza emocional sobresaliente."
-        },
-        "Mental": {
-            "muy_bajo": "⚠️ Bajo enfoque y claridad mental. Evalúa técnicas para mejorar la concentración.",
-            "bajo": "🔄 Necesitas fortalecer tu agilidad mental y manejo del estrés.",
-            "medio": "✅ Buen nivel, pero podrías mejorar en gestión de pensamientos.",
-            "alto": "🌟 Mente clara y activa. Excelente manejo de desafíos mentales.",
-            "muy_alto": "🔥 Dominio mental excepcional. Gran capacidad de aprendizaje y análisis."
-        },
-        "Existencial": {
-            "muy_bajo": "⚠️ Falta de propósito o conexión. Reflexiona sobre lo que te motiva.",
-            "bajo": "🔄 Buscas sentido a tu vida, sigue explorando lo que te hace feliz.",
-            "medio": "✅ Tienes claridad en algunos aspectos, pero aún puedes definir mejor tu propósito.",
-            "alto": "🌟 Buena conexión con tus valores y propósitos. Continúa creciendo.",
-            "muy_alto": "🔥 Plenitud y propósito bien definidos. Inspiras a los demás."
-        },
-        "Financiera": {
-            "muy_bajo": "⚠️ Inseguridad financiera alta. Evalúa mejorar tu educación financiera.",
-            "bajo": "🔄 Es momento de planificar mejor tus finanzas y controlar gastos.",
-            "medio": "✅ Manejas bien tus finanzas, pero aún hay áreas de mejora.",
-            "alto": "🌟 Finanzas saludables. Buen control de ingresos y gastos.",
-            "muy_alto": "🔥 Excelente estabilidad financiera. Gran visión para inversiones."
-        },
-        "Ambiental": {
-            "muy_bajo": "⚠️ Impacto ambiental alto. Es crucial reducir tu huella ecológica.",
-            "bajo": "🔄 Hay margen de mejora en tus hábitos ecológicos. Reduce, reutiliza y recicla.",
-            "medio": "✅ Buen compromiso con el medioambiente, pero aún puedes optimizar.",
-            "alto": "🌟 Excelente conciencia ambiental. Sigues prácticas sostenibles.",
-            "muy_alto": "🔥 Gran impacto positivo en el planeta. Inspiras con tu sostenibilidad."
-        },
+        
     }
 
     inicio = 0
@@ -1106,7 +1028,6 @@ def generar_pdf_con_analisis(usuario_id):
             "•	Practicar actividades artísticas tales como: dibujo, pintura, escritura, baile."
         ]
         
-        
     
         # Crear el PDF
     c.setFont("Helvetica-Bold", 18)
@@ -1262,7 +1183,7 @@ def generar_pdf_con_analisis(usuario_id):
         
         "muy_alto": "🔥 Excelente estabilidad financiera. Has alcanzado una visión clara y estratégica sobre tus finanzas. No solo cubres tus necesidades y ahorras con constancia, sino que además inviertes, generas ingresos pasivos y piensas en el largo plazo. Este nivel te permite construir riqueza, impactar en otros y dejar un legado financiero sólido."
     },
-        "Ambiental": {
+        "ambiental": {
         "muy_bajo": "⚠️ Impacto ambiental alto. Tus hábitos actuales tienen consecuencias negativas sobre el medio ambiente. Es posible que haya un bajo nivel de conciencia sobre reciclaje, uso de recursos o contaminación. Es importante que tomes responsabilidad y comiences con acciones pequeñas como reducir residuos, evitar el uso excesivo de plásticos y optar por medios de transporte sostenibles.",
         
         "bajo": "🔄 Hábitos ecológicos mejorables. Aunque hay cierta intención de cuidar el ambiente, aún no se refleja de forma concreta en tu estilo de vida. Adoptar prácticas como reutilizar productos, consumir local y reducir tu huella de carbono puede ayudarte a alinear tus valores con tu comportamiento diario.",
@@ -1299,7 +1220,7 @@ def generar_pdf_con_analisis(usuario_id):
             nivel = "muy_alto"
 
     
-    for categoria in ["vital", "emocional", "mental", "existencial", "financiera","Ambiental"]:
+    for categoria in ["vital", "emocional", "mental", "existencial", "financiera","ambiental"]:
         image_path = f"statics/radar_{categoria}.png"
         
         if os.path.exists(image_path):
@@ -1420,6 +1341,22 @@ def generar_pdf_con_analisis(usuario_id):
         preserveAspectRatio=True,
         mask='auto'
     )
+
+   # Interpretación
+    interpretacion = interpretaciones.get("ambiental", {}).get(nivel, "")
+    p = Paragraph(interpretacion, paragraph_style)
+
+    separacion_interpretacion = 20
+    interpretacion_y = y_position - img_height - separacion_interpretacion
+
+    frame = Frame(
+                margen_horizontal,
+                interpretacion_y - 100,
+                frame_width,
+                100,
+                showBoundary=0
+            )
+    frame.addFromList([p], c) 
 
     # Página de Plan de Acción
     c.showPage()
