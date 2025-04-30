@@ -85,9 +85,7 @@ def guardar_usuario(
     
 
     conn = get_db_connection()
-    cursor = conn.cursor()
-
-    print("✅ Tabla 'proveedores' creada correctamente.")    
+    cursor = conn.cursor()  
     
     # Verificar si el número de identificación ya existe
     cursor.execute("SELECT COUNT(*) FROM usuarios WHERE numero_identificacion = %s", (numero_identificacion,))
@@ -1116,7 +1114,7 @@ def generar_pdf_con_analisis(usuario_id):
     "mental": "Tu mente es un jardín: sus pensamientos y creencias dan forma a tu realidad. Este análisis explora cómo cultivas flexibilidad ante los desafíos, gratitud frente a los logros y claridad en tus decisiones. Descubrirás si tus patrones mentales te acercan a la plenitud o si hay terrenos fértiles para sembrar nuevas perspectivas",
     "existencial": "¿Qué huella quieres grabar en el mundo? Tus respuestas revelan cómo conectas tus acciones diarias con un propósito más profundo. Aquí explorarás si tu vida actual resuena con tus valores esenciales y cómo puedes alinear decisiones futuras para que cada paso contribuya a un legado auténtico y significativo",
     "financiera": "El dinero no solo se cuenta: se gestiona con mente y corazón. Tus elecciones financieras —desde el ahorro hasta la inversión— hablan de tus valores y tu capacidad para equilibrar lo práctico con lo emocional. Este análisis te guiará a identificar fortalezas y áreas donde transformar preocupaciones en estrategias claras, construyendo seguridad material y paz interior.",
-    "Ambiental": "Tu relación con la Tierra es un reflejo de tu conexión con la vida. Tus hábitos cotidianos —desde el consumo hasta el manejo de recursos— muestran cómo honras el ecosistema del que formas parte. Esta evaluación te ayudará a identificar acciones para transformar tu impacto, no solo como un acto ecológico, sino como un compromiso con tu propio bienestar integral"
+    "ambiental": "Tu relación con la Tierra es un reflejo de tu conexión con la vida. Tus hábitos cotidianos —desde el consumo hasta el manejo de recursos— muestran cómo honras el ecosistema del que formas parte. Esta evaluación te ayudará a identificar acciones para transformar tu impacto, no solo como un acto ecológico, sino como un compromiso con tu propio bienestar integral"
                    }
     # Estilo de párrafo justificado
     paragraph_style = ParagraphStyle(
@@ -1282,81 +1280,81 @@ def generar_pdf_con_analisis(usuario_id):
             frame.addFromList([p], c)
 
     # Add Ambiental section separately (6th category)
-    c.showPage()
-    page_num += 1
-    agregar_fondo(c, width, height, background_path)
-    agregar_fondopiepagina(c, width, height, background_path_pie)
-    agregar_pie_pagina(c, width, page_num)
+#     c.showPage()
+#     page_num += 1
+#     agregar_fondo(c, width, height, background_path)
+#     agregar_fondopiepagina(c, width, height, background_path_pie)
+#     agregar_pie_pagina(c, width, page_num)
 
-    descripcion_ambiental = (
-    "El entorno que habitas influye directamente en tu bienestar. "
-    "Aquí exploramos tu conexión con la naturaleza y el compromiso con prácticas "
-    "que promueven un mundo más saludable y equilibrado para todos."
-    )
+#     descripcion_ambiental = (
+#     "El entorno que habitas influye directamente en tu bienestar. "
+#     "Aquí exploramos tu conexión con la naturaleza y el compromiso con prácticas "
+#     "que promueven un mundo más saludable y equilibrado para todos."
+#     )
 
-    c.setFont("Helvetica-Bold", 18)
-    c.setFillColor(colors.HexColor("#2E4053"))  # Título principal para gráficos
-    c.drawCentredString(width / 2, height - 90, "Salud Ambiental")
+#     c.setFont("Helvetica-Bold", 18)
+#     c.setFillColor(colors.HexColor("#2E4053"))  # Título principal para gráficos
+#     c.drawCentredString(width / 2, height - 90, "Salud Ambiental")
 
-    # Estilo de párrafo justificado
-    paragraph_style = ParagraphStyle(
-        name="Justificado",
-        fontName="Helvetica",
-        fontSize=11,
-        leading=15,
-        alignment=TA_JUSTIFY,
-        textColor=colors.black,
-    )
+#     # Estilo de párrafo justificado
+#     paragraph_style = ParagraphStyle(
+#         name="Justificado",
+#         fontName="Helvetica",
+#         fontSize=11,
+#         leading=15,
+#         alignment=TA_JUSTIFY,
+#         textColor=colors.black,
+#     )
 
-    # Crear el párrafo
-    p = Paragraph(descripcion_ambiental, paragraph_style)
+#     # Crear el párrafo
+#     p = Paragraph(descripcion_ambiental, paragraph_style)
 
-    # Frame para el texto (posición y tamaño)
-    margen_horizontal = 50
-    frame_width = width - 2 * margen_horizontal
-    frame_height = 90  # altura del bloque de texto
+#     # Frame para el texto (posición y tamaño)
+#     margen_horizontal = 50
+#     frame_width = width - 2 * margen_horizontal
+#     frame_height = 90  # altura del bloque de texto
 
-    frame_top = height - 120  # donde empieza el frame, debajo del título
+#     frame_top = height - 120  # donde empieza el frame, debajo del título
 
-    frame = Frame(
-        margen_horizontal,
-        frame_top - frame_height,
-        frame_width,
-        frame_height,
-        showBoundary=0  # pon 1 si quieres ver el cuadro mientras ajustas
-    )
+#     frame = Frame(
+#         margen_horizontal,
+#         frame_top - frame_height,
+#         frame_width,
+#         frame_height,
+#         showBoundary=0  # pon 1 si quieres ver el cuadro mientras ajustas
+#     )
 
-    frame.addFromList([p], c)
-    image_path = "statics/radar_ambiental.png"
-    img_width = 320
-    img_height = 320
-    x_position = (width - img_width) / 2
-    y_position = frame_top - frame_height - 30  # separación pequeña entre texto e imagen
-    c.drawImage(
-        image_path,
-        x_position,
-        y_position - img_height,
-        width=img_width,
-        height=img_height,
-        preserveAspectRatio=True,
-        mask='auto'
-    )
+#     frame.addFromList([p], c)
+#     image_path = "statics/radar_ambiental.png"
+#     img_width = 320
+#     img_height = 320
+#     x_position = (width - img_width) / 2
+#     y_position = frame_top - frame_height - 30  # separación pequeña entre texto e imagen
+#     c.drawImage(
+#         image_path,
+#         x_position,
+#         y_position - img_height,
+#         width=img_width,
+#         height=img_height,
+#         preserveAspectRatio=True,
+#         mask='auto'
+#     )
 
-   # Interpretación
-    interpretacion = interpretaciones.get("ambiental", {}).get(nivel, "")
-    p = Paragraph(interpretacion, paragraph_style)
+#    # Interpretación
+#     interpretacion = interpretaciones.get("ambiental", {}).get(nivel, "")
+#     p = Paragraph(interpretacion, paragraph_style)
 
-    separacion_interpretacion = 20
-    interpretacion_y = y_position - img_height - separacion_interpretacion
+#     separacion_interpretacion = 20
+#     interpretacion_y = y_position - img_height - separacion_interpretacion
 
-    frame = Frame(
-                margen_horizontal,
-                interpretacion_y - 100,
-                frame_width,
-                100,
-                showBoundary=0
-            )
-    frame.addFromList([p], c) 
+#     frame = Frame(
+#                 margen_horizontal,
+#                 interpretacion_y - 100,
+#                 frame_width,
+#                 100,
+#                 showBoundary=0
+#             )
+#     frame.addFromList([p], c) 
 
     # Página de Plan de Acción
     c.showPage()
