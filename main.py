@@ -20,6 +20,8 @@ from math import pi
 import textwrap
 import pandas as pd
 from reportlab.lib.enums import TA_JUSTIFY
+from email.message import EmailMessage
+import aiosmtplib
 
 import mysql.connector
 
@@ -1108,12 +1110,12 @@ def generar_pdf_con_analisis(usuario_id):
     # Agregar número de página
     agregar_pie_pagina(c, width, page_num) 
     descripciones = {
-    "vital": "Tu cuerpo es el lienzo donde se plasma tu historia. Los hábitos que has construido —desde la nutrición hasta el descanso— revelan cómo dialogas con tu energía física. Este análisis no juzga, sino que ilumina oportunidades para alinear tus acciones con las necesidades únicas de tu organismo. Aquí descubrirás cómo fortalecer tu vitalidad para que cada día sea una expresión de cuidado consciente.",
-    "emocional": "Las emociones son ventanas a tu mundo interno. Tus respuestas reflejan cómo navegas la alegría, el estrés o la incertidumbre, y cómo estas experiencias moldean tus relaciones y decisiones. Este espacio te invita a observar patrones, celebrar tus avances y reconocer dónde puedes cultivar mayor equilibrio emocional para vivir con autenticidad y serenidad.",
+    "vital": "Tu cuerpo es el lienzo donde se refleja tu autocuidado. Los hábitos que has construido desde la nutrición hasta el descanso revelan cómo dialogas con tu energía física. Este análisis no juzga, sino que ilumina oportunidades para alinear tus acciones con las necesidades únicas de tu organismo. Aquí descubrirás cómo fortalecer tu vitalidad para que cada día sea una expresión de tu vitalidad..",
+    "emocional": "Las emociones son ventanas a tu mundo interno. Tus respuestas reflejan cómo entiendes y gestionas la alegría, el estrés o la incertidumbre, y cómo estas experiencias moldean tus relaciones y decisiones. Este espacio de observación te invita a observar patrones, celebrar tus avances y reconocer dónde puedes cultivar mayor equilibrio emocional para vivir con autenticidad y serenidad.",
     "mental": "Tu mente es un jardín: sus pensamientos y creencias dan forma a tu realidad. Este análisis explora cómo cultivas flexibilidad ante los desafíos, gratitud frente a los logros y claridad en tus decisiones. Descubrirás si tus patrones mentales te acercan a la plenitud o si hay terrenos fértiles para sembrar nuevas perspectivas",
-    "existencial": "¿Qué huella quieres grabar en el mundo? Tus respuestas revelan cómo conectas tus acciones diarias con un propósito más profundo. Aquí explorarás si tu vida actual resuena con tus valores esenciales y cómo puedes alinear decisiones futuras para que cada paso contribuya a un legado auténtico y significativo",
-    "financiera": "El dinero no solo se cuenta: se gestiona con mente y corazón. Tus elecciones financieras —desde el ahorro hasta la inversión— hablan de tus valores y tu capacidad para equilibrar lo práctico con lo emocional. Este análisis te guiará a identificar fortalezas y áreas donde transformar preocupaciones en estrategias claras, construyendo seguridad material y paz interior.",
-    "ambiental": "Tu relación con la Tierra es un reflejo de tu conexión con la vida. Tus hábitos cotidianos —desde el consumo hasta el manejo de recursos— muestran cómo honras el ecosistema del que formas parte. Esta evaluación te ayudará a identificar acciones para transformar tu impacto, no solo como un acto ecológico, sino como un compromiso con tu propio bienestar integral"
+    "existencial": "¿Qué huella quieres grabar en el mundo? Tus respuestas revelan cómo conectas tus acciones diarias con un propósito más profundo. En esta introspección explorarás si tu vida actual resuena con tus valores y principios y como conectas con un propósito y sentido de vida superior.",
+    "financiera": "El dinero no solo se cuenta: se gestiona con mente y corazón. Tus elecciones financieras desde el ahorro hasta la inversión hablan de tus valores y tu capacidad para equilibrar lo práctico con lo emocional. Este análisis te guiará a identificar tu coeficiente emocional financiero, así como fortalezas y áreas donde transformar preocupaciones en estrategias claras, construyendo seguridad material y paz interior.",
+    "ambiental": "Tu relación con la Tierra es un reflejo de tu conexión con la vida. Tus hábitos cotidianos desde el consumo hasta el manejo de recursos muestran cómo honras el ecosistema del que formas parte. Esta evaluación te ayudará a identificar acciones para transformar tu impacto, no solo como un acto ecológico, sino como un compromiso con tu propio bienestar integral"
                    }
     # Estilo de párrafo justificado
     paragraph_style = ParagraphStyle(
@@ -1527,11 +1529,12 @@ async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagi
                 </style>
             </head>
             <body>
-                <div class="container">
+                 <div class="container">
                     <h1>¡Gracias por tu tiempo!</h1>
                     <p>Haz clic en el botón para generar y descargar tu análisis de respuestas:</p>
                     <button onclick="window.location.href='/descargar_pdf?usuario_id={usuario_id}'">Generar y Descargar Análisis</button>
                 </div>
+               
             </body>
             </html>
             """
@@ -1539,11 +1542,70 @@ async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagi
     else:
             return RedirectResponse(url=f"/preguntas?usuario_id={usuario_id}&pagina={pagina+1}", status_code=303)
 @app.get("/descargar_pdf")
-def descargar_pdf(usuario_id: int):
-        pdf_path = generar_pdf_con_analisis(usuario_id)
-        if pdf_path:
-            return FileResponse(pdf_path, media_type="application/pdf", filename=f"Analisis_Respuestas_{usuario_id}.pdf")
+async def descargar_pdf(usuario_id: int):
+    pdf_path = generar_pdf_con_analisis(usuario_id)
+
+    if not os.path.exists(pdf_path):
         return HTMLResponse(content="<h1>Error al generar el PDF.</h1>")
+
+    # Envío de correo automático al destinatario predeterminado
+    correo_destino = "plataformasjose18@gmail.com"
+    message = EmailMessage()
+    message["From"] = "correopruebavital@gmail.com"
+    message["To"] = correo_destino
+    message["Subject"] = f"Análisis de Respuestas - Usuario {usuario_id}"
+    message.set_content("Adjunto encontrarás el análisis de tus respuestas en formato PDF.")
+
+    with open(pdf_path, "rb") as f:
+        message.add_attachment(f.read(), maintype="application", subtype="pdf", filename=os.path.basename(pdf_path))
+
+    try:
+        await aiosmtplib.send(
+            message,
+            hostname="smtp.gmail.com",
+            port=587,
+            start_tls=True,
+            username="correopruebavital@gmail.com",
+            password="cxvi hyne temx xmgt"
+        )
+    except Exception as e:
+        print(f"Error al enviar el correo: {e}")
+
+    return FileResponse(pdf_path, media_type="application/pdf", filename=f"Analisis_Respuestas_{usuario_id}.pdf")
+
+
+@app.post("/enviar_pdf_email")
+async def enviar_pdf_email(usuario_id: int = Form(...), correo_destino: str = Form(...)):
+    pdf_path = generar_pdf_con_analisis(usuario_id)
+
+    if not os.path.exists(pdf_path):
+        return HTMLResponse(content="<h1>Error al generar el PDF.</h1>")
+
+    # Crea el mensaje
+    message = EmailMessage()
+    message["From"] = "correopruebavital@gmail.com"
+    message["To"] = "plataformasjose18@gmail.com"
+    message["Subject"] = f"Análisis de Respuestas - Usuario {usuario_id}"
+    message.set_content("Adjunto encontrarás el análisis de tus respuestas en formato PDF.")
+
+    # Adjunta el PDF
+    with open(pdf_path, "rb") as f:
+        message.add_attachment(f.read(), maintype="application", subtype="pdf", filename=os.path.basename(pdf_path))
+
+    # Envía el correo
+    try:
+        await aiosmtplib.send(
+            message,
+            hostname="smtp.gmail.com",
+            port=587,
+            start_tls=True,
+            username="correopruebavital@gmail.com",
+            password="cxvi hyne temx xmgt"
+        )
+        return {"mensaje": f"PDF enviado a {correo_destino} correctamente."}
+    except Exception as e:
+        return HTMLResponse(content=f"<h1>Error al enviar el correo: {str(e)}</h1>")
+
 
 if __name__ == '__main__':
     import uvicorn
