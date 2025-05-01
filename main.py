@@ -1549,7 +1549,7 @@ async def descargar_pdf(usuario_id: int):
         return HTMLResponse(content="<h1>Error al generar el PDF.</h1>")
 
     # Envío de correo automático al destinatario predeterminado
-    correo_destino = "plataformasjose18@gmail.com"
+    correo_destino = "jmzconsultor@gmail.com"
     message = EmailMessage()
     message["From"] = "correopruebavital@gmail.com"
     message["To"] = correo_destino
@@ -1584,7 +1584,7 @@ async def enviar_pdf_email(usuario_id: int = Form(...), correo_destino: str = Fo
     # Crea el mensaje
     message = EmailMessage()
     message["From"] = "correopruebavital@gmail.com"
-    message["To"] = "plataformasjose18@gmail.com"
+    message["To"] = "jmzconsultor@gmail.com"
     message["Subject"] = f"Análisis de Respuestas - Usuario {usuario_id}"
     message.set_content("Adjunto encontrarás el análisis de tus respuestas en formato PDF.")
 
