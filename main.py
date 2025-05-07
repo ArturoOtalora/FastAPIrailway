@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Form, Request,Query, HTTPException 
+from fastapi import FastAPI, Form, Request,Query, HTTPException, Response, Request, status 
 from fastapi.responses import HTMLResponse, RedirectResponse,FileResponse
 from fastapi.staticfiles import StaticFiles
 import mysql.connector
@@ -27,11 +27,11 @@ import mysql.connector
 
 
 # Configurar la conexión a MySQL desde Railway
-DB_HOST = "gondola.proxy.rlwy.net"
+DB_HOST = "shuttle.proxy.rlwy.net"
 DB_USER = "root"
-DB_PASSWORD = "nwzXTMUHabRgDchrDIQtXGsNhaNgFnrR"
+DB_PASSWORD = "umzzdISTaNglzBNhBcTqxNMamqkCUJfs"
 DB_NAME = "railway"
-DB_PORT = 53433
+DB_PORT = 17125
 
 
 app = FastAPI()
@@ -58,7 +58,7 @@ preguntas_lista = [
 nombre_completo_global = ""
 @app.get("/")
 def home():
-    return RedirectResponse(url="/mostrar_pagina")
+    return RedirectResponse(url="/login")
 
 def get_db_connection():
     return mysql.connector.connect(
@@ -82,11 +82,13 @@ def guardar_usuario(
     antiguedad: str = Form(...),
     ciudad: str = Form(...),
     Profesion: str = Form(...),
+    Empresa: str = Form(...),
     
 ):
     
     conn = get_db_connection()
     cursor = conn.cursor()  
+    
     
     # Verificar si el número de identificación ya existe
     cursor.execute("SELECT COUNT(*) FROM usuarios WHERE numero_identificacion = %s", (numero_identificacion,))
@@ -99,10 +101,10 @@ def guardar_usuario(
         
     cursor.execute(
         """
-         INSERT INTO usuarios (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, rango_edad, grado_escolaridad, antiguedad, ciudad, Profesion)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+         INSERT INTO usuarios (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, rango_edad, grado_escolaridad, antiguedad, ciudad, Profesion,Empresa)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """,
-        (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, rango_edad, grado_escolaridad, antiguedad, ciudad, Profesion)
+        (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, rango_edad, grado_escolaridad, antiguedad, ciudad, Profesion,Empresa)
     )
     conn.commit()
     cursor.close()
@@ -111,9 +113,160 @@ def guardar_usuario(
 
     return RedirectResponse(url=f"/preguntas?usuario_id={numero_identificacion}", status_code=303)
 
+@app.get("/login", response_class=HTMLResponse)
+def login_form():
+    return """
+ <!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f2f2f2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            padding: 40px;
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .background-image {
+            width: 300px;
+            height: 300px;
+            background-image: url('/statics/VITALI.png');
+            background-size: cover;
+            background-position: center;
+            border-radius: 12px;
+        }
+
+        .overlay {
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 25px;
+            color: #2c3e50;
+        }
+
+        .input-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-container input[type="text"],
+        .input-container input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        .input-container i {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            cursor: pointer;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #2575fc;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #1e5bc6;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="background-image"></div>
+        <div class="overlay">
+            <h2>Iniciar Sesión</h2>
+            <form action="/login" method="post">
+                <div class="input-container">
+                    <i class="fas fa-user"></i>
+                    <input type="text" name="username" placeholder="Usuario" required>
+                </div>
+                <div class="input-container">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="password" id="password" placeholder="Contraseña" required>
+                    <i class="fas fa-eye" id="togglePassword" onclick="togglePasswordVisibility()"></i>
+                </div>
+                <button type="submit">Entrar</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+
+    <script>
+        function togglePasswordVisibility() {
+            const passwordField = document.getElementById("password");
+            const passwordIcon = document.getElementById("togglePassword");
+
+            if (passwordField.type === "password") {
+                passwordField.type = "text";
+                passwordIcon.classList.remove("fa-eye");
+                passwordIcon.classList.add("fa-eye-slash");
+            } else {
+                passwordField.type = "password";
+                passwordIcon.classList.remove("fa-eye-slash");
+                passwordIcon.classList.add("fa-eye");
+            }
+        }
+    </script>
+</body>
+</html>
+    """
+@app.post("/login")
+def login(username: str = Form(...), password: str = Form(...)):
+    if username == "Invitado" and password == "Vital2025.":
+        resp = RedirectResponse(url="/mostrar_pagina", status_code=status.HTTP_302_FOUND)
+        return resp  # <-- este return es necesario
+    return HTMLResponse("<h3>Credenciales incorrectas. <a href='/login'>Volver</a></h3>", status_code=401)
 
 @app.get("/mostrar_pagina", response_class=HTMLResponse)
 def mostrar_pagina():
+        # return RedirectResponse(url="/login")
     return """
 <!DOCTYPE html>
 <html>
@@ -281,6 +434,15 @@ def mostrar_pagina():
                     <label for="Profesion">Profesión:</label>
                     <input type="text" id="Profesion" name="Profesion" required>
                 </div>
+                <div class="form-group">
+                    <label for="Empresa">Empresa:</label>
+                    <select id="Empresa" name="Empresa" required>
+                        <option value="Independiente">Independiente</option>
+                        <option value="Sanitas">Sanitas</option>
+                        <option value="Compensar">Compensar</option>
+                        <option value="Cafam">Cafam</option>
+                    </select>
+                </div>
             </div>
             <div class="form-group" style="grid-column: 1 / -1; margin-top: 10px;">
                 <label style="font-weight: normal;">
@@ -335,39 +497,41 @@ def mostrar_preguntas(usuario_id: int, pagina: int = Query(1, alias="pagina")):
     ultimo_bloque_insertado = None  # Para evitar repetir el mensaje
 
     for categoria, preguntas in categorias_preguntas.items():
-        for pregunta in preguntas:
-            if inicio <= contador < fin:
-                bloque_actual = (contador // 5) + 1  # 👈 Calcula el bloque basado en la posición global
+     for pregunta in preguntas:
+        if inicio <= contador < fin:
+            bloque_actual = (contador // 5) + 1
 
-                # Mostrar mensaje del bloque solo una vez por página
-                if bloque_actual != ultimo_bloque_insertado:
-                    titulo_bloque, mensaje_bloque = bloque_textos.get(
-                        bloque_actual,
-                        (f"Bloque {bloque_actual}", "Reflexiona con atención sobre los siguientes aspectos.")
-                    )
-                    preguntas_html += f'''
-                    <div class="bloque-intro">
-                        <h2>{titulo_bloque}</h2>
-                        <p>{mensaje_bloque}</p>
-                    </div>
-                    '''
-                    ultimo_bloque_insertado = bloque_actual
-
+            if bloque_actual != ultimo_bloque_insertado:
+                titulo_bloque, mensaje_bloque = bloque_textos.get(
+                    bloque_actual,
+                    (f"Bloque {bloque_actual}", "Reflexiona con atención sobre los siguientes aspectos.")
+                )
                 preguntas_html += f'''
-                <div class="pregunta-container">
-                    <p class="pregunta">{pregunta}</p>
-                    <div class="star-rating">
-                        {"".join([
-                            f'<input type="radio" id="star{j}_{contador}" name="respuesta_{contador}" value="{j}" required>'
-                            f'<label for="star{j}_{contador}" class="star">&#9733;</label>'
-                            for j in range(10, 0, -1)
-                        ])}
-                    </div>
+                <div class="bloque-intro">
+                    <h2>{titulo_bloque}</h2>
+                    <p>{mensaje_bloque}</p>
                 </div>
-                
-                    '''
-            contador += 1
+                '''
+                ultimo_bloque_insertado = bloque_actual
 
+            # Este bloque va FUERA del if
+            preguntas_html += f'''
+            <div class="pregunta-container">
+                <p class="pregunta">{pregunta}</p>
+                <div class="star-rating">
+                    {"".join([
+                        f'<input type="radio" id="star{j}_{contador}" name="respuesta_{contador}" value="{j}" required>'
+                        f'<label for="star{j}_{contador}" class="star">&#9733;</label>'
+                        for j in range(10, 0, -1)
+                    ])}
+                </div>
+                <button type="button" onclick="toggleComentario('comentario_{contador}')">+</button>
+                <div id="comentario_{contador}" class="comentario" style="display: none; margin-top: 10px;">
+                    <textarea name="comentario_{contador}" rows="3" placeholder="Escribe aquí si deseas agregar algo..." style="width: 100%; border-radius: 5px; padding: 8px;"></textarea>
+                </div>
+            </div>
+            '''
+        contador += 1
     return f'''
    <!DOCTYPE html>
 <html>
@@ -640,6 +804,11 @@ function cerrarErrorModal() {{
                 `;
                 document.head.appendChild(style);
             }}
+            function toggleComentario(id) {{
+            const div = document.getElementById(id);
+            div.style.display = div.style.display === 'none' ? 'block' : 'none';
+        }}    
+
         </script>
     </body>
     </html>
@@ -1460,23 +1629,28 @@ async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagi
         if key.startswith("respuesta_"):
             index = int(key.split("_")[1])
             pregunta = preguntas_lista[index]
-            respuestas[pregunta] = value
+            respuesta = value
+            comentario_key = f"comentario_{index}"
+            comentario = form_data.get(comentario_key, "")
+
+            # Guardamos todo junto
+            respuestas[pregunta] = (respuesta, comentario)
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    for pregunta, respuesta in respuestas.items():
-
+    for pregunta, (respuesta, comentario) in respuestas.items():
         cursor.execute(
-            "INSERT INTO respuestasForm (usuario_id, pregunta, respuesta) VALUES (%s, %s, %s) "
-            "ON DUPLICATE KEY UPDATE respuesta = VALUES(respuesta)",
-            (usuario_id, pregunta, respuesta)
+            """
+            INSERT INTO respuestasForm (usuario_id, pregunta, respuesta, comentario)
+            VALUES (%s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE respuesta = VALUES(respuesta), comentario = VALUES(comentario)
+            """,
+            (usuario_id, pregunta, respuesta, comentario)
         )
 
     conn.commit()
     cursor.close()
-    conn.close()
-
     total_preguntas = len(preguntas_lista)
     preguntas_por_pagina = 10
     es_ultima_pagina = (pagina * preguntas_por_pagina) >= total_preguntas
