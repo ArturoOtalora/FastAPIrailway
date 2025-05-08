@@ -83,33 +83,42 @@ def guardar_usuario(
     ciudad: str = Form(...),
     Profesion: str = Form(...),
     Empresa: str = Form(...),
-    
+    otraEmpresa: str = Form(None),
 ):
     
-    conn = get_db_connection()
-    cursor = conn.cursor()  
-    
-    
-    # Verificar si el número de identificación ya existe
-    cursor.execute("SELECT COUNT(*) FROM usuarios WHERE numero_identificacion = %s", (numero_identificacion,))
-    (existe,) = cursor.fetchone()
-    
-    if existe:
+    # conn = get_db_connection()
+    # cursor = conn.cursor()  
+      # Determinar el valor final de la empresa
+    empresa_final = otraEmpresa if Empresa == "Otra Empresa" and otraEmpresa else Empresa
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor() 
+
+        # Verificar si el número de identificación ya existe
+        cursor.execute("SELECT COUNT(*) FROM usuarios WHERE numero_identificacion = %s", (numero_identificacion,))
+        (existe,) = cursor.fetchone()
+        
+        if existe:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=400, detail="El número de identificación ya está registrado.")
+
+        # Insertar usuario
+        cursor.execute(
+            """
+            INSERT INTO usuarios (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, rango_edad, grado_escolaridad, antiguedad, ciudad, Profesion, Empresa)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, rango_edad, grado_escolaridad, antiguedad, ciudad, Profesion, empresa_final)
+        )
+        conn.commit()
+    except mysql.connector.Error as err:
+        print(f"Error al insertar usuario: {err}")
+        return {"status": "error", "message": "Error al guardar el usuario."}
+    finally:
         cursor.close()
         conn.close()
-        raise HTTPException(status_code=400, detail="El número de identificación ya está registrado.")
-        
-    cursor.execute(
-        """
-         INSERT INTO usuarios (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, rango_edad, grado_escolaridad, antiguedad, ciudad, Profesion,Empresa)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """,
-        (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, rango_edad, grado_escolaridad, antiguedad, ciudad, Profesion,Empresa)
-    )
-    conn.commit()
-    cursor.close()
-    conn.close()
-    
 
     return RedirectResponse(url=f"/preguntas?usuario_id={numero_identificacion}", status_code=303)
 
@@ -434,14 +443,18 @@ def mostrar_pagina():
                     <label for="Profesion">Profesión:</label>
                     <input type="text" id="Profesion" name="Profesion" required>
                 </div>
-                <div class="form-group">
+               <div class="form-group">
                     <label for="Empresa">Empresa:</label>
-                    <select id="Empresa" name="Empresa" required>
-                        <option value="Independiente">Independiente</option>
-                        <option value="Sanitas">Sanitas</option>
-                        <option value="Compensar">Compensar</option>
-                        <option value="Cafam">Cafam</option>
+                    <select id="Empresa" name="Empresa" required onchange="toggleEmpresaInput(this)">
+                        <option value="Particular">Particular</option>
+                        <option value="SIES Salud">SIES Salud</option>
+                        <option value="Asistía">Asistía</option>
+                        <option value="Otra Empresa">Otra Empresa</option>
                     </select>
+                </div>
+               <div class="form-group hidden-input" id="otraEmpresaGroup" style="display: none;">
+                    <label for="otraEmpresa">Nombre de la Empresa:</label>
+                    <input type="text" id="otraEmpresa" name="otraEmpresa">
                 </div>
             </div>
             <div class="form-group" style="grid-column: 1 / -1; margin-top: 10px;">
@@ -458,6 +471,12 @@ def mostrar_pagina():
             <button type="submit">Registrar</button>
         </form>
     </div>
+     <script>
+        function toggleEmpresaInput(select) {
+            const otraEmpresaGroup = document.getElementById("otraEmpresaGroup");
+            otraEmpresaGroup.style.display = select.value === "Otra Empresa" ? "block" : "none";
+        }
+    </script>
 </body>
 </html>
     """
