@@ -77,6 +77,8 @@ def guardar_usuario(
     numero_identificacion: int = Form(...),
     correo: str = Form(...),
     sexo: str = Form(...),
+    Peso: str = Form(...),
+    Altura: str = Form(...),
     rango_edad: str = Form(...),
     grado_escolaridad: str = Form(...),
     antiguedad: str = Form(...),
@@ -107,10 +109,10 @@ def guardar_usuario(
         # Insertar usuario
         cursor.execute(
             """
-            INSERT INTO usuarios (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, rango_edad, grado_escolaridad, antiguedad, ciudad, Profesion, Empresa)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO usuarios (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo,Peso, Altura, rango_edad, grado_escolaridad, antiguedad, ciudad, Profesion, Empresa)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s)
             """,
-            (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, rango_edad, grado_escolaridad, antiguedad, ciudad, Profesion, empresa_final)
+            (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, Peso, Altura, rango_edad, grado_escolaridad, antiguedad, ciudad, Profesion, empresa_final)
         )
         conn.commit()
     except mysql.connector.Error as err:
@@ -408,6 +410,14 @@ def mostrar_pagina():
                     </select>
                 </div>
                 <div class="form-group">
+                    <label for="Peso">Peso (KG):</label>
+                    <input type="text" id="Peso" name="Peso" required>
+                </div>
+                <div class="form-group">
+                    <label for="Altura">Altura (M):</label>
+                    <input type="text" id="Altura" name="Altura" required>
+                </div>
+                <div class="form-group">
                     <label for="rango_edad">Rango de Edad:</label>
                     <select id="rango_edad" name="rango_edad" required>
                         <option value="18-25">18 a 25 años</option>
@@ -452,11 +462,12 @@ def mostrar_pagina():
                         <option value="Otra Empresa">Otra Empresa</option>
                     </select>
                 </div>
-               <div class="form-group hidden-input" id="otraEmpresaGroup" style="display: none;">
-                    <label for="otraEmpresa">Nombre de la Empresa:</label>
-                    <input type="text" id="otraEmpresa" name="otraEmpresa">
-                </div>
-            </div>
+               <div class="form-group hidden-input" id="otraEmpresaGroup" style="display: none; margin-top: 10px;">
+                <label for="otraEmpresa">Nombre de la Empresa:</label>
+                        <div>
+                            <input type="text" id="otraEmpresa" name="otraEmpresa" style="margin-top: 5px;">
+                        </div>
+                    </div>
             <div class="form-group" style="grid-column: 1 / -1; margin-top: 10px;">
                 <label style="font-weight: normal;">
                     <input type="checkbox" name="autorizacion_datos" required>
@@ -498,11 +509,48 @@ def mostrar_preguntas(usuario_id: int, pagina: int = Query(1, alias="pagina")):
     fin = min(inicio + preguntas_por_pagina, total_preguntas)
     es_ultima_pagina = fin >= total_preguntas
     progreso = (fin / total_preguntas) * 100
+    
 
     # Generación dinámica de HTML para preguntas organizadas por categorías
    # Generación dinámica de HTML para preguntas organizadas por categorías
     preguntas_html = ""
     contador = 0
+    comentarios_texto = {
+        0: "¿Qué prácticas alimenticias sientes que más te nutren y cuáles quisieras mejorar?",
+        1: "¿Qué obstáculos personales o del entorno dificultan que realices ejercicio con regularidad??",
+        2: "¿Qué factores te impiden descansar mejor por las noches?",
+        3: "¿Qué te motiva o te detiene a hacerte chequeos médicos preventivos?",
+        4: "¿Qué hábito te gustaría cambiar o incorporar para mejorar tu salud física?",
+        5: "¿Puedes compartir una experiencia que marcó un antes y un después en tu crecimiento emocional?",
+        6: "¿Qué aprendizaje importante te han dejado los momentos difíciles?",
+        7: "¿Cómo celebras tus logros, por pequeños que sean?",
+        8: "¿Qué estrategias utilizas para adaptarte cuando enfrentas cambios importantes?",
+        9: "¿Qué acciones concretas tomas para cuidar tu bienestar emocional en el día a día?",
+        10: "¿Qué sueles pensar o hacer cuando aparecen dudas sobre ti mismo?",
+        11: "¿Qué personas influyen más en tu estado mental y cómo lo hacen?",
+        12: "¿Qué logro reciente te ha hecho sentir más orgulloso o agradecido?",
+        13: "¿Qué señales mentales o emocionales te indican que necesitas pedir ayuda profesional?",
+        14: "¿Qué situaciones te hacen sentir valorado, y cuáles no?",
+        15: "¿Qué palabras usarías para describir tu versión más auténtica?",
+        16: "¿Qué impacto positivo crees que generas en las personas o en tu entorno?",
+        17: "¿Qué actividad o propósito te hace sentir que tu vida tiene dirección?",
+        18: "¿Qué pensamientos frecuentes sientes que te limitan y cuáles te impulsan?",
+        19: "¿Puedes compartir una verdad difícil que hayas integrado y cómo lo hiciste?",
+        20: "¿Qué emociones sientes cuando logras ahorrar o cuando no puedes hacerlo?",
+        21: "¿Qué desafíos enfrentas al intentar planificar o controlar tus finanzas?",
+        22: "¿Qué metas económicas te gustaría lograr y qué te impide empezarlas?",
+        23: "¿Cómo manejas el estrés relacionado con las deudas o compromisos financieros?",
+        24: "¿Qué estrategias tienes o te gustaría tener para sentirte financieramente seguro?",
+        25: "¿Cómo te afecta (física o emocionalmente) el ambiente donde pasas más tiempo?",
+        26: "¿Qué hábito sostenible has adoptado recientemente y por qué lo hiciste?",
+        27: "¿Qué haces para asegurarte de que el agua que consumes es segura?",
+        28: "¿Qué acción pequeña haces o te gustaría hacer para contribuir al cuidado del planeta?",
+        29: "¿Qué cambio en tus hábitos cotidianos crees que tendría mayor impacto positivo en el ambiente?",
+        
+
+        # Añadir más comentarios específicos para las demás preguntas
+    }
+
 
     bloque_textos = {
         1: ("Bienestar Físico ","Explorarás el camino de la autogestión de cómo el movimiento, la nutrición y el descanso se entrelazan para potenciar tu energía y resistencia. Este espacio te invita a escuchar las señales de tu organismo y diseñar rutinas que respeten tu ritmo único, porque cuidar tu salud física es el cimiento para una vida plena y activa."),
@@ -516,41 +564,45 @@ def mostrar_preguntas(usuario_id: int, pagina: int = Query(1, alias="pagina")):
     ultimo_bloque_insertado = None  # Para evitar repetir el mensaje
 
     for categoria, preguntas in categorias_preguntas.items():
-     for pregunta in preguntas:
-        if inicio <= contador < fin:
-            bloque_actual = (contador // 5) + 1
+        for pregunta in preguntas:
+            if inicio <= contador < fin:
+                bloque_actual = (contador // 5) + 1
 
-            if bloque_actual != ultimo_bloque_insertado:
-                titulo_bloque, mensaje_bloque = bloque_textos.get(
-                    bloque_actual,
-                    (f"Bloque {bloque_actual}", "Reflexiona con atención sobre los siguientes aspectos.")
-                )
+                # Insertar el bloque introductorio una vez por bloque
+                if bloque_actual != ultimo_bloque_insertado:
+                    titulo_bloque, mensaje_bloque = bloque_textos.get(
+                        bloque_actual, ("", "")
+                    )
+                    preguntas_html += f'''
+                    <div class="bloque-intro">
+                        <h2>{titulo_bloque}</h2>
+                        <p>{mensaje_bloque}</p>
+                    </div>
+                    '''
+                    ultimo_bloque_insertado = bloque_actual
+
+                # Mensaje específico para el comentario
+                mensaje_comentario = comentarios_texto.get(contador, "¿Quieres agregar algo más sobre esta pregunta?")
+
+                # Pregunta y área de comentarios
                 preguntas_html += f'''
-                <div class="bloque-intro">
-                    <h2>{titulo_bloque}</h2>
-                    <p>{mensaje_bloque}</p>
+                <div class="pregunta-container">
+                    <p class="pregunta">{pregunta}</p>
+                    <div class="star-rating">
+                        {"".join([
+                            f'<input type="radio" id="star{j}_{contador}" name="respuesta_{contador}" value="{j}" required>'
+                            f'<label for="star{j}_{contador}" class="star">&#9733;</label>'
+                            for j in range(10, 0, -1)
+                        ])}
+                    </div>
+                    <button type="button" onclick="toggleComentario('comentario_{contador}')">+</button>
+                    <div id="comentario_{contador}" class="comentario" style="display: none;">
+                        <textarea name="comentario_{contador}" rows="5" style="width: 100%; height: 100px;" placeholder="{mensaje_comentario}"></textarea>
+                    </div>
                 </div>
                 '''
-                ultimo_bloque_insertado = bloque_actual
+            contador += 1
 
-            # Este bloque va FUERA del if
-            preguntas_html += f'''
-            <div class="pregunta-container">
-                <p class="pregunta">{pregunta}</p>
-                <div class="star-rating">
-                    {"".join([
-                        f'<input type="radio" id="star{j}_{contador}" name="respuesta_{contador}" value="{j}" required>'
-                        f'<label for="star{j}_{contador}" class="star">&#9733;</label>'
-                        for j in range(10, 0, -1)
-                    ])}
-                </div>
-                <button type="button" onclick="toggleComentario('comentario_{contador}')">+</button>
-                <div id="comentario_{contador}" class="comentario" style="display: none; margin-top: 10px;">
-                    <textarea name="comentario_{contador}" rows="3" placeholder="Escribe aquí si deseas agregar algo..." style="width: 100%; border-radius: 5px; padding: 8px;"></textarea>
-                </div>
-            </div>
-            '''
-        contador += 1
     return f'''
    <!DOCTYPE html>
 <html>
