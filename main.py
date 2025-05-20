@@ -456,9 +456,10 @@ def mostrar_pagina():
                <div class="form-group">
                     <label for="Empresa">Empresa:</label>
                     <select id="Empresa" name="Empresa" required onchange="toggleEmpresaInput(this)">
-                        <option value="Particular">Particular</option>
+                        <option value="PARTICULAR">PARTICULAR</option>
                         <option value="SIES Salud">SIES Salud</option>
-                        <option value="Asistía">Asistía</option>
+                        <option value="AZISTIA">AZISTIA</option>
+                        <option value="HOTEL SONATA 44">HOTEL SONATA 44</option>
                         <option value="Otra Empresa">Otra Empresa</option>
                     </select>
                 </div>
