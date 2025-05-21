@@ -521,7 +521,7 @@ def mostrar_preguntas(usuario_id: int, pagina: int = Query(1, alias="pagina")):
         1: "¿Qué obstáculos personales o del entorno dificultan que realices ejercicio con regularidad??",
         2: "¿Qué factores te impiden descansar mejor por las noches?",
         3: "¿Qué te motiva o te detiene a hacerte chequeos médicos preventivos?",
-        4: "¿Qué hábito te gustaría cambiar o incorporar para mejorar tu salud física?",
+        4: "¿Con qué frecuencia experimentas síntomas físicos relacionados con el agotamiento, como dolores de cabeza, tensión muscular, insomnio o enfermedades frecuentes?",
         5: "¿Puedes compartir una experiencia que marcó un antes y un después en tu crecimiento emocional?",
         6: "¿Qué aprendizaje importante te han dejado los momentos difíciles?",
         7: "¿Cómo celebras tus logros, por pequeños que sean?",
