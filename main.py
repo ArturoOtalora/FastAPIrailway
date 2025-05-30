@@ -42,7 +42,7 @@ app = FastAPI()
 
 app.mount("/statics", StaticFiles(directory="statics"), name="statics")
 
-preguntas_lista = [
+preguntas_lista_Premium = [
     "¿Consideras que tu alimentación te nutre lo suficientemente bien?", "¿Realizas ejercicio físico al menos tres veces por semana?", "¿Sientes que tus habito de sueño te dan el descanso necesario?",
     "¿En los últimos seis meses te has realizado chequeos médicos?", "¿Piensas que los hábitos que hoy ocupan gran parte de tu tiempo te ayudan para tener un cuerpo más saludable?",
     "¿Consideras que tus experiencias han contribuido a tu calidad de vida o crecimiento personal?", "¿Celebras tus logros o victorias?",
@@ -68,8 +68,23 @@ preguntas_lista = [
     "¿Qué tan frecuentemente sientes que no logras los resultados esperados, aunque te esfuerces mucho?","¿Qué tan consistentemente aplicas prácticas de autocuidado para mantener tu bienestar laboral?","¿Qué tan en paz te sientes contigo mismo(a), incluso cuando enfrentas dificultades o errores?",
     "¿Qué tan capaz te sientes de perdonar a quienes te han herido o de perdonarte a ti mismo(a)?","¿Con qué frecuencia experimentas alegría o gratitud en tu día a día, incluso en cosas simples?","¿Qué tan fácil te resulta mantener relaciones equilibradas y respetuosas, incluso en desacuerdos?",
     "¿Qué tan conectado(a) te sientes con la vida, la naturaleza o algo más allá de ti mismo(a)?"
-
 ]
+preguntas_lista = [
+    "¿Consideras que tu alimentación te nutre lo suficientemente bien?", "¿Realizas ejercicio físico al menos tres veces por semana?", "¿Sientes que tus habito de sueño te dan el descanso necesario?",
+    "¿En los últimos seis meses te has realizado chequeos médicos?", "¿Piensas que los hábitos que hoy ocupan gran parte de tu tiempo te ayudan para tener un cuerpo más saludable?",
+    "¿Consideras que tus experiencias han contribuido a tu calidad de vida o crecimiento personal?", "¿Celebras tus logros o victorias?",
+    "¿Cuando siento una emoción intensa, soy capaz de calmarme antes de actuar o tomar decisiones?", "¿Sientes que te adaptas a cambios o nuevas situaciones con facilidad?",
+    "¿Tu bienestar emocional es prioridad en tu vida?", "¿Consideras que has manejado bien los sentimientos de impotencia o duda prolongados?",
+    "¿Sientes que tu círculo cercano te anima a lograr tus metas?", "¿te sientes agradecido por los logros obtenidos?",
+    "¿Has reflexionado personalmente o con un profesional sobre tu salud mental en los últimos seis meses?", "¿En qué medida te sientes valorado y respetado por otros?",
+    "¿Sientes que la autoimagen que tienes de ti representa tu más alto valor como ser humano?", "¿Cuándo reflexionas de tu valor personal que tan consciente eres del valor que aportas al mundo?",
+    "¿Desde lo que hoy haces, lo consideras tu pasión y te motiva para seguir haciéndolo ?", "¿Los pensamientos que más tienes sustentan tu valor mas alto?","¿Cuándo conoces una verdad sobre tu vida la aceptas con facilidad?",
+    "¿De tus ingresos mensuales ahorras al menos el 10%?","¿En la actualidad tienes y sigues un presupuesto mensual?","¿Tienes una o más inversiones de largo plazo que me permitan tener una base económica?",
+    "¿Tienes un plan para gestionar tus deudas sin afectar tu salud financiera?","¿Hoy tienes un plan de ahorro que cubra tus gastos básicos por 3 a 6 meses?","¿Consideras que la calidad del aire en los espacios donde vives, trabajas o transitas diariamente apoya tu salud?",
+    "¿Incorporas prácticas sostenibles como el reciclaje, la reducción de residuos o la reutilización de materiales en tu día a día?","¿Confías en que el agua que consumes (para beber, cocinar o higiene) es segura y cumple con estándares que protegen tu salud?","¿Conoces o tomas acciones para reducir tu huella de carbono en actividades como transporte, alimentación o consumo energético?",
+    "¿Reconoces cómo tus decisiones y hábitos cotidianos contribuyen al cambio climático y, a su vez, cómo este fenómeno afecta tu calidad de vida?"
+]
+
 nombre_completo_global = ""
 @app.get("/")
 def home():
