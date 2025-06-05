@@ -516,11 +516,11 @@ def mostrar_pagina():
                 <label style="font-weight: normal;">
                     <input type="checkbox" name="autorizacion_datos" required>
                     Autorizo de manera libre, voluntaria, previa, explícita e informada a Vital Value, para que en 
-                    los términos legales establecidos realice la recolección, almacenamiento, uso, circulación,
-                    supresión y, en general, el tratamiento de mis datos personales que he proporcionado o
-                    proporcionaré, con la finalidad de análisis y caracterización. Conozco que tengo derecho a
-                    conocer, actualizar, rectificar y suprimir mis datos personales, así como a revocar la
-                    autorización otorgada, de conformidad con la Ley 1581 de 2012 y demás normas aplicables.
+                    los términos legales establecidos, Se informa que los datos y la información de carácter personal suministrados,
+                    serán objeto de tratamiento (únicamente estadístico) de acuerdo con lo establecido en la Ley 1581 de 2012,
+                    el Decreto 1377 de 2013. La información que usted responda será totalmente confidencial.
+                    En caso de no autorizar el tratamiento, la recolección y/o el almacenamiento de la información,
+                    no continúe con el diligenciamiento de la encuesta.
                 </label>
             </div>
             <button type="submit" id="btnRegistrar">Registrar</button>
@@ -558,10 +558,10 @@ def mostrar_pagina():
       </button>
 
       <!-- Versión Trascendente -->
-      <button disabled  onclick="seleccionarVersion('Premium')" style="padding: 15px 20px; border: none; border-radius: 10px;
+      <button onclick="seleccionarVersion('Premium')" style="padding: 15px 20px; border: none; border-radius: 10px;
               background: #F3E5F5; color: #7B1FA2; font-size: 16px; text-align: left; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer;">
         <strong>🌟 Versión Premium – 12 Dimensiones</strong><br>
-        <span style="font-size: 14px; color: #6A1B9A;">Lo integral para transformar tu estado natural y mayormente adaptado. Habilitada para usuarios Premium</span>
+        <span style="font-size: 14px; color: #6A1B9A;">Lo integral para transformar tu estado natural y mayormente adaptado.</span>
       </button>
 
     </div>
@@ -621,22 +621,22 @@ def mostrar_pagina():
 def mostrar_preguntas(usuario_id: int, pagina: int = Query(1, alias="pagina")):
     # Definición de categorías y preguntas asociadas
     categorias_preguntas = {
-        "Salud Vital Corporal": preguntas_lista[0:5],
-        "Salud Emocional": preguntas_lista[5:10],
-        "Salud Mental": preguntas_lista[10:15],
-        "Sentido Existencial": preguntas_lista[15:20],
-        "Salud Financiera": preguntas_lista[20:25],
-        "Salud Ambiental": preguntas_lista[25:30],
-        "creatividad": preguntas_lista[30:35],
-        "mentalidad digital": preguntas_lista[35:40],
-        "bienestar social y comunitario": preguntas_lista[40:45],
-        "bienestar y propósito profesional ": preguntas_lista[45:50],
-        "prevención y manejo del agotamiento": preguntas_lista[50:55],
-        "bienestar esencial y conexion interior": preguntas_lista[55:60]
+        "Salud Vital Corporal": preguntas_lista_Premium[0:5],
+        "Salud Emocional": preguntas_lista_Premium[5:10],
+        "Salud Mental": preguntas_lista_Premium[10:15],
+        "Sentido Existencial": preguntas_lista_Premium[15:20],
+        "Salud Financiera": preguntas_lista_Premium[20:25],
+        "Salud Ambiental": preguntas_lista_Premium[25:30],
+        "Creatividad": preguntas_lista_Premium[30:35],
+        "Mentalidad digital": preguntas_lista_Premium[35:40],
+        "Bienestar social y comunitario": preguntas_lista_Premium[40:45],
+        "Bienestar y propósito profesional ": preguntas_lista_Premium[45:50],
+        "Prevención y manejo del agotamiento": preguntas_lista_Premium[50:55],
+        "Bienestar esencial y conexion interior": preguntas_lista_Premium[55:60]
 
     }
 
-    total_preguntas = len(preguntas_lista)
+    total_preguntas = len(preguntas_lista_Premium)
     preguntas_por_pagina = 10
     inicio = (pagina - 1) * preguntas_por_pagina
     fin = min(inicio + preguntas_por_pagina, total_preguntas)
@@ -722,12 +722,12 @@ def mostrar_preguntas(usuario_id: int, pagina: int = Query(1, alias="pagina")):
         4: ("Sentido Existencial", "Profundizarás en tus propósitos, creencias y las preguntas que dan sentido a tu existencia. Más allá de lo cotidiano, aquí explorarás cómo tus acciones se conectan con un legado personal, porque vivir con intención es la base de la plenitud duradera."),
         5: ("Bienestar Financiero", "En esta dimensión entenderás tu coeficiente intelectual financiero: comprenderás cómo funciona el dinero, de dónde nacen tus decisiones económicas y qué conocimientos necesitas para autogestionarlo con claridad."),
         6: ("Bienestar Ambiental", "Reflexionarás sobre tu conexión con la naturaleza, tu impacto en el entorno y cómo pequeños cambios en tus hábitos pueden nutrir positivamente al planeta. Cuidar tu relación con la Tierra no solo es un acto colectivo, sino una forma de honrar tu propio hogar vital.."),
-        7: ("creatividad", "En un entorno en constante cambio, la creatividad no solo es una herramienta para la innovación, sino también una expresión de nuestra capacidad humana de adaptación, exploración y transformación. Esta dimensión busca conocer cómo percibes y aplicas tu potencial creativo, tu apertura al cambio"),
-        8: ("mentalidad digital", "En un mundo cada vez más conectado, esta dimensión busca conocer cómo gestionas tu relación con el entorno digital. Se evaluará tu equilibrio entre el uso de la tecnología y tu bienestar, así como tu responsabilidad, conciencia crítica, y creatividad en los espacios digitales."),
-        9: ("bienestar social y comunitario", "Esta dimensión explora la calidad de tus vínculos con otras personas y tu sentido de pertenencia a redes, comunidades o grupos. No se trata solo de cuánto te relacionas, sino de cuán profundas y nutritivas son esas conexiones. Considera tu capacidad para colaborar, apoyar y sentirte parte de algo más grande que tú."),
-        10: ("bienestar y propósito profesional", "Aquí se indaga sobre la relación entre tu vida profesional y tu realización personal. No solo se mide tu nivel de satisfacción laboral, sino también si encuentras propósito, motivación y desarrollo en lo que haces. Piensa en cómo te sientes en tu rol actual, en qué medida creces y si tu trabajo está alineado con tus valores más profundos"),
-        11: ("prevención y manejo del agotamiento", "Esta dimensión te invita a reflexionar sobre tu nivel actual de energía, motivación y equilibrio emocional frente a las exigencias de la vida, especialmente en lo laboral. Se busca identificar señales de agotamiento, desconexión o frustración"),
-        12: ("bienestar esencial y conexion interior", "En esta dimensión se explora tu mundo interior: la paz contigo mismo, la capacidad de perdonar, la alegría auténtica y tu conexión con la vida desde la compasión, la humildad y el sentido trascendente. Es un espacio para mirar hacia dentro y reconocer cómo estás cultivando tu bienestar esencial. Responde desde tu verdad interior, sin juicios, con apertura y amabilidad"),
+        7: ("Creatividad", "En un entorno en constante cambio, la creatividad no solo es una herramienta para la innovación, sino también una expresión de nuestra capacidad humana de adaptación, exploración y transformación. Esta dimensión busca conocer cómo percibes y aplicas tu potencial creativo, tu apertura al cambio"),
+        8: ("Mentalidad digital", "En un mundo cada vez más conectado, esta dimensión busca conocer cómo gestionas tu relación con el entorno digital. Se evaluará tu equilibrio entre el uso de la tecnología y tu bienestar, así como tu responsabilidad, conciencia crítica, y creatividad en los espacios digitales."),
+        9: ("Bienestar social y comunitario", "Esta dimensión explora la calidad de tus vínculos con otras personas y tu sentido de pertenencia a redes, comunidades o grupos. No se trata solo de cuánto te relacionas, sino de cuán profundas y nutritivas son esas conexiones. Considera tu capacidad para colaborar, apoyar y sentirte parte de algo más grande que tú."),
+        10: ("Bienestar y propósito profesional", "Aquí se indaga sobre la relación entre tu vida profesional y tu realización personal. No solo se mide tu nivel de satisfacción laboral, sino también si encuentras propósito, motivación y desarrollo en lo que haces. Piensa en cómo te sientes en tu rol actual, en qué medida creces y si tu trabajo está alineado con tus valores más profundos"),
+        11: ("Prevención y manejo del agotamiento", "Esta dimensión te invita a reflexionar sobre tu nivel actual de energía, motivación y equilibrio emocional frente a las exigencias de la vida, especialmente en lo laboral. Se busca identificar señales de agotamiento, desconexión o frustración"),
+        12: ("Bienestar esencial y conexion interior", "En esta dimensión se explora tu mundo interior: la paz contigo mismo, la capacidad de perdonar, la alegría auténtica y tu conexión con la vida desde la compasión, la humildad y el sentido trascendente. Es un espacio para mirar hacia dentro y reconocer cómo estás cultivando tu bienestar esencial. Responde desde tu verdad interior, sin juicios, con apertura y amabilidad"),
 
     }
 
@@ -1022,7 +1022,7 @@ def mostrar_preguntas(usuario_id: int, pagina: int = Query(1, alias="pagina")):
             <div class="progress-bar"></div>
             <div class="progress-text">{progreso:.0f}%</div>
         </div>
-        <form id="form-preguntas" action="/guardar_respuestas" method="post">
+        <form id="form-preguntas" action="/guardar_respuestas_Premium" method="post">
             <input type="hidden" name="usuario_id" value="{usuario_id}">
             <input type="hidden" name="pagina" value="{pagina}">
             <input type="hidden" name="version" value="Premium"> 
@@ -2010,64 +2010,11 @@ def generar_graficos_por_categoria(valores_respuestas):
             else:
                 cell.set_facecolor('#ffffff' if i % 2 == 0 else '#f2f2f2')
 
-        # # Ajustar posición de la interpretación
-        # plt.text(
-        #     0.5,  # centro horizontal
-        #     -0.9,  # posición vertical relativa a la tabla
-        #     interpretacion,
-        #     ha='center',
-        #     va='top',
-        #     fontsize=12,
-        #     color='#333333',
-        #     wrap=True,
-        #     transform=ax.transAxes  # Usar coordenadas relativas al eje
-        # )
+        
 
         # Ajustar el layout con más padding
         plt.tight_layout(pad=3.0)  # Aumenta este valor si necesitas más espacio general
-        # # Recuadro alrededor de la tabla
-        # plt.gca().add_patch(Rectangle(
-        #     (0.1, -0.5), 0.5, 0.45,  # Posición y tamaño del recuadro
-        #     fill=False, edgecolor='#333333', linewidth=1.5, linestyle='-'
-        # ))
-
-        # # Ajuste de espacio vertical
-        # plt.subplots_adjust(bottom=0.4)
-
-        # Interpretación más cerca de la tabla
-        # plt.figtext(
-        #     0.5, -0.25,
-        #     interpretacion,
-        #     ha="center",
-        #     fontsize=16,
-        #     bbox={"facecolor": "whitesmoke", "edgecolor": "black", "boxstyle": "round,pad=0.5", "alpha": 0.8}
-        # )
-        # fig = plt.gcf()
-        # ax = plt.gca()
-        # bbox = ax.get_position()
-
-        # padding_x = 0.4
-        # padding_y = 0.05
-
-        # fig.patches.append(FancyBboxPatch(
-        #     (bbox.x0 - padding_x, bbox.y0 - padding_y),
-        #     bbox.width + 2 * padding_x,
-        #     bbox.height + 2 * padding_y,
-        #     boxstyle="round,pad=0.02",
-        #     edgecolor="#00BCD4",
-        #     linewidth=2.5,
-        #     fill=False,
-        #     transform=fig.transFigure
-        # ))
-        # Guardar imagen
-        # fig.patches.append(Rectangle(
-        # (0.1, 0.25), 0.8, 0.70,  # Ajusta estas coordenadas y dimensiones
-        # transform=fig.transFigure,
-        # fill=False,
-        # edgecolor="#00BCD4",  # Puedes cambiar el color si deseas
-        # linewidth=3
-        # ))
-
+        
         plt.savefig(f"statics/radar_{categoria.lower()}.png", dpi=300, bbox_inches="tight")
         plt.close()
       # Gráfico radar consolidado
@@ -2140,12 +2087,12 @@ def generar_graficos_por_categoria_Premium(valores_respuestas):
         "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Por Qué Estoy Aquí?", "Propósito De Vida", "Quién Soy"],
         "Financiera": ["Ahorro", "Deuda", "Ingresos", "Inversión", "Presupuesto"],
         "Ambiental": ["Autocuidado", "Armonía ambiental", "Accesibilidad Ambiental", "Atención preventiva", "Conciencia ambiental"],
-        "creatividad": ["Apertura al cambio", "Aprendizaje continuo", "creatividad aplicada", "Solución de problemas", "Innovación y expresión creativa"],
-        "mentalidad digital": ["Higiene Digital", "Autogestión Emocional y Psicológica", "Gestión del Tiempo Digital", "Seguridad y Ciudadanía Digital", "Bienestar Digital Creativo"],
-        "bienestar social y comunitario": ["Participación en redes o comunidades", "Sentimiento de pertenencia", "Altruismo y colaboración", "Diversidad e inclusión", "Red de apoyo"],
-        "bienestar y propósito profesional": ["Desarrollo de habilidades", "Satisfacción con el rol y sus retos", "Claridad de propósito en el trabajo", "Equilibrio trabajo-vida personal", "Compromiso laboral"],
-        "prevención y manejo del agotamiento": ["Cansancio emocional constante", "Despersonalización o desconexión", "Pérdida de sentido o motivación", "Sensación de ineficacia", "Estrategias de autocuidado"],
-        "bienestar esencial y conexion interior": ["Paz Interior y Autocompasión", "Capacidad de Perdonar y Liberarse del Peso Emocional", "Alegría Vital y Gratitud", "Armonía Relacional y Consciente", "Conexión y Sentido de Unidad"]
+        "creatividad": ["Apertura al cambio", "Aprendizaje continuo", "creatividad aplicada", "Solución de problemas", "Innovación creativa"],
+        "mentalidad digital": ["Higiene Digital", "Autogestión Emocional", "Gestión del Tiempo Digital", "Seguridad Digital", "Bienestar Digital Creativo"],
+        "bienestar social y comunitario": ["Participación", "Sentimiento de pertenencia", "Altruismo y colaboración", "Diversidad", "Red de apoyo"],
+        "bienestar y propósito profesional": ["Desarrollo de habilidades", "Satisfacción", "Claridad laboral", "Conciliación", "Compromiso laboral"],
+        "prevención y manejo del agotamiento": ["Cansancio emocional", "Despersonalización", "Pérdida de motivación", "Sensación de ineficacia", "Estrategias de autocuidado"],
+        "bienestar esencial y conexion interior": ["Paz Interior ", "Capacidad de Perdonar", "Alegría Vital y Gratitud", "Armonía Relacional", "Conexión y Sentido"]
     }
 
         # Interpretaciones
@@ -2164,6 +2111,7 @@ def generar_graficos_por_categoria_Premium(valores_respuestas):
             valores = np.interp(respuestas_categoria, (1, 10), (0, 1))
             promedio = np.mean(valores)
             promedios_categorias.append(promedio)
+            
             # Tabla de porcentajes
             porcentajes = [f"{int(v * 100)}%" for v in valores]
             tabla = pd.DataFrame({
@@ -2244,39 +2192,44 @@ def generar_graficos_por_categoria_Premium(valores_respuestas):
 
             plt.savefig(f"statics/radar_{categoria.lower()}.png", dpi=300, bbox_inches="tight")
             plt.close()
-        # Gráfico radar consolidado
-        tabla_promedios = promedios_categorias[:]    
-        angulos_global = [n / float(len(categorias)) * 2 * pi for n in range(len(categorias))]
-        angulos_global += angulos_global[:1]
-        promedios_categorias.append(promedios_categorias[0])
-        # Convertir datos en porcentaje para la tabla
-        tabla = {
-            "Categoría": categorias,
-            "Porcentaje": [f"{v * 100:.1f}%" for v in tabla_promedios]
-                }
-        tabla_df = pd.DataFrame(tabla)
+            
+            grupo1 = categorias[:6]
+            grupo2 = categorias[6:]
+
+            # Gráfico radar consolidado
+        tabla_promedios_grupo1 = [promedios_categorias[i] for i in range(6)]
+        angulos_grupo1 = [n / float(len(grupo1)) * 2 * pi for n in range(len(grupo1))]
+        angulos_grupo1 += angulos_grupo1[:1]
+        valores_grupo1 = tabla_promedios_grupo1 + [tabla_promedios_grupo1[0]]
+        
+        tabla_grupo1 = {
+            "Categoría": grupo1,
+            "Porcentaje": [f"{v * 100:.1f}%" for v in tabla_promedios_grupo1]
+        }
+        tabla_df_grupo1 = pd.DataFrame(tabla_grupo1)
+        
         fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
         ax.set_theta_offset(pi / 2)
         ax.set_theta_direction(-1)
-        ax.fill(angulos_global, promedios_categorias, color="#90EE90", alpha=0.5)
-        ax.plot(angulos_global, promedios_categorias, color="#2E8B57", linewidth=2.5)
-        ax.set_xticks(angulos_global[:-1])
-        ax.set_xticklabels(categorias, fontsize=14, fontweight='bold', color='#333333')
+        ax.fill(angulos_grupo1, valores_grupo1, color="#90EE90", alpha=0.5)
+        ax.plot(angulos_grupo1, valores_grupo1, color="#2E8B57", linewidth=2.5)
+        ax.set_xticks(angulos_grupo1[:-1])
+        ax.set_xticklabels(grupo1, fontsize=12, fontweight='bold', color='#333333')
         ax.set_ylim(0, 1)
         ax.set_yticklabels([])
-            # Agregar tabla debajo del gráfico
+        
         tabla_estilo = plt.table(
-            cellText=tabla_df.values,
-            colLabels=tabla_df.columns,
+            cellText=tabla_df_grupo1.values,
+            colLabels=tabla_df_grupo1.columns,
             cellLoc='center',
             loc='bottom',
             bbox=[-0.25, -1.05, 1.5, 0.8]
         )
+        
         tabla_estilo.auto_set_font_size(False)
         tabla_estilo.set_fontsize(12)
         tabla_estilo.scale(1.5, 1.5)
-
-        # Estilo de la tabla
+        
         for (i, j), cell in tabla_estilo.get_celld().items():
             cell.set_edgecolor('grey')
             cell.set_linewidth(0.6)
@@ -2285,25 +2238,57 @@ def generar_graficos_por_categoria_Premium(valores_respuestas):
                 cell.set_text_props(weight='bold', color='#1E88E5')
             else:
                 cell.set_facecolor('#ffffff' if i % 2 == 0 else '#f2f2f2')
-
-        # Ajuste de espacio vertical para acomodar la tabla
+        
         plt.subplots_adjust(bottom=0.3)
-
-        # Obtener la figura actual
-        fig = plt.gcf()
-
-    # Añadir un rectángulo en coordenadas de figura (como fondo decorativo)
-        # fig.patches.append(Rectangle(
-        # (0.1, 0.25), 0.8, 0.70,  # Ajusta estas coordenadas y dimensiones
-        # transform=fig.transFigure,
-        # fill=False,
-        # edgecolor="#00BCD4",  # Puedes cambiar el color si deseas
-        # linewidth=3
-        # ))
-        # Guardar imagen del gráfico unificado
-        plt.savefig("statics/radar_general.png", dpi=300, bbox_inches="tight")
+        plt.savefig("statics/radar_general_grupo1.png", dpi=300, bbox_inches="tight")
         plt.close()
-
+        
+        # Gráfico para el segundo grupo (6 categorías)
+        tabla_promedios_grupo2 = [promedios_categorias[i] for i in range(6, 12)]
+        angulos_grupo2 = [n / float(len(grupo2)) * 2 * pi for n in range(len(grupo2))]
+        angulos_grupo2 += angulos_grupo2[:1]
+        valores_grupo2 = tabla_promedios_grupo2 + [tabla_promedios_grupo2[0]]
+        
+        tabla_grupo2 = {
+            "Categoría": grupo2,
+            "Porcentaje": [f"{v * 100:.1f}%" for v in tabla_promedios_grupo2]
+        }
+        tabla_df_grupo2 = pd.DataFrame(tabla_grupo2)
+        
+        fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
+        ax.set_theta_offset(pi / 2)
+        ax.set_theta_direction(-1)
+        ax.fill(angulos_grupo2, valores_grupo2, color="#90EE90", alpha=0.5)
+        ax.plot(angulos_grupo2, valores_grupo2, color="#2E8B57", linewidth=2.5)
+        ax.set_xticks(angulos_grupo2[:-1])
+        ax.set_xticklabels(grupo2, fontsize=12, fontweight='bold', color='#333333')
+        ax.set_ylim(0, 1)
+        ax.set_yticklabels([])
+        
+        tabla_estilo = plt.table(
+            cellText=tabla_df_grupo2.values,
+            colLabels=tabla_df_grupo2.columns,
+            cellLoc='center',
+            loc='bottom',
+            bbox=[-0.25, -1.05, 1.5, 0.8]
+        )
+        
+        tabla_estilo.auto_set_font_size(False)
+        tabla_estilo.set_fontsize(12)
+        tabla_estilo.scale(1.5, 1.5)
+        
+        for (i, j), cell in tabla_estilo.get_celld().items():
+            cell.set_edgecolor('grey')
+            cell.set_linewidth(0.6)
+            if i == 0:
+                cell.set_facecolor('#E0F7FA')
+                cell.set_text_props(weight='bold', color='#1E88E5')
+            else:
+                cell.set_facecolor('#ffffff' if i % 2 == 0 else '#f2f2f2')
+        
+        plt.subplots_adjust(bottom=0.3)
+        plt.savefig("statics/radar_general_grupo2.png", dpi=300, bbox_inches="tight")
+        plt.close()
         
 def agregar_fondo(c, width, height, background_path):
     """Dibuja la imagen de fondo en cada página."""
@@ -3087,25 +3072,39 @@ def generar_pdf_con_analisis_Premium(usuario_id):
     c.setFont("Helvetica-Bold", 18)
     c.setFillColor(colors.HexColor("#2E4053"))
     c.drawCentredString(width / 2, y_position, "Análisis General")
+    y_position -= 30  # Espacio después del título
 
-    y_position -= 40  # Ajuste de espacio para la imagen
-    image_path = "statics/radar_general.png"
-    c.drawImage(image_path, x_position, y_position - img_height, width=img_width, height=img_height)
-
-    # Agregar número de página
-    agregar_pie_pagina(c, width, page_num) 
-    # Saltar a una nueva página para los gráficos si no hay suficiente espacio
-    #c.showPage()    
-    c.setFont("Helvetica-Bold", 18)
-    c.setFillColor(colors.HexColor("#2E4053"))  # Título principal para gráficos
-    #c.drawCentredString(width / 2, height - 60, "Gráficos por Categoría")
-
-    y_position = height - 120
+    # Ajustes para las imágenes
     img_width = 250
     img_height = 250
+    spacing = 30  # Espacio entre imágenes
+
+    # Verificar si hay espacio suficiente para ambas imágenes en la página actual
+    if y_position - (img_height * 2 + spacing + 40) < 50:  # 50 es el margen inferior
+        c.showPage()  # Crear nueva página si no hay espacio
+        y_position = height - 60
+        agregar_pie_pagina(c, width, page_num)  # Agregar pie de página a la página anterior
+        page_num += 1
+
+    # Primera imagen (grupo1)
     x_position = (width - img_width) / 2
+    image_path = "statics/radar_general_grupo1.png"
+    c.drawImage(image_path, x_position, y_position - img_height, 
+                width=img_width, height=img_height)
+
+    # Segunda imagen (grupo2) - debajo de la primera
+    y_position -= img_height + spacing
+    image_path = "statics/radar_general_grupo2.png"
+    c.drawImage(image_path, x_position, y_position - img_height, 
+                width=img_width, height=img_height)
+
+    # Ajustar posición Y para el siguiente elemento
+    y_position -= img_height + 40
+
     # Agregar número de página
-    agregar_pie_pagina(c, width, page_num) 
+    agregar_pie_pagina(c, width, page_num)
+
+
     descripciones = {
     "vital": "Tu cuerpo es el lienzo donde se refleja tu autocuidado. Los hábitos que has construido desde la nutrición hasta el descanso revelan cómo dialogas con tu energía física. Este análisis no juzga, sino que ilumina oportunidades para alinear tus acciones con las necesidades únicas de tu organismo. Aquí descubrirás cómo fortalecer tu vitalidad para que cada día sea una expresión de tu vitalidad..",
     "emocional": "Las emociones son ventanas a tu mundo interno. Tus respuestas reflejan cómo entiendes y gestionas la alegría, el estrés o la incertidumbre, y cómo estas experiencias moldean tus relaciones y decisiones. Este espacio de observación te invita a observar patrones, celebrar tus avances y reconocer dónde puedes cultivar mayor equilibrio emocional para vivir con autenticidad y serenidad.",
@@ -3552,6 +3551,7 @@ async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagi
 
     conn.commit()
     cursor.close()
+
     total_preguntas = len(preguntas_lista)
     preguntas_por_pagina = 10
     es_ultima_pagina = (pagina * preguntas_por_pagina) >= total_preguntas
@@ -3625,7 +3625,115 @@ async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagi
          return RedirectResponse(url=f"/preguntas_evolutiva?usuario_id={usuario_id}&pagina={pagina+1}", status_code=303)
     elif version == "Premium":
          return RedirectResponse(url=f"/preguntas_premium?usuario_id={usuario_id}&pagina={pagina+1}", status_code=303)
+
+@app.post("/guardar_respuestas_Premium")
+async def guardar_respuestas_Premium(request: Request, usuario_id: int = Form(...), pagina: int = Form(...),version: str = Form(...) ):
+    form_data = await request.form()
+    respuestas = {}
+
+    for key, value in form_data.items():
+        if key.startswith("respuesta_"):
+            index = int(key.split("_")[1])
+            pregunta = preguntas_lista_Premium[index]
+            respuesta = value
+            comentario_key = f"comentario_{index}"
+            comentario = form_data.get(comentario_key, "")
+
+
+            # Guardamos todo junto
+            respuestas[pregunta] = (respuesta, comentario)
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    for pregunta, (respuesta, comentario) in respuestas.items():
+        cursor.execute(
+            """
+            INSERT INTO respuestasForm (usuario_id, pregunta, respuesta, comentario)
+            VALUES (%s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE respuesta = VALUES(respuesta), comentario = VALUES(comentario)
+            """,
+            (usuario_id, pregunta, respuesta, comentario)
+        )
+
+    conn.commit()
+    cursor.close()
+
+    total_preguntas = len(preguntas_lista_Premium)
+    preguntas_por_pagina = 10
+    es_ultima_pagina = (pagina * preguntas_por_pagina) >= total_preguntas
+
+    if es_ultima_pagina:
+        # Generar el PDF con el análisis de respuestas
+        if version in ["esencial", "evolutiva", "Premium"]:
+            if version == "Premium":
+                ruta_descarga = f"/descargar_pdf_Premium?usuario_id={usuario_id}"
+            else:
+                ruta_descarga = f"/descargar_pdf?usuario_id={usuario_id}"
+            contenido_html = f"""
+            <html>
+            <head>
+                <title>¡Buen trabajo!</title>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+                <style>
+                    body {{
+                        font-family: 'Roboto', sans-serif;
+                        text-align: center;
+                        padding: 50px;
+                        background-color: #f4f4f4;
+                    }}
+                    .container {{
+                        background: white;
+                        padding: 30px;
+                        border-radius: 12px;
+                        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+                        display: inline-block;
+                        max-width: 500px;
+                    }}
+                    h1 {{
+                        color: #333;
+                    }}
+                    p {{
+                        font-size: 18px;
+                        color: #666;
+                    }}
+                    button {{
+                        background-color: #007bff;
+                        color: white;
+                        border: none;
+                        padding: 15px 25px;
+                        font-size: 18px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        margin-top: 20px;
+                        transition: background 0.3s ease-in-out;
+                    }}
+                    button:hover {{
+                        background-color: #0056b3;
+                    }}
+                </style>
+            </head>
+            <body>
+                 <div class="container">
+                    <h1>¡Gracias por tu tiempo!</h1>
+                    <p>Haz clic en el botón para generar y descargar tu análisis de respuestas:</p>
+                        <button onclick="window.location.href='{ruta_descarga}'">Generar y Descargar Análisis</button>
+                </div>
+                </div>
+               
+            </body>
+            </html>
+            """
+            return HTMLResponse(content=contenido_html)
+    elif version == "esencial":
+         return RedirectResponse(url=f"/preguntas_esencial?usuario_id={usuario_id}&pagina={pagina+1}", status_code=303)
+    elif version == "evolutiva":
+         return RedirectResponse(url=f"/preguntas_evolutiva?usuario_id={usuario_id}&pagina={pagina+1}", status_code=303)
+    elif version == "Premium":
+         return RedirectResponse(url=f"/preguntas_premium?usuario_id={usuario_id}&pagina={pagina+1}", status_code=303)
     
+ 
 
 @app.get("/descargar_pdf_Premium")
 async def descargar_pdf_Premium(usuario_id: int):
@@ -3652,7 +3760,7 @@ async def descargar_pdf_Premium(usuario_id: int):
              port=587,
              start_tls=True,
              username="correopruebavital@gmail.com",
-            # password="cxvi hyne temx xmgt"
+             password="cxvi hyne temx xmgt"
         )
     except Exception as e:
         print(f"Error al enviar el correo: {e}")
