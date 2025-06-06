@@ -558,7 +558,7 @@ def mostrar_pagina():
       </button>
 
       <!-- Versión Trascendente -->
-      <button onclick="seleccionarVersion('Premium')" style="padding: 15px 20px; border: none; border-radius: 10px;
+      <button disabled onclick="seleccionarVersion('Premium')" style="padding: 15px 20px; border: none; border-radius: 10px;
               background: #F3E5F5; color: #7B1FA2; font-size: 16px; text-align: left; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer;">
         <strong>🌟 Versión Premium – 12 Dimensiones</strong><br>
         <span style="font-size: 14px; color: #6A1B9A;">Lo integral para transformar tu estado natural y mayormente adaptado.</span>
