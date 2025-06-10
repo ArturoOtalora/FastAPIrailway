@@ -24,11 +24,11 @@ from email.message import EmailMessage
 import aiosmtplib
 import matplotlib
 import mysql.connector
-import plotly.graph_objects as go
-import pandas as pd
-import numpy as np
-from math import pi
-import webbrowser
+# import plotly.graph_objects as go
+# import pandas as pd
+# import numpy as np
+# from math import pi
+# import webbrowser
 
 # Configurar la conexión a MySQL desde Railway
 DB_HOST = "shuttle.proxy.rlwy.net"
