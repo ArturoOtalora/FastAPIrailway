@@ -8,3 +8,5 @@ numpy
 matplotlib
 pandas
 aiosmtplib
+plotly
+webbrowser
