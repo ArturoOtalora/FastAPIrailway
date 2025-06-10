@@ -23,10 +23,12 @@ from reportlab.lib.enums import TA_JUSTIFY
 from email.message import EmailMessage
 import aiosmtplib
 import matplotlib
-
-
 import mysql.connector
-
+import plotly.graph_objects as go
+import pandas as pd
+import numpy as np
+from math import pi
+import webbrowser
 
 # Configurar la conexión a MySQL desde Railway
 DB_HOST = "shuttle.proxy.rlwy.net"
@@ -558,7 +560,7 @@ def mostrar_pagina():
       </button>
 
       <!-- Versión Trascendente -->
-      <button disabled onclick="seleccionarVersion('Premium')" style="padding: 15px 20px; border: none; border-radius: 10px;
+      <button onclick="seleccionarVersion('Premium')" style="padding: 15px 20px; border: none; border-radius: 10px;
               background: #F3E5F5; color: #7B1FA2; font-size: 16px; text-align: left; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer;">
         <strong>🌟 Versión Premium – 12 Dimensiones</strong><br>
         <span style="font-size: 14px; color: #6A1B9A;">Lo integral para transformar tu estado natural y mayormente adaptado.</span>
@@ -763,7 +765,7 @@ def mostrar_preguntas(usuario_id: int, pagina: int = Query(1, alias="pagina")):
                             {"".join([
                                 f'<input type="radio" id="star{j}_{contador}" name="respuesta_{contador}" value="{j}" required>'
                                 f'<label for="star{j}_{contador}" class="star">&#9733;</label>'
-                                for j in range(1, 11) 
+                                for j in range(10, 0, -1)
                             ])}
                         </div>
                     </div>
@@ -2077,9 +2079,491 @@ def generar_graficos_por_categoria(valores_respuestas):
     plt.savefig("statics/radar_general.png", dpi=300, bbox_inches="tight")
     plt.close()
 
+def generar_graficos_interactivos(valores_respuestas):
+    categorias = ["Ambiental", "Vital", "Emocional", "Mental", "Existencial", "Financiera"]
+    dimensiones = {
+        "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
+        "Emocional": ["Autoconocimiento", "Autoregulación", "Cuidado Personal", "Motivación", "Resiliencia"],
+        "Mental": ["Disfruta De La Realidad", "Manejo Del Stress", "Relaciones Saludables", "Conexión Con Otros", "Seguridad Y Confianza"],
+        "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Por Qué Estoy Aquí?", "Propósito De Vida", "Quién Soy"],
+        "Financiera": ["Ahorro", "Deuda", "Ingresos", "Inversión", "Presupuesto"],
+        "Ambiental": ["Autocuidado", "Armonía ambiental", "Accesibilidad Ambiental", "Atención preventiva", "Conciencia ambiental"]
+    }
+    
+    textos_personalizados = {
+        "Vital": {
+            "Alimentación": "Balance nutricional: Evalúa la calidad y variedad de tu dieta diaria",
+            "Descanso": "Sueño reparador: Considera tanto cantidad como calidad de tus horas de descanso",
+            "Ejercicio": "Actividad física: Frecuencia e intensidad adecuadas a tu condición",
+            "Hábitos Saludables": "Rutinas positivas: Hidratación, postura, pausas activas, etc.",
+            "Salud Vital Corporal": "Bienestar físico general: Energía, vitalidad, ausencia de molestias"
+        },
+        "Emocional": {
+            "Autoconocimiento": "Reconocimiento honesto de tus emociones y patrones emocionales",
+            "Autoregulación": "Capacidad para manejar emociones intensas de forma constructiva",
+            "Cuidado Personal": "Tiempo dedicado a actividades que nutren tu bienestar emocional",
+            "Motivación": "Impulso interno para perseguir objetivos a pesar de obstáculos",
+            "Resiliencia": "Habilidad para recuperarte de adversidades y aprender de ellas"
+        },
+        "Mental": {
+            "Disfruta De La Realidad": "Capacidad para encontrar satisfacción en tu vida cotidiana",
+            "Manejo Del Stress": "Habilidad para gestionar situaciones estresantes de manera efectiva",
+            "Relaciones Saludables": "Calidad de tus interacciones con los demás",
+            "Conexión Con Otros": "Sentimiento de pertenencia y apoyo social",
+            "Seguridad Y Confianza": "Sentimiento de seguridad en ti mismo y en tu entorno"
+        },
+        "Existencial": {
+            "Autenticidad Conmigo Mismo": "Coherencia entre tus valores y acciones",
+            "Lo Que Piensas Te Motiva": "Tus pensamientos te impulsan o te limitan",
+            "Por Qué Estoy Aquí?": "Comprensión de tu lugar en el mundo",
+            "Propósito De Vida": "Sentido de dirección y significado en tu vida",
+            "Quién Soy": "Conocimiento y aceptación de tu identidad"
+        },
+        "Financiera": {
+            "Ahorro": "Hábitos de ahorro y planificación financiera",
+            "Deuda": "Gestión y control de deudas",
+            "Ingresos": "Estabilidad y suficiencia de tus ingresos",
+            "Inversión": "Planificación para el futuro financiero",
+            "Presupuesto": "Control y planificación de gastos"
+        },
+        "Ambiental": {
+            "Autocuidado": "Atención a tus necesidades personales en tu entorno",
+            "Armonía ambiental": "Equilibrio con tu entorno inmediato",
+            "Accesibilidad Ambiental": "Adaptación de tu entorno a tus necesidades",
+            "Atención preventiva": "Medidas para mantener un entorno saludable",
+            "Conciencia ambiental": "Relación con el medio ambiente y la naturaleza"
+        }
+    }
+    
+    # Generate individual radar charts for each category
+    individual_charts = []
+    inicio = 0
+    
+    for categoria in categorias:
+        dim = dimensiones[categoria]
+        respuestas_categoria = valores_respuestas[inicio:inicio + len(dim)]
+        inicio += len(dim)
+        
+        # Normalize values
+        valores = np.interp(respuestas_categoria, (1, 10), (0, 1))
+        promedio = np.mean(valores)
+        
+        # Crear textos tooltip personalizados
+        tooltips = [
+            textos_personalizados.get(categoria, {}).get(d, f"{d}: {valores[i]*100:.1f}%") 
+            for i, d in enumerate(dim)
+        ]
+        
+        # Create radar chart
+        fig = go.Figure()
+        
+        fig.add_trace(go.Scatterpolar(
+            r=valores,
+            theta=dim,
+            fill='toself',
+            name=categoria,
+            line=dict(color='#2E8B57'),
+            fillcolor='rgba(144, 238, 144, 0.5)',
+            customdata=respuestas_categoria,
+            hovertemplate="<b>%{theta}</b><br>%{text}<br>Valor original: %{customdata}<extra></extra>",
+            text=tooltips
+        ))
+        
+        fig.update_layout(
+            polar=dict(
+                radialaxis=dict(
+                    visible=True,
+                    range=[0, 1],
+                    tickvals=[0, 0.2, 0.4, 0.6, 0.8, 1],
+                    ticktext=["0%", "20%", "40%", "60%", "80%", "100%"]
+                ),
+                angularaxis=dict(
+                    direction="clockwise",
+                    rotation=90
+                )
+            ),
+            title=f'<b>Perfil en {categoria}</b><br><span style="font-size:14px;color:gray">Promedio: {promedio*100:.1f}%</span>',
+            showlegend=False,
+            height=600,
+            template='plotly_white',
+            font=dict(
+                family="Arial, sans-serif",
+                size=12,
+                color="RebeccaPurple"
+            )
+        )
+        
+        # Save as HTML
+        filename = f"radar_{categoria.lower()}.html"
+        fig.write_html(filename)
+        individual_charts.append(filename)
+    
+    # Generate consolidated radar chart
+    promedios_categorias = []
+    inicio = 0
+    
+    for categoria in categorias:
+        dim = dimensiones[categoria]
+        respuestas_categoria = valores_respuestas[inicio:inicio + len(dim)]
+        inicio += len(dim)
+        valores = np.interp(respuestas_categoria, (1, 10), (0, 1))
+        promedio = np.mean(valores)
+        promedios_categorias.append(promedio)
+    
+    # Create consolidated radar chart
+    fig_consolidado = go.Figure()
+    
+    fig_consolidado.add_trace(go.Scatterpolar(
+        r=promedios_categorias,
+        theta=categorias,
+        fill='toself',
+        name='Perfil General',
+        line=dict(color='#2E8B57'),
+        fillcolor='rgba(144, 238, 144, 0.5)'
+    ))
+    
+    fig_consolidado.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True,
+                range=[0, 1],
+                tickvals=[0, 0.2, 0.4, 0.6, 0.8, 1],
+                ticktext=["0%", "20%", "40%", "60%", "80%", "100%"]
+            ),
+            angularaxis=dict(
+                direction="clockwise",
+                rotation=90
+            )
+        ),
+        title='<b>Perfil General de Bienestar</b>',
+        showlegend=False,
+        height=700,
+        template='plotly_white',
+        font=dict(
+            family="Arial, sans-serif",
+            size=12,
+            color="RebeccaPurple"
+        )
+    )
+    
+    # Add table with percentages
+    tabla_df = pd.DataFrame({
+        "Categoría": categorias,
+        "Porcentaje": [f"{v*100:.1f}%" for v in promedios_categorias]
+    })
+    
+    fig_consolidado.add_annotation(
+        x=0.5,
+        y=-0.3,
+        xref="paper",
+        yref="paper",
+        text=tabla_df.to_html(index=False),
+        showarrow=False,
+        align="center",
+        bordercolor="#333333",
+        borderwidth=1,
+        borderpad=4,
+        bgcolor="#ffffff"
+    )
+    
+    # Save consolidated chart
+    consolidated_filename = "radar_general.html"
+    fig_consolidado.write_html(consolidated_filename)
+    
+    # Generate a dashboard HTML that combines all charts
+    # Asumo que tienes una función generate_dashboard definida en otro lugar
+    generate_dashboard(individual_charts, consolidated_filename)
+    return individual_charts + [consolidated_filename]
+
+
+def generate_dashboard(individual_charts, consolidated_chart):
+    # Datos de interpretación para los tooltips (puedes personalizarlos)
+    interpretaciones = {
+        "Ambiental": "Cómo interactúas con tu entorno físico y espacios vitales",
+        "Vital": "Estado de tu salud física y hábitos de vida",
+        "Emocional": "Gestión de tus emociones y bienestar psicológico",
+        "Mental": "Estado cognitivo y manejo de pensamientos",
+        "Existencial": "Sentido de propósito y autoconocimiento profundo",
+        "Financiera": "Relación con el dinero y seguridad económica"
+    }
+
+    html_template = f"""
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Dashboard de Bienestar Integral</title>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <style>
+            body {{
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                margin: 0;
+                padding: 20px;
+                background-color: #f8f9fa;
+            }}
+            .header {{
+                background: linear-gradient(135deg, #2E8B57, #3CB371);
+                color: white;
+                padding: 25px;
+                text-align: center;
+                border-radius: 10px;
+                margin-bottom: 30px;
+                box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+                position: relative;
+                overflow: hidden;
+            }}
+            .header::after {{
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path fill="rgba(255,255,255,0.1)" d="M0,0 L100,0 L100,100 L0,100 Z" /></svg>');
+                opacity: 0.1;
+            }}
+            .chart-container {{
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 25px;
+            }}
+            .chart-box {{
+                background-color: white;
+                border-radius: 10px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+                padding: 20px;
+                width: calc(50% - 40px);
+                min-width: 500px;
+                transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }}
+            .chart-box:hover {{
+                transform: translateY(-5px);
+                box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+            }}
+            .chart-title {{
+                text-align: center;
+                margin-bottom: 15px;
+                color: #2F4F4F;
+                font-size: 1.3em;
+                position: relative;
+                display: inline-block;
+            }}
+            .chart-title::after {{
+                content: '';
+                position: absolute;
+                bottom: -5px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 50px;
+                height: 3px;
+                background: #3CB371;
+                transition: width 0.3s;
+            }}
+            .chart-title:hover::after {{
+                width: 100%;
+            }}
+            .consolidated {{
+                width: 85%;
+                margin: 30px auto;
+            }}
+            iframe {{
+                width: 100%;
+                height: 600px;
+                border: none;
+                border-radius: 8px;
+                transition: all 0.3s;
+            }}
+            iframe:hover {{
+                box-shadow: 0 0 0 2px rgba(46, 139, 87, 0.3);
+            }}
+            .tabs {{
+                display: flex;
+                justify-content: center;
+                margin-bottom: 25px;
+                flex-wrap: wrap;
+            }}
+            .tab {{
+                padding: 12px 25px;
+                background-color: #e9ecef;
+                cursor: pointer;
+                border-radius: 30px;
+                margin: 0 8px 10px;
+                transition: all 0.3s;
+                font-weight: 500;
+                position: relative;
+            }}
+            .tab:hover {{
+                background-color: #d1e7dd;
+                color: #0a3622;
+            }}
+            .tab.active {{
+                background: linear-gradient(135deg, #2E8B57, #3CB371);
+                color: white;
+                box-shadow: 0 4px 8px rgba(46, 139, 87, 0.3);
+            }}
+            .tab-content {{
+                display: none;
+                animation: fadeIn 0.5s;
+            }}
+            @keyframes fadeIn {{
+                from {{ opacity: 0; }}
+                to {{ opacity: 1; }}
+            }}
+            .tab-content.active {{
+                display: block;
+            }}
+            /* Tooltip styles */
+            .tooltip {{
+                position: relative;
+                display: inline-block;
+            }}
+            .tooltip .tooltiptext {{
+                 visibility: hidden;
+                width: 180px;
+                background-color: #333;
+                color: #fff;
+                text-align: center;
+                border-radius: 6px;
+                padding: 8px;
+                position: absolute;
+                z-index: 1;
+                bottom: 125%;
+                left: 50%;
+                transform: translateX(-50%);
+                opacity: 0;
+                transition: opacity 0.3s;
+                font-size: 0.8em;  /* Tamaño más pequeño */
+                font-weight: normal;
+            }}
+            .tooltip .tooltiptext::after {{
+                content: "";
+                position: absolute;
+                top: 100%;
+                left: 50%;
+                margin-left: -5px;
+                border-width: 5px;
+                border-style: solid;
+                border-color: #333 transparent transparent transparent;
+            }}
+            .tooltip:hover .tooltiptext {{
+                visibility: visible;
+                opacity: 1;
+            }}
+            /* Info icon */
+            .info-icon {{
+                margin-left: 6px;
+                color: #6c757d;
+                cursor: help;
+                font-size: 0.65em; /* Más pequeño */
+                vertical-align: middle; /* Alinea con el texto */
+                transition: color 0.3s;
+            }}
+            .info-icon:hover {{
+                color: #2E8B57;
+            }}
+            /* Responsive design */
+            @media (max-width: 768px) {{
+                .chart-box {{
+                    width: 100%;
+                    min-width: auto;
+                }}
+                .consolidated {{
+                    width: 95%;
+                }}
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1><i class="fas fa-chart-pie"></i> Dashboard de Bienestar Integral</h1>
+            <p>Visualización de tu perfil de bienestar</p>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('general')">
+                <i class="fas fa-globe"></i> Vista General
+            </div>
+            <div class="tab" onclick="showTab('individual')">
+                <i class="fas fa-layer-group"></i> Vista por Categoría
+            </div>
+        </div>
+        
+        <div id="general" class="tab-content active">
+            <div class="chart-box consolidated">
+                <h2 class="chart-title">
+                    Perfil General
+                    <span class="tooltip">
+                        <i class="fas fa-info-circle info-icon"></i>
+                        <span class="tooltiptext">Esta vista muestra un resumen consolidado de todas tus áreas de bienestar</span>
+                    </span>
+                </h2>
+                <iframe src="{consolidated_chart}"></iframe>
+            </div>
+        </div>
+        
+        <div id="individual" class="tab-content">
+            <div class="chart-container">
+                {"".join([f'''
+                <div class="chart-box">
+                    <h3 class="chart-title">
+                        {chart.replace("radar_", "").replace(".html", "").title()}
+                        <span class="tooltip">
+                            <i class="fas fa-info-circle info-icon"></i>
+                            <span class="tooltiptext">{interpretaciones.get(chart.replace("radar_", "").replace(".html", "").title(), "Información detallada sobre esta categoría")}</span>
+                        </span>
+                    </h3>
+                    <iframe src="{chart}"></iframe>
+                </div>
+                ''' for chart in individual_charts])}
+            </div>
+        </div>
+        
+        <script>
+            function showTab(tabId) {{
+                // Hide all tab contents
+                document.querySelectorAll('.tab-content').forEach(content => {{
+                    content.classList.remove('active');
+                }});
+                
+                // Show selected tab content
+                document.getElementById(tabId).classList.add('active');
+                
+                // Update tab styles
+                document.querySelectorAll('.tab').forEach(tab => {{
+                    tab.classList.remove('active');
+                }});
+                
+                event.currentTarget.classList.add('active');
+            }}
+
+            // Efecto adicional al pasar el mouse sobre los gráficos
+            document.querySelectorAll('.chart-box').forEach(box => {{
+                box.addEventListener('mouseenter', function() {{
+                    this.querySelector('iframe').style.transform = 'scale(1.01)';
+                }});
+                box.addEventListener('mouseleave', function() {{
+                    this.querySelector('iframe').style.transform = 'scale(1)';
+                }});
+            }});
+        </script>
+    </body>
+    </html>
+    """
+    
+    with open("dashboard_bienestar.html", "w", encoding="utf-8") as f:
+        f.write(html_template)
+
+    file_path = os.path.abspath("dashboard_bienestar.html")
+    webbrowser.open_new_tab(f"file://{file_path}")
+
 def generar_graficos_por_categoria_Premium(valores_respuestas):
         matplotlib.use('Agg') 
-        categorias = ["Ambiental","Vital", "Emocional", "Mental", "Existencial", "Financiera","creatividad","mentalidad digital","bienestar social y comunitario","bienestar y propósito profesional","prevención y manejo del agotamiento","bienestar esencial y conexion interior"]
+        categorias = ["Vital", "Emocional", "Mental", "Existencial", "Financiera","Ambiental","creatividad","mentalidad digital","bienestar social y comunitario","bienestar y propósito profesional","prevención y manejo del agotamiento","bienestar esencial y conexion interior"]
         dimensiones = {
         "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
         "Emocional": ["Autoconocimiento", "Autoregulación", "Cuidado Personal", "Motivación", "Resiliencia"],
@@ -2114,6 +2598,7 @@ def generar_graficos_por_categoria_Premium(valores_respuestas):
             
             # Tabla de porcentajes
             porcentajes = [f"{int(v * 100)}%" for v in valores]
+            #porcentajes = [f"{int(v * 10)}0%" for v in valores] 
             tabla = pd.DataFrame({
                 "Dimensión": dim,
                 "Porcentaje": porcentajes
@@ -2223,11 +2708,11 @@ def generar_graficos_por_categoria_Premium(valores_respuestas):
             colLabels=tabla_df_grupo1.columns,
             cellLoc='center',
             loc='bottom',
-            bbox=[-0.25, -1.05, 1.5, 0.8]
+            bbox=[-0.35, -1.3, 1.7, 1.0]
         )
         
-        tabla_estilo.auto_set_font_size(False)
-        tabla_estilo.set_fontsize(12)
+        tabla_estilo.auto_set_font_size(True)
+        tabla_estilo.set_fontsize(14)
         tabla_estilo.scale(1.5, 1.5)
         
         for (i, j), cell in tabla_estilo.get_celld().items():
@@ -2270,10 +2755,10 @@ def generar_graficos_por_categoria_Premium(valores_respuestas):
             colLabels=tabla_df_grupo2.columns,
             cellLoc='center',
             loc='bottom',
-            bbox=[-0.25, -1.05, 1.5, 0.8]
+            bbox=[-0.35, -1.3, 1.7, 1.0]
         )
         
-        tabla_estilo.auto_set_font_size(False)
+        tabla_estilo.auto_set_font_size(True)
         tabla_estilo.set_fontsize(12)
         tabla_estilo.scale(1.5, 1.5)
         
@@ -2393,6 +2878,8 @@ def generar_pdf_con_analisis(usuario_id):
     # Convertir respuestas a valores numéricos
     valores_respuestas = np.array([int(respuesta) for _, respuesta in respuestas])
     generar_graficos_por_categoria(valores_respuestas)
+    # generar_graficos_interactivos(valores_respuestas)
+    
     # Análisis básico
     promedio = np.mean(valores_respuestas)
     min_valor = np.min(valores_respuestas)
@@ -3069,6 +3556,37 @@ def generar_pdf_con_analisis_Premium(usuario_id):
     y_position = height - 120  # Reiniciar posición en la nueva página
 
     # Dibujar la imagen de análisis general
+    # Estilos para los textos justificados
+    styles = getSampleStyleSheet()
+    justified_style = ParagraphStyle(
+        'Justify',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=10,
+        leading=14,
+        alignment=TA_JUSTIFY
+    )
+
+    # Textos para las imágenes
+    texto_grupo1 = """
+    El bienestar humano es una experiencia multidimensional que abarca mucho más que la simple ausencia de enfermedad o malestar. 
+    En nuestra plataforma de bienestar integral, entendemos que la plenitud se construye a partir del equilibrio entre distintas áreas esenciales de la vida. 
+    Por eso, hemos desarrollado un diagnóstico que permite explorar en profundidad seis dimensiones clave que sostienen el bienestar de manera integral: 
+    Salud Vital Corporal, Salud Emocional, Salud Mental, Sentido Existencial, Salud Financiera y Armonía Ambiental.
+    Este diagnóstico no busca emitir juicios, sino ofrecer una fotografía clara del estado actual de cada dimensión,
+    invitando a la reflexión personal y a la acción consciente. Cada una de estas áreas está compuesta por indicadores específicos que nos permiten identificar fortalezas,
+    desafíos y oportunidades de crecimiento.
+    """
+
+    texto_grupo2 = """
+    En un mundo dinámico, desafiante y profundamente interconectado, el bienestar integral incluye el cultivar una vida plena que requiere integrar nuevas competencias, 
+    perspectivas y prácticas que respondan a los cambios culturales, tecnológicos, sociales y existenciales de nuestra época. 
+    Las siguientes dimensiones expandidas complementan la mirada tradicional del bienestar, explorando aspectos esenciales del desarrollo humano contemporáneo como la creatividad, 
+    la conciencia digital, el sentido profesional, la conexión interior, el cuidado del entorno y la participación en redes de apoyo.
+    Cada una de estas dimensiones ha sido diseñada para ayudarte a reflexionar profundamente sobre quién eres, cómo te relacionas con el mundo y qué prácticas estás cultivando (o podrías fortalecer) para sostener tu bienestar en el tiempo.
+    """
+
+    # Dibujar el título
     c.setFont("Helvetica-Bold", 18)
     c.setFillColor(colors.HexColor("#2E4053"))
     c.drawCentredString(width / 2, y_position, "Análisis General")
@@ -3077,29 +3595,41 @@ def generar_pdf_con_analisis_Premium(usuario_id):
     # Ajustes para las imágenes
     img_width = 250
     img_height = 250
-    spacing = 30  # Espacio entre imágenes
+    spacing = 40  # Espacio horizontal entre imágenes
 
-    # Verificar si hay espacio suficiente para ambas imágenes en la página actual
-    if y_position - (img_height * 2 + spacing + 40) < 50:  # 50 es el margen inferior
-        c.showPage()  # Crear nueva página si no hay espacio
-        y_position = height - 60
-        agregar_pie_pagina(c, width, page_num)  # Agregar pie de página a la página anterior
+    # Verificar si hay espacio suficiente en la página actual
+    if y_position - img_height - 100 < 50:  # consideramos también espacio para los textos
+        c.showPage()
+        agregar_pie_pagina(c, width, page_num)
         page_num += 1
+        y_position = height - 60
 
-    # Primera imagen (grupo1)
-    x_position = (width - img_width) / 2
-    image_path = "statics/radar_general_grupo1.png"
-    c.drawImage(image_path, x_position, y_position - img_height, 
-                width=img_width, height=img_height)
+    # Posiciones X
+    x_left = (width / 2) - img_width - (spacing / 2)
+    x_right = (width / 2) + (spacing / 2)
 
-    # Segunda imagen (grupo2) - debajo de la primera
-    y_position -= img_height + spacing
-    image_path = "statics/radar_general_grupo2.png"
-    c.drawImage(image_path, x_position, y_position - img_height, 
-                width=img_width, height=img_height)
+    # Posición vertical para imágenes
+    img_y = y_position - img_height
 
-    # Ajustar posición Y para el siguiente elemento
-    y_position -= img_height + 40
+    # Dibujar imágenes
+    c.drawImage("statics/radar_general_grupo1.png", x_left, img_y, width=img_width, height=img_height)
+    c.drawImage("statics/radar_general_grupo2.png", x_right, img_y, width=img_width, height=img_height)
+
+    # Posición Y para los textos debajo de las imágenes
+    text_y = img_y - 10  # pequeño espacio después de las imágenes
+
+    # Dibujar texto 1
+    p1 = Paragraph(texto_grupo1, justified_style)
+    p1.wrapOn(c, img_width, 200)
+    p1.drawOn(c, x_left, text_y - p1.height)
+
+    # Dibujar texto 2
+    p2 = Paragraph(texto_grupo2, justified_style)
+    p2.wrapOn(c, img_width, 200)
+    p2.drawOn(c, x_right, text_y - p2.height)
+
+    # Ajustar y_position para el siguiente contenido (debajo del texto más largo)
+    y_position = text_y - max(p1.height, p2.height) - 30
 
     # Agregar número de página
     agregar_pie_pagina(c, width, page_num)
@@ -3270,12 +3800,14 @@ def generar_pdf_con_analisis_Premium(usuario_id):
         raise ValueError("Se esperaban exactamente 60 respuestas (12 categorías x 5 preguntas)")
 
     # Calcular promedios por categoría
-    promedios = [np.mean(valores_respuestas[i:i+5]) for i in range(0, 60, 5)]
+    #promedios = [np.mean(valores_respuestas[i:i+5]) for i in range(0, 60, 5)]
+    promedios = [np.mean(valores_respuestas[i:i+5]) for i in range(0, len(valores_respuestas), 5)]
 
+    categoria_info = {}    
     # Process first 5 categories in the loop
-    for idx, categoria in enumerate(categorias[:12]): 
+    for idx, categoria in enumerate(categorias): 
         promedio = promedios[idx]
-
+        
         if promedio <= 1.6:
             nivel = "muy_bajo"
         elif promedio <= 2.2:
@@ -3286,6 +3818,11 @@ def generar_pdf_con_analisis_Premium(usuario_id):
             nivel = "alto"
         else:
             nivel = "muy_alto"
+
+        categoria_info[categoria.lower()] = {
+        'promedio': promedio,
+        'nivel': nivel
+    }   
 
     # for categoria in ["vital", "emocional", "mental", "existencial", "financiera","ambiental"]:
     for categoria in ["vital", "emocional", "mental", "existencial", "financiera","ambiental","creatividad","mentalidad digital","bienestar social y comunitario","bienestar y propósito profesional","prevención y manejo del agotamiento","bienestar esencial y conexion interior"]:
@@ -3333,8 +3870,9 @@ def generar_pdf_con_analisis_Premium(usuario_id):
 
             c.drawImage(image_path, x_position, y_position - img_height, width=img_width, height=img_height)
 
+            nivel_actual = categoria_info[categoria.lower()]['nivel']
             # Interpretación
-            interpretacion = interpretaciones.get(categoria.lower(), {}).get(nivel, "")
+            interpretacion = interpretaciones.get(categoria.lower(), {}).get(nivel_actual, "")
             p = Paragraph(interpretacion, paragraph_style)
 
             separacion_interpretacion = 20
