@@ -1213,7 +1213,7 @@ def mostrar_preguntas3(usuario_id: int, pagina: int = Query(1, alias="pagina")):
                             {"".join([
                                 f'<input type="radio" id="star{j}_{contador}" name="respuesta_{contador}" value="{j}" required>'
                                 f'<label for="star{j}_{contador}" class="star">&#9733;</label>'
-                                for j in range(1, 11) 
+                                for j in range(10, 0, -1) 
                             ])}
                         </div>
                     </div>
@@ -1912,7 +1912,7 @@ function cerrarErrorModal() {{
 
     '''
 def generar_graficos_por_categoria(valores_respuestas):
-    categorias = ["Ambiental","Vital", "Emocional", "Mental", "Existencial", "Financiera"]
+    categorias = ["Vital", "Emocional", "Mental", "Existencial", "Financiera","Ambiental"]
     dimensiones = {
         "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
         "Emocional": ["Autoconocimiento", "Autoregulación", "Cuidado Personal", "Motivación", "Resiliencia"],
@@ -1968,8 +1968,8 @@ def generar_graficos_por_categoria(valores_respuestas):
         fig, ax = plt.subplots(figsize=(8, 10), subplot_kw=dict(polar=True))  # Aumenté el ancho y alto
         ax.set_theta_offset(pi / 2)
         ax.set_theta_direction(-1)
-        ax.fill(angulos, valores, color="#90EE90", alpha=0.5)
-        ax.plot(angulos, valores, color="#2E8B57", linewidth=2.5)
+        ax.fill(angulos, valores, color="#90C8EE", alpha=0.5)
+        ax.plot(angulos, valores, color="#2365AF", linewidth=2.5)
 
         # Ajustar posición de las etiquetas y espacio alrededor
         ax.set_xticks(angulos[:-1])
@@ -2033,10 +2033,10 @@ def generar_graficos_por_categoria(valores_respuestas):
     fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
     ax.set_theta_offset(pi / 2)
     ax.set_theta_direction(-1)
-    ax.fill(angulos_global, promedios_categorias, color="#90EE90", alpha=0.5)
-    ax.plot(angulos_global, promedios_categorias, color="#2E8B57", linewidth=2.5)
+    ax.fill(angulos_global, promedios_categorias, color="#90C8EE", alpha=0.5)
+    ax.plot(angulos_global, promedios_categorias, color="#2365AF", linewidth=2.5)
     ax.set_xticks(angulos_global[:-1])
-    ax.set_xticklabels(categorias, fontsize=14, fontweight='bold', color='#333333')
+    ax.set_xticklabels(categorias, fontsize=18, fontweight='bold', color='#333333')
     ax.set_ylim(0, 1)
     ax.set_yticklabels([])
         # Agregar tabla debajo del gráfico
@@ -2045,11 +2045,11 @@ def generar_graficos_por_categoria(valores_respuestas):
         colLabels=tabla_df.columns,
         cellLoc='center',
         loc='bottom',
-        bbox=[-0.25, -1.05, 1.5, 0.8]
+        bbox=[-0.35, -1.35, 1.9, 1.0]
     )
     tabla_estilo.auto_set_font_size(False)
-    tabla_estilo.set_fontsize(12)
-    tabla_estilo.scale(1.5, 1.5)
+    tabla_estilo.set_fontsize(16)
+    tabla_estilo.scale(1.2, 1.2)
 
     # Estilo de la tabla
     for (i, j), cell in tabla_estilo.get_celld().items():
@@ -2062,7 +2062,7 @@ def generar_graficos_por_categoria(valores_respuestas):
             cell.set_facecolor('#ffffff' if i % 2 == 0 else '#f2f2f2')
 
     # Ajuste de espacio vertical para acomodar la tabla
-    plt.subplots_adjust(bottom=0.3)
+    plt.subplots_adjust(bottom=0.4)
 
     # Obtener la figura actual
     fig = plt.gcf()
@@ -2563,7 +2563,7 @@ def generate_dashboard(individual_charts, consolidated_chart):
 
 def generar_graficos_por_categoria_Premium(valores_respuestas):
         matplotlib.use('Agg') 
-        categorias = ["Vital", "Emocional", "Mental", "Existencial", "Financiera","Ambiental","creatividad","mentalidad digital","bienestar social y comunitario","bienestar y propósito profesional","prevención y manejo del agotamiento","bienestar esencial y conexion interior"]
+        categorias = ["Vital", "Emocional", "Mental", "Existencial", "Financiera","Ambiental","Creatividad","Mentalidad digital","Bienestar social","Bienestar profesional","Manejo del agotamiento","Conexion interior"]
         dimensiones = {
         "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
         "Emocional": ["Autoconocimiento", "Autoregulación", "Cuidado Personal", "Motivación", "Resiliencia"],
@@ -2571,12 +2571,12 @@ def generar_graficos_por_categoria_Premium(valores_respuestas):
         "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Por Qué Estoy Aquí?", "Propósito De Vida", "Quién Soy"],
         "Financiera": ["Ahorro", "Deuda", "Ingresos", "Inversión", "Presupuesto"],
         "Ambiental": ["Autocuidado", "Armonía ambiental", "Accesibilidad Ambiental", "Atención preventiva", "Conciencia ambiental"],
-        "creatividad": ["Apertura al cambio", "Aprendizaje continuo", "creatividad aplicada", "Solución de problemas", "Innovación creativa"],
-        "mentalidad digital": ["Higiene Digital", "Autogestión Emocional", "Gestión del Tiempo Digital", "Seguridad Digital", "Bienestar Digital Creativo"],
-        "bienestar social y comunitario": ["Participación", "Sentimiento de pertenencia", "Altruismo y colaboración", "Diversidad", "Red de apoyo"],
-        "bienestar y propósito profesional": ["Desarrollo de habilidades", "Satisfacción", "Claridad laboral", "Conciliación", "Compromiso laboral"],
-        "prevención y manejo del agotamiento": ["Cansancio emocional", "Despersonalización", "Pérdida de motivación", "Sensación de ineficacia", "Estrategias de autocuidado"],
-        "bienestar esencial y conexion interior": ["Paz Interior ", "Capacidad de Perdonar", "Alegría Vital y Gratitud", "Armonía Relacional", "Conexión y Sentido"]
+        "Creatividad": ["Apertura al cambio", "Aprendizaje continuo", "creatividad aplicada", "Solución de problemas", "Innovación creativa"],
+        "Mentalidad digital": ["Higiene Digital", "Autogestión Emocional", "Gestión del Tiempo Digital", "Seguridad Digital", "Bienestar Digital Creativo"],
+        "Bienestar social": ["Participación", "Sentimiento de pertenencia", "Altruismo y colaboración", "Diversidad", "Red de apoyo"],
+        "Bienestar profesional": ["Desarrollo de habilidades", "Satisfacción", "Claridad laboral", "Conciliación", "Compromiso laboral"],
+        "Manejo del agotamiento": ["Cansancio emocional", "Despersonalización", "Pérdida de motivación", "Sensación de ineficacia", "Estrategias de autocuidado"],
+        "Conexion interior": ["Paz Interior ", "Capacidad de Perdonar", "Alegría Vital y Gratitud", "Armonía Relacional", "Conexión y Sentido"]
     }
 
         # Interpretaciones
@@ -2627,8 +2627,8 @@ def generar_graficos_por_categoria_Premium(valores_respuestas):
             fig, ax = plt.subplots(figsize=(8, 10), subplot_kw=dict(polar=True))  # Aumenté el ancho y alto
             ax.set_theta_offset(pi / 2)
             ax.set_theta_direction(-1)
-            ax.fill(angulos, valores, color="#90EE90", alpha=0.5)
-            ax.plot(angulos, valores, color="#2E8B57", linewidth=2.5)
+            ax.fill(angulos, valores, color="#90C8EE", alpha=0.5)
+            ax.plot(angulos, valores, color="#2365AF", linewidth=2.5)
 
             # Ajustar posición de las etiquetas y espacio alrededor
             ax.set_xticks(angulos[:-1])
@@ -2692,29 +2692,30 @@ def generar_graficos_por_categoria_Premium(valores_respuestas):
             "Porcentaje": [f"{v * 100:.1f}%" for v in tabla_promedios_grupo1]
         }
         tabla_df_grupo1 = pd.DataFrame(tabla_grupo1)
-        
         fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
         ax.set_theta_offset(pi / 2)
         ax.set_theta_direction(-1)
-        ax.fill(angulos_grupo1, valores_grupo1, color="#90EE90", alpha=0.5)
-        ax.plot(angulos_grupo1, valores_grupo1, color="#2E8B57", linewidth=2.5)
+
+        # Radar
+        ax.fill(angulos_grupo1, valores_grupo1, color="#90C8EE", alpha=0.5)
+        ax.plot(angulos_grupo1, valores_grupo1, color="#2365AF", linewidth=2.5)
         ax.set_xticks(angulos_grupo1[:-1])
         ax.set_xticklabels(grupo1, fontsize=12, fontweight='bold', color='#333333')
         ax.set_ylim(0, 1)
         ax.set_yticklabels([])
-        
+
+        # Tabla
         tabla_estilo = plt.table(
             cellText=tabla_df_grupo1.values,
             colLabels=tabla_df_grupo1.columns,
             cellLoc='center',
             loc='bottom',
-            bbox=[-0.35, -1.3, 1.7, 1.0]
+            bbox=[-0.35, -1.35, 1.9, 1.0]
         )
-        
-        tabla_estilo.auto_set_font_size(True)
-        tabla_estilo.set_fontsize(14)
-        tabla_estilo.scale(1.5, 1.5)
-        
+        tabla_estilo.auto_set_font_size(False)
+        tabla_estilo.set_fontsize(12)
+        tabla_estilo.scale(1.2, 1.2)
+
         for (i, j), cell in tabla_estilo.get_celld().items():
             cell.set_edgecolor('grey')
             cell.set_linewidth(0.6)
@@ -2723,45 +2724,49 @@ def generar_graficos_por_categoria_Premium(valores_respuestas):
                 cell.set_text_props(weight='bold', color='#1E88E5')
             else:
                 cell.set_facecolor('#ffffff' if i % 2 == 0 else '#f2f2f2')
-        
-        plt.subplots_adjust(bottom=0.3)
+
+        plt.subplots_adjust(bottom=0.4)
+        plt.tight_layout()
         plt.savefig("statics/radar_general_grupo1.png", dpi=300, bbox_inches="tight")
         plt.close()
-        
-        # Gráfico para el segundo grupo (6 categorías)
+
+
+        # === GRUPO 2 ===
         tabla_promedios_grupo2 = [promedios_categorias[i] for i in range(6, 12)]
         angulos_grupo2 = [n / float(len(grupo2)) * 2 * pi for n in range(len(grupo2))]
         angulos_grupo2 += angulos_grupo2[:1]
         valores_grupo2 = tabla_promedios_grupo2 + [tabla_promedios_grupo2[0]]
-        
+
         tabla_grupo2 = {
             "Categoría": grupo2,
             "Porcentaje": [f"{v * 100:.1f}%" for v in tabla_promedios_grupo2]
         }
         tabla_df_grupo2 = pd.DataFrame(tabla_grupo2)
-        
-        fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
+        fig, ax = plt.subplots(figsize=(8, 9), subplot_kw=dict(polar=True))  # Aumenté el ancho y alto
         ax.set_theta_offset(pi / 2)
         ax.set_theta_direction(-1)
-        ax.fill(angulos_grupo2, valores_grupo2, color="#90EE90", alpha=0.5)
-        ax.plot(angulos_grupo2, valores_grupo2, color="#2E8B57", linewidth=2.5)
+
+        # Radar
+        ax.fill(angulos_grupo2, valores_grupo1, color="#90C8EE", alpha=0.5)
+        ax.plot(angulos_grupo2, valores_grupo1, color="#2365AF", linewidth=2.5)
         ax.set_xticks(angulos_grupo2[:-1])
-        ax.set_xticklabels(grupo2, fontsize=12, fontweight='bold', color='#333333')
+        ax.set_xticklabels(grupo2, fontsize=14, fontweight='bold', color='#333333')
         ax.set_ylim(0, 1)
         ax.set_yticklabels([])
-        
+
+        # Tabla
         tabla_estilo = plt.table(
             cellText=tabla_df_grupo2.values,
             colLabels=tabla_df_grupo2.columns,
             cellLoc='center',
             loc='bottom',
-            bbox=[-0.35, -1.3, 1.7, 1.0]
+            bbox=[-0.35, -1.35, 1.9, 1.0]
+
         )
-        
-        tabla_estilo.auto_set_font_size(True)
-        tabla_estilo.set_fontsize(12)
-        tabla_estilo.scale(1.5, 1.5)
-        
+        tabla_estilo.auto_set_font_size(False)
+        tabla_estilo.set_fontsize(13)
+        tabla_estilo.scale(1.3, 1.3)
+
         for (i, j), cell in tabla_estilo.get_celld().items():
             cell.set_edgecolor('grey')
             cell.set_linewidth(0.6)
@@ -2770,11 +2775,12 @@ def generar_graficos_por_categoria_Premium(valores_respuestas):
                 cell.set_text_props(weight='bold', color='#1E88E5')
             else:
                 cell.set_facecolor('#ffffff' if i % 2 == 0 else '#f2f2f2')
-        
-        plt.subplots_adjust(bottom=0.3)
+
+        plt.subplots_adjust(bottom=0.4)
+        plt.tight_layout()
         plt.savefig("statics/radar_general_grupo2.png", dpi=300, bbox_inches="tight")
         plt.close()
-        
+
 def agregar_fondo(c, width, height, background_path):
     """Dibuja la imagen de fondo en cada página."""
     if os.path.exists(background_path):
@@ -3111,10 +3117,10 @@ def generar_pdf_con_analisis(usuario_id):
         raise ValueError("Se esperaban exactamente 30 respuestas (6 categorías x 5 preguntas)")
 
     # Calcular promedios por categoría
-    promedios = [np.mean(valores_respuestas[i:i+5]) for i in range(0, 30, 5)]
-
+    promedios = [np.mean(valores_respuestas[i:i+5]) for i in range(0, len(valores_respuestas), 5)]
+    categoria_info = {}
     # Process first 5 categories in the loop
-    for idx, categoria in enumerate(categorias[:5]): 
+    for idx, categoria in enumerate(categorias): 
         promedio = promedios[idx]
 
         if promedio <= 1.6:
@@ -3127,7 +3133,11 @@ def generar_pdf_con_analisis(usuario_id):
             nivel = "alto"
         else:
             nivel = "muy_alto"
-
+            
+        categoria_info[categoria.lower()] = {
+        'promedio': promedio,
+        'nivel': nivel
+        }
     
     for categoria in ["vital", "emocional", "mental", "existencial", "financiera","ambiental"]:
         image_path = f"statics/radar_{categoria}.png"
@@ -3173,9 +3183,9 @@ def generar_pdf_con_analisis(usuario_id):
             y_position = bloque_top - frame_height - separacion
 
             c.drawImage(image_path, x_position, y_position - img_height, width=img_width, height=img_height)
-
+            nivel_actual = categoria_info[categoria.lower()]['nivel']    
             # Interpretación
-            interpretacion = interpretaciones.get(categoria.lower(), {}).get(nivel, "")
+            interpretacion = interpretaciones.get(categoria.lower(), {}).get(nivel_actual, "")
             p = Paragraph(interpretacion, paragraph_style)
 
             separacion_interpretacion = 20
@@ -3644,10 +3654,10 @@ def generar_pdf_con_analisis_Premium(usuario_id):
     "ambiental": "Tu relación con la Tierra es un reflejo de tu conexión con la vida. Tus hábitos cotidianos desde el consumo hasta el manejo de recursos muestran cómo honras el ecosistema del que formas parte. Esta evaluación te ayudará a identificar acciones para transformar tu impacto, no solo como un acto ecológico, sino como un compromiso con tu propio bienestar integral",
     "creatividad": "La creatividad es la expresión viva de tu esencia. Va más allá del arte: se manifiesta en tu forma de pensar, resolver problemas y transformar la realidad. Esta evaluación te invita a explorar cuánto espacio permites a tu imaginación, cómo canalizas tu originalidad y qué tan libre eres para crear desde lo que eres, no desde lo que se espera",
     "mentalidad digital": "Tu relación con la tecnología revela tu capacidad de adaptación, aprendizaje continuo y participación en un mundo en constante evolución. Esta evaluación no mide solo habilidades técnicas, sino también tu apertura al cambio, pensamiento crítico y uso consciente del entorno digital para potenciar tu vida y tu propósito",
-    "bienestar social y comunitario": "Somos seres profundamente sociales, y la calidad de nuestras relaciones influye directamente en nuestro bienestar. Esta dimensión te invita a reflexionar sobre tu nivel de conexión con los demás, tu capacidad de aportar a la comunidad y cómo los lazos que cultivas enriquecen tanto tu vida como la de tu entorno. ",
-    "bienestar y propósito profesional" :"Tu trabajo no es solo una fuente de ingresos, sino también un camino para expresar tus talentos, valores y contribución al mundo. Esta evaluación busca ayudarte a identificar cuán alineada está tu vida profesional con tu propósito personal, y qué tan satisfecho te sientes con el impacto que generas a través de tu vocación. ",
-    "prevención y manejo del agotamiento": "El modo en que gestionas tu energía refleja el nivel de respeto que tienes por tu salud física, emocional y mental. Esta dimensión explora tu habilidad para reconocer tus límites, priorizar el descanso y construir una vida en equilibrio, previniendo el agotamiento como acto de amor propio y sostenibilidad personal",
-    "bienestar esencial y conexion interior": "Tu conexión interior es la base de todas tus decisiones, relaciones y percepciones. Es el lugar desde donde nace tu autenticidad. Esta evaluación te guiará a descubrir qué tan en contacto estás con tu mundo interno, qué tanto espacio das a tu intuición y cómo esa conexión nutre tu paz, claridad y bienestar integral."
+    "bienestar social": "Somos seres profundamente sociales, y la calidad de nuestras relaciones influye directamente en nuestro bienestar. Esta dimensión te invita a reflexionar sobre tu nivel de conexión con los demás, tu capacidad de aportar a la comunidad y cómo los lazos que cultivas enriquecen tanto tu vida como la de tu entorno. ",
+    "bienestar profesional" :"Tu trabajo no es solo una fuente de ingresos, sino también un camino para expresar tus talentos, valores y contribución al mundo. Esta evaluación busca ayudarte a identificar cuán alineada está tu vida profesional con tu propósito personal, y qué tan satisfecho te sientes con el impacto que generas a través de tu vocación. ",
+    "manejo del agotamiento": "El modo en que gestionas tu energía refleja el nivel de respeto que tienes por tu salud física, emocional y mental. Esta dimensión explora tu habilidad para reconocer tus límites, priorizar el descanso y construir una vida en equilibrio, previniendo el agotamiento como acto de amor propio y sostenibilidad personal",
+    "conexion interior": "Tu conexión interior es la base de todas tus decisiones, relaciones y percepciones. Es el lugar desde donde nace tu autenticidad. Esta evaluación te guiará a descubrir qué tan en contacto estás con tu mundo interno, qué tanto espacio das a tu intuición y cómo esa conexión nutre tu paz, claridad y bienestar integral."
 
                    }
     # Estilo de párrafo justificado
@@ -3748,7 +3758,7 @@ def generar_pdf_con_analisis_Premium(usuario_id):
         
         "muy_alto": "🔥 Innovador digital. No solo dominas herramientas tecnológicas, sino que tienes una mentalidad ágil, colaborativa y disruptiva. Eres capaz de liderar procesos digitales y fomentar cambios significativos en tu entorno."
     },
-     "bienestar social y comunitario": {
+     "bienestar social": {
         "muy_bajo": "⚠️ Aislamiento o desconexión social. Puedes sentirte solo o sin redes de apoyo sólidas. La falta de participación comunitaria afecta tu sentido de pertenencia. Es importante buscar espacios de conexión y abrirte a nuevas relaciones saludables.",
         
         "bajo": "🔄 Vínculos sociales frágiles. Aunque hay contactos, quizás no se sienten significativos o recíprocos. Fortalecer la comunicación y la empatía te permitirá construir lazos más profundos y participar en iniciativas comunitarias.",
@@ -3759,7 +3769,7 @@ def generar_pdf_con_analisis_Premium(usuario_id):
         
         "muy_alto": "🔥 Agente de transformación social. Eres motor de cambio en tu entorno, promoviendo justicia, inclusión y solidaridad. Inspiras a otros a participar y generar impacto colectivo. Tu influencia fortalece el tejido comunitario."
     },
-     "bienestar y propósito profesional": {
+     "bienestar profesional": {
         "muy_bajo": "⚠️ Desconexión laboral y falta de propósito. Puede que estés en un trabajo que no te motiva o sientas estancamiento. Esto genera desánimo, estrés o frustración. Reconectar con tus intereses y valores puede ser el primer paso para replantear tu camino profesional.",
         
         "bajo": "🔄 Insatisfacción profesional parcial. Aunque hay ciertos logros, tal vez no encuentres sentido pleno en lo que haces. Explorar nuevas oportunidades, capacitarte o redefinir metas puede ayudarte a alinear tu vida laboral con tu propósito.",
@@ -3770,7 +3780,7 @@ def generar_pdf_con_analisis_Premium(usuario_id):
         
         "muy_alto": "🔥 Vocación en acción. Vives tu profesión como un camino de realización personal y transformación social. Tu trabajo tiene impacto positivo y sentido profundo. Eres referente de inspiración, liderazgo y propósito auténtico."
     },
-     "prevención y manejo del agotamiento": {
+     "manejo del agotamiento": {
         "muy_bajo": "⚠️ Nivel crítico de agotamiento. Puedes estar en riesgo de colapso físico o emocional. Hay señales de fatiga crónica, irritabilidad o desmotivación. Es urgente que priorices tu descanso, pidas ayuda y tomes medidas de autocuidado.",
         
         "bajo": "🔄 Agotamiento en aumento. Reconoces señales de cansancio, pero aún no has implementado estrategias efectivas. Prevenir el desgaste requiere establecer límites, delegar tareas y nutrir tu equilibrio mente-cuerpo.",
@@ -3781,7 +3791,7 @@ def generar_pdf_con_analisis_Premium(usuario_id):
         
         "muy_alto": "🔥 Maestría en bienestar integral. Previenes el agotamiento con sabiduría y estrategia. Vives desde el equilibrio, lideras con empatía y cuidas tanto tu energía como la del entorno. Inspiras una cultura de salud emocional."
     },
-     "bienestar esencial y conexion interior": {
+     "conexion interior": {
         "muy_bajo": "⚠️ Desconexión contigo mismo. Puedes sentir vacío, ansiedad o falta de sentido. Es posible que no escuches tus necesidades internas o vivas en modo automático. Reconectar contigo requiere pausas, silencio y atención plena a tu mundo interno.",
         
         "bajo": "🔄 Escucha interior intermitente. Tienes momentos de claridad, pero te cuesta sostenerlos. Practicar la autoobservación, la meditación o la escritura introspectiva puede ayudarte a conocerte y cultivar bienestar auténtico.",
@@ -3793,7 +3803,7 @@ def generar_pdf_con_analisis_Premium(usuario_id):
         "muy_alto": "🔥 Presencia plena y propósito interior. Tu vida está guiada desde la autenticidad, el amor propio y una conexión profunda contigo mismo. Irradias serenidad y sabiduría, y puedes acompañar a otros en su camino de crecimiento."
     },
         }   
-    categorias = ["vital", "emocional", "mental", "existencial", "financiera", "ambiental","creatividad","mentalidad digital","bienestar social y comunitario","bienestar y propósito profesional","prevención y manejo del agotamiento","bienestar esencial y conexion interior"]
+    categorias = ["vital", "emocional", "mental", "existencial", "financiera", "ambiental","creatividad","mentalidad digital","bienestar social","bienestar profesional","manejo del agotamiento","conexion interior"]
 
     # Validar que hay 30 respuestas
     if len(valores_respuestas) != 60:
@@ -3825,7 +3835,7 @@ def generar_pdf_con_analisis_Premium(usuario_id):
     }   
 
     # for categoria in ["vital", "emocional", "mental", "existencial", "financiera","ambiental"]:
-    for categoria in ["vital", "emocional", "mental", "existencial", "financiera","ambiental","creatividad","mentalidad digital","bienestar social y comunitario","bienestar y propósito profesional","prevención y manejo del agotamiento","bienestar esencial y conexion interior"]:
+    for categoria in ["vital", "emocional", "mental", "existencial", "financiera","ambiental","creatividad","mentalidad digital","bienestar social","bienestar profesional","manejo del agotamiento","conexion interior"]:
         image_path = f"statics/radar_{categoria}.png"
         
         if os.path.exists(image_path):
@@ -3841,9 +3851,14 @@ def generar_pdf_con_analisis_Premium(usuario_id):
             # Título
             c.setFont("Helvetica-Bold", 16)
             c.setFillColor(colors.HexColor("#1F618D"))
-            titulo = f"Salud {categoria.capitalize()}"
-            c.drawCentredString(width / 2, height - margen_vertical, titulo)
-
+            if categoria in ["vital", "emocional", "mental", "existencial", "financiera", "ambiental"]:
+                
+                titulo = f"Salud {categoria.capitalize()}"
+                
+            else:
+                 titulo = categoria.capitalize()
+                 
+            c.drawCentredString(width / 2, height - margen_vertical, titulo)   
             # Descripción
             descripcion = descripciones.get(categoria.lower(), "")
             p = Paragraph(descripcion, paragraph_style)
@@ -3886,83 +3901,6 @@ def generar_pdf_con_analisis_Premium(usuario_id):
                 showBoundary=0
             )
             frame.addFromList([p], c)
-
-    # Add Ambiental section separately (6th category)
-#     c.showPage()
-#     page_num += 1
-#     agregar_fondo(c, width, height, background_path)
-#     agregar_fondopiepagina(c, width, height, background_path_pie)
-#     agregar_pie_pagina(c, width, page_num)
-
-#     descripcion_ambiental = (
-#     "El entorno que habitas influye directamente en tu bienestar. "
-#     "Aquí exploramos tu conexión con la naturaleza y el compromiso con prácticas "
-#     "que promueven un mundo más saludable y equilibrado para todos."
-#     )
-
-#     c.setFont("Helvetica-Bold", 18)
-#     c.setFillColor(colors.HexColor("#2E4053"))  # Título principal para gráficos
-#     c.drawCentredString(width / 2, height - 90, "Salud Ambiental")
-
-#     # Estilo de párrafo justificado
-#     paragraph_style = ParagraphStyle(
-#         name="Justificado",
-#         fontName="Helvetica",
-#         fontSize=11,
-#         leading=15,
-#         alignment=TA_JUSTIFY,
-#         textColor=colors.black,
-#     )
-
-#     # Crear el párrafo
-#     p = Paragraph(descripcion_ambiental, paragraph_style)
-
-#     # Frame para el texto (posición y tamaño)
-#     margen_horizontal = 50
-#     frame_width = width - 2 * margen_horizontal
-#     frame_height = 90  # altura del bloque de texto
-
-#     frame_top = height - 120  # donde empieza el frame, debajo del título
-
-#     frame = Frame(
-#         margen_horizontal,
-#         frame_top - frame_height,
-#         frame_width,
-#         frame_height,
-#         showBoundary=0  # pon 1 si quieres ver el cuadro mientras ajustas
-#     )
-
-#     frame.addFromList([p], c)
-#     image_path = "statics/radar_ambiental.png"
-#     img_width = 320
-#     img_height = 320
-#     x_position = (width - img_width) / 2
-#     y_position = frame_top - frame_height - 30  # separación pequeña entre texto e imagen
-#     c.drawImage(
-#         image_path,
-#         x_position,
-#         y_position - img_height,
-#         width=img_width,
-#         height=img_height,
-#         preserveAspectRatio=True,
-#         mask='auto'
-#     )
-
-#    # Interpretación
-#     interpretacion = interpretaciones.get("ambiental", {}).get(nivel, "")
-#     p = Paragraph(interpretacion, paragraph_style)
-
-#     separacion_interpretacion = 20
-#     interpretacion_y = y_position - img_height - separacion_interpretacion
-
-#     frame = Frame(
-#                 margen_horizontal,
-#                 interpretacion_y - 100,
-#                 frame_width,
-#                 100,
-#                 showBoundary=0
-#             )
-#     frame.addFromList([p], c) 
 
     # Página de Plan de Acción
     c.showPage()
@@ -4293,12 +4231,12 @@ async def descargar_pdf_Premium(usuario_id: int):
 
     try:
         await aiosmtplib.send(
-             message,
-             hostname="smtp.gmail.com",
-             port=587,
-             start_tls=True,
-             username="correopruebavital@gmail.com",
-             password="cxvi hyne temx xmgt"
+            #  message,
+            #  hostname="smtp.gmail.com",
+            #  port=587,
+            #  start_tls=True,
+            #  username="correopruebavital@gmail.com",
+            #  password="cxvi hyne temx xmgt"
         )
     except Exception as e:
         print(f"Error al enviar el correo: {e}")
@@ -4325,12 +4263,12 @@ async def descargar_pdf(usuario_id: int):
 
     try:
         await aiosmtplib.send(
-             message,
-             hostname="smtp.gmail.com",
-             port=587,
-             start_tls=True,
-             username="correopruebavital@gmail.com",
-             password="cxvi hyne temx xmgt"
+            #  message,
+            #  hostname="smtp.gmail.com",
+            #  port=587,
+            #  start_tls=True,
+            #  username="correopruebavital@gmail.com",
+            #  password="cxvi hyne temx xmgt"
         )
     except Exception as e:
         print(f"Error al enviar el correo: {e}")
@@ -4359,12 +4297,12 @@ async def enviar_pdf_email(usuario_id: int = Form(...), correo_destino: str = Fo
     # Envía el correo
     try:
         await aiosmtplib.send(
-           message,
-           hostname="smtp.gmail.com",
-            port=587,
-           start_tls=True,
-            username="correopruebavital@gmail.com",
-           password="cxvi hyne temx xmgt"
+        #    message,
+        #    hostname="smtp.gmail.com",
+        #     port=587,
+        #    start_tls=True,
+        #     username="correopruebavital@gmail.com",
+        #    password="cxvi hyne temx xmgt"
         )
         return {"mensaje": f"PDF enviado a {correo_destino} correctamente."}
     except Exception as e:
