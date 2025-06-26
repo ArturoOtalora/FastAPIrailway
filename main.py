@@ -1041,38 +1041,59 @@ def mostrar_preguntas(usuario_id: int, pagina: int = Query(1, alias="pagina")):
                 localStorage.setItem("modalVisto", "true");
             }}
 
-           function validarFormulario() {{
-    const preguntas = document.querySelectorAll('.pregunta-container');
-    let todasRespondidas = true;
+        function validarFormulario() {{
+        const preguntas = document.querySelectorAll('.pregunta-container');
+        let todasRespondidas = true;
+        let faltaEstrella = false;
+        let faltaComentario = false;
 
-    preguntas.forEach(pregunta => {{
-        const inputs = pregunta.querySelectorAll('input[type="radio"]');
-        let respondida = false;
+        preguntas.forEach(pregunta => {{
+            const inputs = pregunta.querySelectorAll('input[type="radio"]');
+            const textarea = pregunta.querySelector('textarea');
+            let respondida = false;
 
-        inputs.forEach(input => {{
-            if (input.checked) {{
-                respondida = true;
+            // Verificar si alguna estrella fue seleccionada
+            inputs.forEach(input => {{
+                if (input.checked) {{
+                    respondida = true;
+                }}
+            }});
+
+            const comentarioValido = textarea.value.trim().length > 0;
+
+            if (!respondida || !comentarioValido) {{
+                todasRespondidas = false;
+                if (!respondida) faltaEstrella = true;
+                if (!comentarioValido) faltaComentario = true;
+
+                pregunta.style.border = "2px solid #dc3545";
+                pregunta.style.animation = "shake 0.5s";
+
+                setTimeout(() => {{
+                    pregunta.style.border = "";
+                    pregunta.style.animation = "";
+                }}, 500);
             }}
         }});
 
-        if (!respondida) {{
-            todasRespondidas = false;
-            pregunta.style.border = "2px solid #dc3545";
-            pregunta.style.animation = "shake 0.5s";
+        if (todasRespondidas) {{
+            document.getElementById('form-preguntas').submit();
+        }} else {{
+            let mensaje = "<strong>Atención</strong><br><br>";
 
-            setTimeout(() => {{
-                pregunta.style.border = "";
-                pregunta.style.animation = "";
-            }}, 500);
+            if (faltaEstrella) {{
+                mensaje += "Por favor, califica todas las preguntas con una estrella del 1 al 10. 🌟<br><br>";
+            }}
+
+            if (faltaComentario) {{
+                mensaje += "Tu opinión es valiosa, así que no olvides responder todas las preguntas dentro del cuadro Derecho. 📝 ";
+            }}
+
+            document.querySelector("#error-modal .modal-content p").innerHTML = mensaje;
+            document.getElementById('error-modal').style.display = 'flex';
         }}
-    }});
-
-    if (todasRespondidas) {{
-        document.getElementById('form-preguntas').submit();
-    }} else {{
-        document.getElementById('error-modal').style.display = 'flex';
     }}
-}}
+            
 
 function cerrarErrorModal() {{
     document.getElementById('error-modal').style.display = 'none';
@@ -2747,8 +2768,8 @@ def generar_graficos_por_categoria_Premium(valores_respuestas):
         ax.set_theta_direction(-1)
 
         # Radar
-        ax.fill(angulos_grupo2, valores_grupo1, color="#90C8EE", alpha=0.5)
-        ax.plot(angulos_grupo2, valores_grupo1, color="#2365AF", linewidth=2.5)
+        ax.fill(angulos_grupo2, valores_grupo2, color="#90C8EE", alpha=0.5)
+        ax.plot(angulos_grupo2, valores_grupo2, color="#2365AF", linewidth=2.5)
         ax.set_xticks(angulos_grupo2[:-1])
         ax.set_xticklabels(grupo2, fontsize=14, fontweight='bold', color='#333333')
         ax.set_ylim(0, 1)
