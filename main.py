@@ -641,27 +641,26 @@ def mostrar_pagina():
 def formulario_identificacion_contacto():
     return """
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Formulario de Identificación y Contacto</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             background: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 30px;
-            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
         }
 
         .form-container {
             background: white;
-            padding: 30px;
+            padding: 25px;
             border-radius: 10px;
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
             max-width: 900px;
-            width: 100%;
+            margin: auto;
         }
 
         h2 {
@@ -682,8 +681,8 @@ def formulario_identificacion_contacto():
 
         .form-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
         }
 
         .form-group {
@@ -704,8 +703,7 @@ def formulario_identificacion_contacto():
         }
 
         button {
-            grid-column: 1 / -1;
-            margin-top: 20px;
+            margin-top: 25px;
             padding: 12px;
             font-size: 16px;
             background-color: #1976D2;
@@ -713,19 +711,13 @@ def formulario_identificacion_contacto():
             border: none;
             border-radius: 6px;
             cursor: pointer;
+            width: 100%;
         }
 
         button:hover {
             background-color: #125a9c;
         }
 
-        @media (max-width: 768px) {
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Modal */
         #modalMensaje {
             display: none;
             position: fixed;
@@ -739,16 +731,16 @@ def formulario_identificacion_contacto():
 
         #modalMensaje .modal-content {
             background: #fff;
-            padding: 30px 40px;
+            padding: 30px;
             border-radius: 12px;
             text-align: center;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            width: 90%;
             max-width: 400px;
         }
 
         #modalMensaje h2 {
             color: #2563eb;
-            margin-bottom: 15px;
         }
 
         #modalMensaje p {
@@ -765,6 +757,16 @@ def formulario_identificacion_contacto():
             border-radius: 8px;
             cursor: pointer;
             font-size: 15px;
+        }
+
+        @media (max-width: 480px) {
+            h2 {
+                font-size: 20px;
+            }
+
+            .section-title {
+                font-size: 16px;
+            }
         }
     </style>
 </head>
@@ -841,7 +843,6 @@ def formulario_identificacion_contacto():
         </form>
     </div>
 
-    <!-- ✅ Modal -->
     <div id="modalMensaje">
         <div class="modal-content">
             <h2>✅ ¡Formulario enviado!</h2>
@@ -850,7 +851,6 @@ def formulario_identificacion_contacto():
         </div>
     </div>
 
-    <!-- ✅ Script -->
     <script>
         async function enviarFormulario(event) {
             event.preventDefault();
@@ -883,6 +883,7 @@ def formulario_identificacion_contacto():
 </body>
 </html>
     """
+
 
 @app.post("/guardar_datos_contacto")
 def guardar_datos_contacto(
