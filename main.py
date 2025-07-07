@@ -131,8 +131,26 @@ def guardar_usuario(
         cursor = conn.cursor() 
 
         # cursor.execute("DELETE FROM usuarios WHERE correo LIKE %s", ("%jeik0117@hotmail.com%",))
-        cursor.execute("DELETE FROM respuestasForm WHERE usuario_id = %s", (15152150,))
-        cursor.execute("DELETE FROM usuarios WHERE numero_identificacion = %s", (15152150,))
+        # cursor.execute("DELETE FROM respuestasForm WHERE usuario_id = %s", (15152150,))
+        # cursor.execute("DELETE FROM usuarios WHERE numero_identificacion = %s", (15152150,))
+
+        # cursor.execute("""
+        # CREATE TABLE IF NOT EXISTS datos_contacto (
+        #     id INT AUTO_INCREMENT PRIMARY KEY,
+        #     nombre_completo VARCHAR(150) NOT NULL,
+        #     documento VARCHAR(50) NOT NULL UNIQUE,
+        #     cargo VARCHAR(100) NOT NULL,
+        #     entidad VARCHAR(150) NOT NULL,
+        #     departamento_municipio VARCHAR(150) NOT NULL,
+        #     nivel_territorial VARCHAR(50) NOT NULL,
+        #     telefono_personal VARCHAR(30) NOT NULL,
+        #     telefono_institucional VARCHAR(30),
+        #     correo VARCHAR(150) NOT NULL,
+        #     direccion VARCHAR(200),
+        #     canales_contacto VARCHAR(100) NOT NULL,
+        #     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        # )
+        # """)
 
 
         # Verificar si el número de identificación ya existe
@@ -618,6 +636,304 @@ def mostrar_pagina():
 </script>
 </html>
     """
+
+@app.get("/formulario_identificacion_contacto", response_class=HTMLResponse)
+def formulario_identificacion_contacto():
+    return """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Formulario de Identificación y Contacto</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            min-height: 100vh;
+        }
+
+        .form-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            width: 100%;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #2c3e50;
+        }
+
+        .section-title {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #1a237e;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        input, select {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        button {
+            grid-column: 1 / -1;
+            margin-top: 20px;
+            padding: 12px;
+            font-size: 16px;
+            background-color: #1976D2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #125a9c;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Modal */
+        #modalMensaje {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        #modalMensaje .modal-content {
+            background: #fff;
+            padding: 30px 40px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+        }
+
+        #modalMensaje h2 {
+            color: #2563eb;
+            margin-bottom: 15px;
+        }
+
+        #modalMensaje p {
+            color: #333;
+            font-size: 16px;
+        }
+
+        #modalMensaje button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Formulario de Identificación y Contacto</h2>
+        <form id="formulario" onsubmit="enviarFormulario(event)">
+            <div class="section-title">🧾 1. Datos de Identificación</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="nombre_completo">Nombre completo:</label>
+                    <input type="text" id="nombre_completo" name="nombre_completo" required>
+                </div>
+                <div class="form-group">
+                    <label for="documento">Documento de identidad / Cédula:</label>
+                    <input type="text" id="documento" name="documento" required>
+                </div>
+                <div class="form-group">
+                    <label for="cargo">Cargo actual:</label>
+                    <input type="text" id="cargo" name="cargo" required>
+                </div>
+                <div class="form-group">
+                    <label for="entidad">Entidad o institución:</label>
+                    <input type="text" id="entidad" name="entidad" required>
+                </div>
+                <div class="form-group">
+                    <label for="departamento_municipio">Departamento y municipio de influencia:</label>
+                    <input type="text" id="departamento_municipio" name="departamento_municipio" required>
+                </div>
+                <div class="form-group">
+                    <label for="nivel_territorial">Nivel territorial:</label>
+                    <select id="nivel_territorial" name="nivel_territorial" required>
+                        <option value="">-- Selecciona --</option>
+                        <option value="Nacional">Nacional</option>
+                        <option value="Departamental">Departamental</option>
+                        <option value="Municipal">Municipal</option>
+                        <option value="Local">Local</option>
+                        <option value="Sectorial">Sectorial</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section-title">📞 2. Datos de Contacto</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="telefono_personal">Teléfono personal:</label>
+                    <input type="text" id="telefono_personal" name="telefono_personal" required>
+                </div>
+                <div class="form-group">
+                    <label for="telefono_institucional">Teléfono institucional:</label>
+                    <input type="text" id="telefono_institucional" name="telefono_institucional">
+                </div>
+                <div class="form-group">
+                    <label for="correo">Correo electrónico:</label>
+                    <input type="email" id="correo" name="correo" required>
+                </div>
+                <div class="form-group">
+                    <label for="direccion">Dirección:</label>
+                    <input type="text" id="direccion" name="direccion">
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label for="canales_contacto">Canales preferidos de contacto:</label>
+                    <select id="canales_contacto" name="canales_contacto" required>
+                        <option value="">-- Selecciona --</option>
+                        <option value="WhatsApp">WhatsApp</option>
+                        <option value="Llamada">Llamada</option>
+                        <option value="Email">E-mail</option>
+                        <option value="Presencial">Presencial</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit">Enviar</button>
+        </form>
+    </div>
+
+    <!-- ✅ Modal -->
+    <div id="modalMensaje">
+        <div class="modal-content">
+            <h2>✅ ¡Formulario enviado!</h2>
+            <p>Tus datos han sido guardados correctamente.</p>
+            <button onclick="cerrarModal()">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- ✅ Script -->
+    <script>
+        async function enviarFormulario(event) {
+            event.preventDefault();
+            const form = document.getElementById("formulario");
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch("/guardar_datos_contacto", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (result.status === "success") {
+                    document.getElementById("modalMensaje").style.display = "flex";
+                    form.reset();
+                } else {
+                    alert("Error: " + result.message);
+                }
+            } catch (error) {
+                alert("Hubo un error al enviar el formulario.");
+                console.error(error);
+            }
+        }
+
+        function cerrarModal() {
+            document.getElementById("modalMensaje").style.display = "none";
+        }
+    </script>
+</body>
+</html>
+    """
+
+@app.post("/guardar_datos_contacto")
+def guardar_datos_contacto(
+    nombre_completo: str = Form(...),
+    documento: str = Form(...),
+    cargo: str = Form(...),
+    entidad: str = Form(...),
+    departamento_municipio: str = Form(...),
+    nivel_territorial: str = Form(...),
+    telefono_personal: str = Form(...),
+    telefono_institucional: str = Form(None),
+    correo: str = Form(...),
+    direccion: str = Form(None),
+    canales_contacto: str = Form(...)
+):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Validar si ya existe el documento
+        cursor.execute("SELECT COUNT(*) FROM datos_contacto WHERE documento = %s", (documento,))
+        (existe,) = cursor.fetchone()
+
+        if existe:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=400, detail="El documento ya está registrado.")
+
+        # Insertar datos en la tabla `datos_contacto`
+        cursor.execute("""
+            INSERT INTO datos_contacto (
+                nombre_completo, documento, cargo, entidad, departamento_municipio,
+                nivel_territorial, telefono_personal, telefono_institucional,
+                correo, direccion, canales_contacto
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            nombre_completo, documento, cargo, entidad, departamento_municipio,
+            nivel_territorial, telefono_personal, telefono_institucional,
+            correo, direccion, canales_contacto
+        ))
+
+        conn.commit()
+
+    except mysql.connector.Error as err:
+        print(f"Error al insertar datos: {err}")
+        return JSONResponse(status_code=500, content={"status": "error", "message": "Error al guardar los datos de contacto."})
+    finally:
+        cursor.close()
+        conn.close()
+
+    return {"status": "success", "message": "Datos guardados correctamente"}
 
 @app.get("/preguntas_premium", response_class=HTMLResponse)
 def mostrar_preguntas(usuario_id: int, pagina: int = Query(1, alias="pagina")):
