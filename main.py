@@ -24,6 +24,7 @@ from email.message import EmailMessage
 import aiosmtplib
 import matplotlib
 import mysql.connector
+from typing import List, Optional
 # import plotly.graph_objects as go
 # import pandas as pd
 # import numpy as np
@@ -130,9 +131,17 @@ def guardar_usuario(
         conn = get_db_connection()
         cursor = conn.cursor() 
 
-        # cursor.execute("DELETE FROM usuarios WHERE correo LIKE %s", ("%jeik0117@hotmail.com%",))
+        cursor.execute("ALTER TABLE datos_contacto DROP COLUMN nivel_territorial")
+        #cursor.execute("""ALTER TABLE datos_contacto MODIFY COLUMN redes_sociales VARCHAR(200)""")
         # cursor.execute("DELETE FROM respuestasForm WHERE usuario_id = %s", (15152150,))
-        # cursor.execute("DELETE FROM usuarios WHERE numero_identificacion = %s", (15152150,))
+        # cursor.execute("""
+        # ALTER TABLE datos_contacto
+        # DROP COLUMN telefono_institucional,
+        # ADD COLUMN voto_presidencial ENUM('Sí','No') NOT NULL,
+        # ADD COLUMN municipio_voto VARCHAR(150),
+        # ADD COLUMN referido VARCHAR(150),
+        # ADD COLUMN redes_sociales TEXT NOT NULL
+        # """)
 
         # cursor.execute("""
         # CREATE TABLE IF NOT EXISTS datos_contacto (
@@ -688,6 +697,7 @@ def formulario_identificacion_contacto():
         .form-group {
             display: flex;
             flex-direction: column;
+            justify-content: flex-start;
         }
 
         label {
@@ -768,13 +778,26 @@ def formulario_identificacion_contacto():
                 font-size: 16px;
             }
         }
+
+        table {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        td {
+            padding: 5px 10px;
+            vertical-align: middle;
+        }
+        input[type="checkbox"] {
+        margin-right: 8px;
+            }
     </style>
 </head>
 <body>
     <div class="form-container">
         <h2>Formulario de Identificación y Contacto</h2>
         <form id="formulario" onsubmit="enviarFormulario(event)">
-            <div class="section-title">🧾 1. Datos de Identificación</div>
+           <div class="section-title">🧾 1. Datos de Identificación</div>
             <div class="form-grid">
                 <div class="form-group">
                     <label for="nombre_completo">Nombre completo:</label>
@@ -796,16 +819,22 @@ def formulario_identificacion_contacto():
                     <label for="departamento_municipio">Departamento y municipio de influencia:</label>
                     <input type="text" id="departamento_municipio" name="departamento_municipio" required>
                 </div>
+                
                 <div class="form-group">
-                    <label for="nivel_territorial">Nivel territorial:</label>
-                    <select id="nivel_territorial" name="nivel_territorial" required>
+                    <label for="voto_presidencial">¿Votó en las elecciones presidenciales?</label>
+                    <select id="voto_presidencial" name="voto_presidencial" required>
                         <option value="">-- Selecciona --</option>
-                        <option value="Nacional">Nacional</option>
-                        <option value="Departamental">Departamental</option>
-                        <option value="Municipal">Municipal</option>
-                        <option value="Local">Local</option>
-                        <option value="Sectorial">Sectorial</option>
+                        <option value="Sí">Sí</option>
+                        <option value="No">No</option>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label for="municipio_voto">¿Dónde votó? (Municipio)</label>
+                    <input type="text" id="municipio_voto" name="municipio_voto">
+                </div>
+                <div class="form-group">
+                    <label for="referido">Referido por:</label>
+                    <input type="text" id="referido" name="referido">
                 </div>
             </div>
 
@@ -814,10 +843,6 @@ def formulario_identificacion_contacto():
                 <div class="form-group">
                     <label for="telefono_personal">Teléfono personal:</label>
                     <input type="text" id="telefono_personal" name="telefono_personal" required>
-                </div>
-                <div class="form-group">
-                    <label for="telefono_institucional">Teléfono institucional:</label>
-                    <input type="text" id="telefono_institucional" name="telefono_institucional">
                 </div>
                 <div class="form-group">
                     <label for="correo">Correo electrónico:</label>
@@ -837,6 +862,24 @@ def formulario_identificacion_contacto():
                         <option value="Presencial">Presencial</option>
                         <option value="Otro">Otro</option>
                     </select>
+                </div>
+
+                <!-- NUEVA SECCIÓN DE REDES SOCIALES -->
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label>¿Qué redes sociales usa usualmente?</label>
+                    <table>
+                <tr>
+                    <td><input type="checkbox" name="redes_sociales[]" value="Facebook"> Facebook</td>
+                    <td><input type="checkbox" name="redes_sociales[]" value="Instagram"> Instagram</td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" name="redes_sociales[]" value="X"> X (Twitter)</td>
+                    <td><input type="checkbox" name="redes_sociales[]" value="TikTok"> TikTok</td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" name="redes_sociales[]" value="LinkedIn"> LinkedIn</td>
+                </tr>
+            </table>
                 </div>
             </div>
             <button type="submit">Enviar</button>
@@ -886,20 +929,27 @@ def formulario_identificacion_contacto():
 
 
 @app.post("/guardar_datos_contacto")
-def guardar_datos_contacto(
+async def guardar_datos_contacto(
+    request: Request,
     nombre_completo: str = Form(...),
     documento: str = Form(...),
     cargo: str = Form(...),
     entidad: str = Form(...),
     departamento_municipio: str = Form(...),
-    nivel_territorial: str = Form(...),
+    voto_presidencial: str = Form(...),
+    municipio_voto: Optional[str] = Form(None),
+    referido: Optional[str] = Form(None),
     telefono_personal: str = Form(...),
-    telefono_institucional: str = Form(None),
     correo: str = Form(...),
-    direccion: str = Form(None),
+    direccion: Optional[str] = Form(None),
     canales_contacto: str = Form(...)
 ):
     try:
+        # Obtener todos los datos del formulario, incluidos los checkboxes
+        form_data = await request.form()
+        redes_sociales = form_data.getlist("redes_sociales[]")  # <-- importante el "[]"
+        redes_sociales_str = ",".join(redes_sociales) if redes_sociales else ""
+
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -912,24 +962,26 @@ def guardar_datos_contacto(
             conn.close()
             raise HTTPException(status_code=400, detail="El documento ya está registrado.")
 
-        # Insertar datos en la tabla `datos_contacto`
+        # Insertar datos
         cursor.execute("""
-            INSERT INTO datos_contacto (
-                nombre_completo, documento, cargo, entidad, departamento_municipio,
-                nivel_territorial, telefono_personal, telefono_institucional,
-                correo, direccion, canales_contacto
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (
+    INSERT INTO datos_contacto (
             nombre_completo, documento, cargo, entidad, departamento_municipio,
-            nivel_territorial, telefono_personal, telefono_institucional,
-            correo, direccion, canales_contacto
-        ))
-
+            voto_presidencial, municipio_voto, referido,
+            telefono_personal, correo, direccion, canales_contacto, redes_sociales
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """, (
+        nombre_completo, documento, cargo, entidad, departamento_municipio,
+        voto_presidencial, municipio_voto, referido,
+        telefono_personal, correo, direccion, canales_contacto, redes_sociales_str
+    ))
         conn.commit()
 
     except mysql.connector.Error as err:
         print(f"Error al insertar datos: {err}")
-        return JSONResponse(status_code=500, content={"status": "error", "message": "Error al guardar los datos de contacto."})
+        return JSONResponse(
+            status_code=500,
+            content={"status": "error", "message": "Error al guardar los datos de contacto."}
+        )
     finally:
         cursor.close()
         conn.close()
