@@ -131,7 +131,7 @@ def guardar_usuario(
         conn = get_db_connection()
         cursor = conn.cursor() 
 
-        cursor.execute("ALTER TABLE datos_contacto DROP COLUMN nivel_territorial")
+        # cursor.execute("ALTER TABLE datos_contacto DROP COLUMN nivel_territorial")
         #cursor.execute("""ALTER TABLE datos_contacto MODIFY COLUMN redes_sociales VARCHAR(200)""")
         # cursor.execute("DELETE FROM respuestasForm WHERE usuario_id = %s", (15152150,))
         # cursor.execute("""
