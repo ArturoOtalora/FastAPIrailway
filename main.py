@@ -532,6 +532,7 @@ def mostrar_pagina():
                         <option value="SIES SALUD">SIES SALUD</option>
                         <option value="AZISTIA">AZISTIA</option>
                         <option value="HOTEL SONATA 44">HOTEL SONATA 44</option>
+                        <option value="PTC-ASSISTAN">PTC-AZISTIA</option>
                         <option value="Otra Empresa">Otra Empresa</option>
                     </select>
                 </div>
