@@ -131,6 +131,7 @@ def guardar_usuario(
         conn = get_db_connection()
         cursor = conn.cursor() 
 
+
         # cursor.execute("ALTER TABLE datos_contacto DROP COLUMN nivel_territorial")
         #cursor.execute("""ALTER TABLE datos_contacto MODIFY COLUMN redes_sociales VARCHAR(200)""")
         # cursor.execute("DELETE FROM respuestasForm WHERE usuario_id = %s", (15152150,))
@@ -808,21 +809,29 @@ def formulario_identificacion_contacto():
                     <label for="documento">Documento de identidad / Cédula:</label>
                     <input type="text" id="documento" name="documento" required>
                 </div>
+
+                <div class="form-group">
+                <label for="fecha_nacimiento">Fecha de nacimiento:</label>
+                <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" required>
+            </div>
                 <div class="form-group">
                     <label for="cargo">Cargo actual:</label>
                     <input type="text" id="cargo" name="cargo" required>
                 </div>
-                <div class="form-group">
-                    <label for="entidad">Entidad o institución:</label>
-                    <input type="text" id="entidad" name="entidad" required>
+                 <div class="form-group">
+                        <label for="entidad">Entidad:</label>
+                        <input type="text" id="entidad" name="entidad" required>
+                    </div>
+               <div class="form-group">
+                        <label for="departamento_municipio">Departamento:</label>
+                        <input type="text" id="departamento_municipio" name="departamento_municipio" required>
+                    </div>
+                    <div class="form-group">
+                    <label for="municipio">Municipio:</label>
+                    <input type="text" id="municipio" name="municipio" required>
                 </div>
                 <div class="form-group">
-                    <label for="departamento_municipio">Departamento y municipio de influencia:</label>
-                    <input type="text" id="departamento_municipio" name="departamento_municipio" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="voto_presidencial">¿Votó en las elecciones presidenciales?</label>
+                    <label for="voto_presidencial">¿Votó en las elecciones?</label> 
                     <select id="voto_presidencial" name="voto_presidencial" required>
                         <option value="">-- Selecciona --</option>
                         <option value="Sí">Sí</option>
@@ -830,9 +839,9 @@ def formulario_identificacion_contacto():
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="municipio_voto">¿Dónde votó? (Municipio)</label>
-                    <input type="text" id="municipio_voto" name="municipio_voto">
-                </div>
+                        <label for="municipio_voto">¿Dónde votó? (municipio o área)</label>
+                        <input type="text" id="municipio_voto" name="municipio_voto">
+                    </div>
                 <div class="form-group">
                     <label for="referido">Referido por:</label>
                     <input type="text" id="referido" name="referido">
@@ -850,9 +859,9 @@ def formulario_identificacion_contacto():
                     <input type="email" id="correo" name="correo" required>
                 </div>
                 <div class="form-group">
-                    <label for="direccion">Dirección:</label>
-                    <input type="text" id="direccion" name="direccion">
-                </div>
+                        <label for="direccion">Dirección actual:</label>
+                        <input type="text" id="direccion" name="direccion">
+                    </div>
                 <div class="form-group" style="grid-column: 1 / -1;">
                     <label for="canales_contacto">Canales preferidos de contacto:</label>
                     <select id="canales_contacto" name="canales_contacto" required>
@@ -932,11 +941,13 @@ def formulario_identificacion_contacto():
 @app.post("/guardar_datos_contacto")
 async def guardar_datos_contacto(
     request: Request,
-    nombre_completo: str = Form(...),
+   nombre_completo: str = Form(...),
     documento: str = Form(...),
     cargo: str = Form(...),
     entidad: str = Form(...),
     departamento_municipio: str = Form(...),
+    municipio: str = Form(...),
+    fecha_nacimiento: str = Form(...),
     voto_presidencial: str = Form(...),
     municipio_voto: Optional[str] = Form(None),
     referido: Optional[str] = Form(None),
@@ -944,7 +955,7 @@ async def guardar_datos_contacto(
     correo: str = Form(...),
     direccion: Optional[str] = Form(None),
     canales_contacto: str = Form(...)
-):
+    ):
     try:
         # Obtener todos los datos del formulario, incluidos los checkboxes
         form_data = await request.form()
@@ -965,16 +976,16 @@ async def guardar_datos_contacto(
 
         # Insertar datos
         cursor.execute("""
-    INSERT INTO datos_contacto (
-            nombre_completo, documento, cargo, entidad, departamento_municipio,
+            INSERT INTO datos_contacto (
+                nombre_completo, documento, cargo, entidad, departamento_municipio, municipio, fecha_nacimiento,
+                voto_presidencial, municipio_voto, referido,
+                telefono_personal, correo, direccion, canales_contacto, redes_sociales
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            nombre_completo, documento, cargo, entidad, departamento_municipio, municipio, fecha_nacimiento,
             voto_presidencial, municipio_voto, referido,
-            telefono_personal, correo, direccion, canales_contacto, redes_sociales
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-    """, (
-        nombre_completo, documento, cargo, entidad, departamento_municipio,
-        voto_presidencial, municipio_voto, referido,
-        telefono_personal, correo, direccion, canales_contacto, redes_sociales_str
-    ))
+            telefono_personal, correo, direccion, canales_contacto, redes_sociales_str
+        ))
         conn.commit()
 
     except mysql.connector.Error as err:
