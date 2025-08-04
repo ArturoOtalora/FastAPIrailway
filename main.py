@@ -343,7 +343,7 @@ def login_form():
     """
 @app.post("/login")
 def login(username: str = Form(...), password: str = Form(...)):
-    if username == "Invitado" and password == "Vital2025.":
+    if username.lower() == "invitado" and password == "Vital2025.":
         resp = RedirectResponse(url="/mostrar_pagina", status_code=status.HTTP_302_FOUND)
         return resp  # <-- este return es necesario
     return HTMLResponse("<h3>Credenciales incorrectas. <a href='/login'>Volver</a></h3>", status_code=401)
