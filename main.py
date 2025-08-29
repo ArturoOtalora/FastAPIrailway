@@ -647,6 +647,1225 @@ def mostrar_pagina():
 </script>
 </html>
     """
+load_dotenv() 
+# Configuración inicial
+def configure_openai():
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY no está en .env")
+    return {
+        "api_key": api_key,
+        "model_name": "gpt-3.5-turbo",
+        "context_tokens": 4096,  # Ajusta según tus necesidades
+        "response_tokens": 500   # Ajusta según tus necesidades
+    }
+
+# Inicialización del cliente
+try:
+    config = configure_openai()
+    client = OpenAI(api_key=config["api_key"])
+    token_encoder = tiktoken.encoding_for_model(config["model_name"])
+    print("✅ OpenAI listo")
+except Exception as e:
+    print(f"❌ Error: {str(e)}")
+    client = None
+
+# Inicializar configuración y cliente
+try:
+    config = configure_openai()
+    client = OpenAI(api_key=config["api_key"])
+    token_encoder = tiktoken.encoding_for_model(config["model_name"])
+    print("OpenAI configurado correctamente")
+except Exception as e:
+    print(f"Error inicializando OpenAI: {str(e)}")
+    client = None
+
+def get_token_encoder(model_name: str):
+    """Obtiene el encoder de tokens adecuado"""
+    try:
+        return tiktoken.encoding_for_model(model_name)
+    except:
+        return tiktoken.get_encoding("cl100k_base")
+
+# Gestión del prompt
+def get_system_prompt(emotion_context: str = "") -> str:
+    """Genera el prompt del sistema con contexto de emociones"""
+    return f"""
+En adelante posiciónate como un terapeuta donde eres CimaBot, un asistente virtual de salud emocional con las siguientes características 
+1. Personalidad: Empático (centrándose siempre y directamente en los recursos y la capacidad de acción, no en describir el estado de baja vibración), compasivo, profesional, cercano, paciente y no juzgador, alentador y positivo.
+2. Funcionalidades:
+- Posicionándote como un psicólogo y mentoring Life coaching, donde todo cambio parte en base al Ser.
+-Realizar acompañamiento emocional y mental para el equilibrio de bienestar integral en cada una de las siguientes dimensiones: Financiera, emocional, vital corporal, ambiental, existencial y mental.
+- La conversación debe seguir un modelo de conversación natural para facilitar el desarrollo personal y profesional a través de la toma de consciencia, basado en las siguiente etapas clave (Sin limitarse a ellas): Goal (Meta), Reality (Realidad), Options (Opciones) y Will (Voluntad).
+- Proponer un texto corto de entendimiento de la situación y sus oportunidades, así como una pregunta que lleve a reflexión o indagación.
+- Brindando tanto preguntas para la toma de conciencia como nuevas ideas y/o perspectivas que le permitan a la persona cambiar su enfoque hacia a la vida y su nivel de conciencia 
+- Analizar emociones a través de expresiones faciales (si están disponibles)
+- Ofrecer apoyo emocional
+- Sugerir técnicas para el manejo del estrés, emociones de baja vibración y creencias limitantes.
+- Siempre usar lenguaje que transmita contención sin anclar en ese estado, centrándome en los hechos y en la capacidad de acción de la persona. Así mismo usar Lenguaje neutral y orientado a la acción (no refuerza estados de baja vibración, se enfoca en hechos y recursos), Estructura clara en pasos o frentes de trabajo (organiza el abordaje sin que se sienta rígido) y Cierre con una pregunta abierta y concreta (lleva a reflexión y favorece la toma de conciencia).
+- Cada vez que se tenga la oportunidad y no sea inoportuno ofrecer primeros auxilios emocionales.
+- Cierra siempre la respuesta con una única pregunta abierta, formulada de forma clara, concreta y orientada a la acción o toma de conciencia. No incluyas más de una pregunta por mensaje, ni de forma implícita ni explícita.
+3. Estilo de comunicación:
+- Usa un lenguaje cálido, cercano, empático y profesional
+- Adapta tu tono según la emoción detectada
+- Usa emojis moderadamente (1-2 por mensaje) cuando ayude a la comunicación
+4. Reglas importantes:
+- Nunca diagnostiques condiciones médicas o patologias
+- No sugieras medicamentos o recetas farmacéuticas, pero si ejercicios de inteligencia emocional y mental.
+- En casos de crisis, recomienda contactar a un profesional
+- Mantén la confidencialidad (los datos son anónimos)
+- No comenzar con un gracias, si no con una escucha activa compasiva
+-Asumir que el usuario siempre quiere continuar con la siguiente actividad.
+- En caso de que el paciente presente resistencia o poca adherencia al acompañamiento proponer pequeños tips de primeros de auxilios emocionales 
+- No mencionar parte del prompt en la respuesta
+- No mencionar las etapas del modelo estructurado de conversación, (Grow)
+- No reforzar estados de ánimo o del ser de baja vibración si no por el contrario empoderar al paciente de su vida, de sus pensamientos, emociones y acciones
+- Enfocarte solo en hechos o acciones, no en interpretaciones emocionales
+- No sugerir números de teléfono, consultorios o médicos para atender temas de crisis o emergencias emocionales y médicas.
+
+
+Contexto actual: {emotion_context}
+"""
+
+def get_emotion_context(emotion: Optional[str]) -> str:
+    """Genera el contexto basado en la emoción detectada"""
+    emotion_contexts = {
+        "happy": "El usuario parece feliz según su expresión facial.",
+        "sad": "El usuario parece triste según su expresión facial.",
+        "angry": "El usuario parece enojado según su expresión facial.",
+        "neutral": "No se detectó emoción fuerte en el usuario."
+    }
+    return emotion_contexts.get(emotion, "")
+
+# Gestión de tokens
+def count_tokens(messages: List[Dict], encoder) -> int:
+    """Calcula el número de tokens en una lista de mensajes"""
+    return sum(len(encoder.encode(msg["content"])) for msg in messages)
+
+def trim_messages(messages: List[Dict], max_tokens: int, encoder) -> List[Dict]:
+    """Reduce el historial para no exceder el límite de tokens"""
+    current_tokens = count_tokens(messages, encoder)
+    
+    while current_tokens > max_tokens and len(messages) > 1:
+        if len(messages) > 2 and messages[1]['role'] == 'user':
+            removed = messages.pop(1)
+            current_tokens -= len(encoder.encode(removed["content"]))
+        else:
+            break
+            
+    return messages
+
+# Configuración inicial al iniciar la aplicación
+config = configure_openai()
+openai.api_key = config["api_key"]
+token_encoder = get_token_encoder(config["model_name"])
+
+@app.post("/chat-api")
+async def chat_with_gpt(request: Request):
+    try:
+        if client is None:
+         raise HTTPException(
+            status_code=500,
+            detail="El cliente de OpenAI no está configurado correctamente."
+        )
+        data = await request.json()
+        user_messages = data.get("messages", [])
+        emotion = data.get("emotion", None)
+
+        # Construir mensajes
+        messages = [
+            {"role": "system", "content": get_system_prompt(get_emotion_context(emotion))},
+            *user_messages
+        ]
+
+        # Ajustar historial
+        messages = trim_messages(
+            messages,
+            config["context_tokens"],
+            token_encoder
+        )
+
+        # Llamada a OpenAI
+        response = client.chat.completions.create(
+            model=config["model_name"],
+            messages=messages,
+            temperature=0.7,
+            max_tokens=config["response_tokens"],
+            top_p=0.9,
+            frequency_penalty=0.5,
+            presence_penalty=0.5
+        )
+
+        return JSONResponse({
+            "response": response.choices[0].message.content,
+            "tokens_used": response.usage.total_tokens
+        })
+
+    except Exception as e:
+        print(f"Error en chat-api: {str(e)}")  # Log del error
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al procesar tu solicitud: {str(e)}"
+        )
+    
+@app.get("/chat", response_class=HTMLResponse)
+async def chat_interactivo():
+    return """
+        <!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CimaBot - Videochat con Chat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .main-container {
+            max-width: 1200px;
+            margin: 20px auto;
+        }
+        .video-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .video-box {
+            flex: 1;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            background-color: #000;
+            min-height: 300px;
+        }
+        .video-box h6 {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            margin: 0;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        #localVideo, #remoteVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .video-controls {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            z-index: 10;
+        }
+        .chat-container {
+            display: flex;
+            gap: 15px;
+            height: 400px;
+        }
+        .chat-messages {
+            flex: 2;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .chat-header {
+            background: linear-gradient(135deg, #007bff, #00b4ff);
+            color: white;
+            padding: 10px 15px;
+            font-weight: bold;
+        }
+        .chat-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        .message {
+            margin-bottom: 15px;
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            line-height: 1.4;
+            position: relative;
+        }
+        .user-message {
+            background-color: #e3f2fd;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+        .bot-message {
+            background-color: #f1f1f1;
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+        }
+        .chat-input-container {
+            padding: 10px;
+            border-top: 1px solid #eee;
+            background-color: #f8f9fa;
+        }
+        .typing-indicator {
+            display: none;
+            padding: 10px 15px;
+            background-color: #f1f1f1;
+            border-radius: 18px;
+            margin-bottom: 15px;
+            width: fit-content;
+            border-bottom-left-radius: 5px;
+        }
+        .typing-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #666;
+            margin: 0 2px;
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typingAnimation {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+        .btn-media {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+        .connection-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0,0,0,0.5);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 10;
+        }
+        .video-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            height: 100%;
+        }
+        .permission-alert {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            width: 80%;
+            max-width: 600px;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .emotion-display {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0,0,0,0.5);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 10;
+        }
+        .emotion-history {
+            position: absolute;
+            bottom: 70px;
+            left: 10px;
+            background-color: rgba(0,0,0,0.5);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 10;
+            max-width: 80%;
+        }
+        .speech-recognition-status {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 10;
+        }
+        
+        /* Estilos para el avatar animado */
+.avatar-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f8ff;
+}
+
+.avatar-image {
+    width: 70%;
+    height: auto;
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.2));
+}
+
+/* Animaciones corregidas para el avatar */
+.avatar-breathing {
+    animation: breathing 3s infinite ease-in-out;
+}
+
+.avatar-listening {
+    animation: listening 1.2s infinite ease-in-out;
+}
+
+.avatar-speaking {
+    animation: speaking 0.7s infinite ease-in-out;
+}
+
+.avatar-blinking {
+    animation: blinking 5s infinite ease-in-out;
+}
+
+.avatar-idle {
+    animation: idleMovement 12s infinite ease-in-out;
+}
+
+/* Definiciones de keyframes mejoradas */
+@keyframes breathing {
+    0%, 100% { 
+        transform: scale(1); 
+    }
+    50% { 
+        transform: scale(1.05); 
+    }
+}
+
+@keyframes listening {
+    0%, 100% { 
+        transform: translateY(0); 
+    }
+    50% { 
+        transform: translateY(-8px); 
+    }
+}
+
+@keyframes speaking {
+    0%, 100% { 
+        transform: scale(1); 
+        opacity: 1;
+    }
+    25% { 
+        transform: scale(1.08); 
+        opacity: 0.95;
+    }
+    50% { 
+        transform: scale(1); 
+        opacity: 1;
+    }
+    75% { 
+        transform: scale(1.05); 
+        opacity: 0.97;
+    }
+}
+
+@keyframes blinking {
+    0%, 88% { 
+        opacity: 1; 
+    }
+    90%, 92% { 
+        opacity: 0.3; 
+    }
+    94%, 100% { 
+        opacity: 1; 
+    }
+}
+
+@keyframes idleMovement {
+    0%, 100% { 
+        transform: translateX(0) rotate(0); 
+    }
+    33% { 
+        transform: translateX(3px) rotate(0.7deg); 
+    }
+    66% { 
+        transform: translateX(-3px) rotate(-0.7deg); 
+    }
+}
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <h4 class="mb-4">CimaBot - Videochat con Chat Integrado</h4>
+        
+        <!-- Alerta para permisos -->
+        <div id="permissionAlert" class="alert alert-warning permission-alert hidden">
+            <strong>Permisos requeridos:</strong> Por favor, permite el acceso a tu cámara y micrófono para usar esta función.
+            <button id="retryPermissionBtn" class="btn btn-sm btn-warning ms-2">Intentar nuevamente</button>
+        </div>
+        
+        <div class="video-container">
+            <div class="video-box">
+                <div id="localVideoContainer">
+                    <video id="localVideo" autoplay playsinline muted></video>
+                    <div id="emotionDisplay" class="emotion-display hidden">Emoción: Analizando...</div>
+                    <div id="emotionProgress" class="emotion-progress hidden">Cargando modelos: 0%</div>
+                    <div id="emotionHistory" class="emotion-history hidden"></div>
+                    <div id="speechStatus" class="speech-recognition-status hidden">Escuchando...</div>
+                    <h6>Tu cámara</h6>
+                    <div class="video-controls">
+                        <button id="toggleVideo" class="btn btn-media btn-primary">
+                            <i class="bi bi-camera-video"></i>
+                        </button>
+                        <button id="toggleEmotion" class="btn btn-media btn-primary">
+                            <i class="bi bi-emoji-smile"></i>
+                        </button>
+                        <button id="toggleSpeechRecognition" class="btn btn-media btn-success">
+                            <i class="bi bi-mic-mute"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="video-box">
+                <div id="remoteVideoContainer">
+                    <div class="avatar-container" id="avatarContainer">
+                        <img src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png" alt="Avatar de CimaBot" class="avatar-image" id="cimaBotAvatar">
+                    </div>
+                    <video id="remoteVideo" autoplay playsinline class="hidden"></video>
+                    <h6>CimaBot</h6>
+                    <div class="connection-status" id="connectionStatus">
+                        Desconectado
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-container">
+            <div class="chat-messages">
+                <div class="chat-header">
+                    Chat con CimaBot
+                </div>
+                <div class="chat-body" id="chatBody">
+                    <div class="typing-indicator" id="typingIndicator">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <form id="chatForm" onsubmit="sendMessage(event)">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="messageInput" 
+                                   placeholder="Escribe tu mensaje..." required>
+                            <button class="btn btn-primary" type="submit">
+                                <i class="bi bi-send"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Iconos de Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <!-- Incluir face-api.js para detección de emociones -->
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    
+    <script>
+        // Variables globales
+        let chatHistory = [];
+        let currentEmotion = null;
+        let localStream = null;
+        let peerConnection = null;
+        let isVideoOn = true;
+        let isEmotionDetectionOn = false;
+        let emotionDetectionInterval = null;
+        let emotionHistory = [];
+        let isSpeechRecognitionOn = false;
+        let speechRecognizer = null;
+        let finalTranscript = '';
+        let avatarState = 'idle'; // Estados: idle, listening, speaking, processing
+        let avatarAnimationInterval = null;
+        
+        // Traducción de emociones
+        const emociones_es = {
+            "happy": "Feliz",
+            "sad": "Triste",
+            "angry": "Enojado",
+            "surprised": "Sorprendido",
+            "fearful": "Miedo",
+            "disgusted": "Asco",
+            "neutral": "Neutral"
+        };
+        
+        // Elementos del DOM
+        const localVideo = document.getElementById('localVideo');
+        const remoteVideo = document.getElementById('remoteVideo');
+        const cimaBotAvatar = document.getElementById('cimaBotAvatar');
+        const avatarContainer = document.getElementById('avatarContainer');
+        const toggleVideoBtn = document.getElementById('toggleVideo');
+        const toggleEmotionBtn = document.getElementById('toggleEmotion');
+        const toggleSpeechRecognitionBtn = document.getElementById('toggleSpeechRecognition');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const chatBody = document.getElementById('chatBody');
+        const messageInput = document.getElementById('messageInput');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const permissionAlert = document.getElementById('permissionAlert');
+        const retryPermissionBtn = document.getElementById('retryPermissionBtn');
+        const emotionDisplay = document.getElementById('emotionDisplay');
+        const emotionProgress = document.getElementById('emotionProgress');
+        const emotionHistoryDisplay = document.getElementById('emotionHistory');
+        const speechStatus = document.getElementById('speechStatus');
+        
+        // Control de animaciones del avatar
+      function setAvatarState(state) {
+        if (avatarState === state) return;
+            
+            avatarState = state;
+            
+            // Remover todas las clases de animación primero
+            cimaBotAvatar.classList.remove(
+                'avatar-breathing', 
+                'avatar-listening', 
+                'avatar-speaking', 
+                'avatar-blinking',
+                'avatar-idle'
+            );
+            
+            // Aplicar las animaciones correspondientes al nuevo estado
+            switch(state) {
+                case 'idle':
+                    // Animación de respiración + parpadeo + movimiento suave
+                    setTimeout(() => {
+                        cimaBotAvatar.classList.add('avatar-breathing', 'avatar-blinking', 'avatar-idle');
+                    }, 100);
+                    break;
+                    
+                case 'listening':
+                    // Animación de escucha (movimiento vertical)
+                    setTimeout(() => {
+                        cimaBotAvatar.classList.add('avatar-listening');
+                    }, 100);
+                    break;
+                    
+                case 'speaking':
+                    // Animación de habla (pulsación más pronunciada)
+                    setTimeout(() => {
+                        cimaBotAvatar.classList.add('avatar-speaking');
+                    }, 100);
+                    break;
+                    
+                case 'processing':
+                    // Similar a escuchar pero con respiración
+                    setTimeout(() => {
+                        cimaBotAvatar.classList.add('avatar-listening', 'avatar-breathing');
+                    }, 100);
+                    break;
+            }
+            
+            console.log("Avatar state changed to:", state);
+        }
+                
+        // Animación aleatoria para mantener vivo el avatar
+        function startRandomAvatarAnimations() {
+            if (avatarAnimationInterval) clearInterval(avatarAnimationInterval);
+            
+            avatarAnimationInterval = setInterval(() => {
+                if (avatarState === 'idle') {
+                    // Pequeñas animaciones aleatorias mientras está inactivo
+                    const random = Math.random();
+                    if (random < 0.3) {
+                        // Parpadeo extra
+                        cimaBotAvatar.style.animation = 'blinking 4s infinite ease-in-out';
+                        setTimeout(() => {
+                            if (avatarState === 'idle') {
+                                cimaBotAvatar.style.animation = 'breathing 4s infinite ease-in-out, blinking 4s infinite ease-in-out, idleMovement 8s infinite ease-in-out';
+                            }
+                        }, 200);
+                    }
+                }
+            }, 5000);
+        }
+        
+        // Cargar modelos de face-api.js desde CDN alternativo
+        async function loadModels() {
+            try {
+                emotionProgress.classList.remove('hidden');
+                emotionProgress.textContent = "Cargando modelos: 0%";
+                
+                // Configurar la ruta base para los modelos (usando un CDN público)
+                faceapi.env.monkeyPatch({
+                    createCanvasElement: () => document.createElement('canvas'),
+                    createImageElement: () => document.createElement('img')
+                });
+                
+                // URLs de los modelos desde un CDN público
+                const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
+                
+                // Cargar modelos con progreso
+                const modelsToLoad = [
+                    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL)
+                ];
+                
+                let loaded = 0;
+                const total = modelsToLoad.length;
+                
+                for (const modelPromise of modelsToLoad) {
+                    await modelPromise;
+                    loaded++;
+                    const progress = Math.round((loaded / total) * 100);
+                    emotionProgress.textContent = `Cargando modelos: ${progress}%`;
+                }
+                
+                emotionProgress.textContent = "Modelos cargados correctamente";
+                setTimeout(() => emotionProgress.classList.add('hidden'), 2000);
+                
+                console.log('Modelos cargados correctamente');
+                addMessageToChat('system', 'Modelos de reconocimiento facial cargados. Puedes activar el análisis de emociones.');
+                
+            } catch (error) {
+                console.error('Error cargando modelos:', error);
+                emotionProgress.textContent = "Error cargando modelos";
+                addMessageToChat('system', 
+                    'No se pudieron cargar los modelos de análisis de emociones. ' +
+                    'La función de reconocimiento facial no estará disponible.');
+                
+                // Desactivar el botón de emociones
+                toggleEmotionBtn.disabled = true;
+                toggleEmotionBtn.title = "Funcionalidad no disponible";
+            }
+        }
+        
+        // Detectar emociones en el video
+        async function detectEmotions() {
+            if (!isEmotionDetectionOn || !localVideo || !localStream) return;
+            
+            try {
+                const options = new faceapi.TinyFaceDetectorOptions({
+                    inputSize: 512,  // Tamaño mayor para mejor precisión
+                    scoreThreshold: 0.5  // Umbral de confianza
+                });
+                
+                const detections = await faceapi.detectAllFaces(
+                    localVideo, 
+                    options
+                ).withFaceLandmarks(true).withFaceExpressions();
+                
+                if (detections.length > 0) {
+                    const expressions = detections[0].expressions;
+                    const dominantEmotion = Object.entries(expressions).reduce(
+                        (a, b) => a[1] > b[1] ? a : b
+                    )[0];
+                    
+                    const confidence = expressions[dominantEmotion];
+                    const emotionText = emociones_es[dominantEmotion] || dominantEmotion;
+                    
+                    // Mostrar emoción con porcentaje de confianza
+                    emotionDisplay.textContent = `Emoción: ${emotionText} (${Math.round(confidence * 100)}%)`;
+                    emotionDisplay.classList.remove('hidden');
+                    
+                    // Guardar en historial (últimas 5 emociones)
+                    emotionHistory.push({
+                        emotion: emotionText,
+                        confidence: confidence,
+                        timestamp: new Date().toLocaleTimeString()
+                    });
+                    
+                    if (emotionHistory.length > 5) {
+                        emotionHistory.shift();
+                    }
+                    
+                    // Mostrar historial formateado
+                    const historyText = emotionHistory.map(e => 
+                        `${e.emotion} (${Math.round(e.confidence * 100)}%)`
+                    ).join(' → ');
+                    
+                    emotionHistoryDisplay.textContent = `Historial: ${historyText}`;
+                    emotionHistoryDisplay.classList.remove('hidden');
+                    
+                    // Adaptar respuesta del bot según emoción
+                    adaptBotResponse(dominantEmotion, confidence);
+                } else {
+                    emotionDisplay.textContent = 'No se detectó rostro';
+                }
+            } catch (error) {
+                console.error('Error detectando emociones:', error);
+                emotionDisplay.textContent = 'Error en análisis';
+            }
+        }
+        
+        // Adaptar respuesta del bot según la emoción detectada
+        function adaptBotResponse(emotion, confidence) {
+            currentEmotion = emotion;
+            // Solo adaptar si la confianza es mayor al 60%
+            if (confidence > 0.6) {
+                let response = "";
+                
+                switch(emotion) {
+                    case "happy":
+                        response = "Pareces estar de buen humor hoy. ¿Te gustaría compartir qué te hace sentir así?";
+                        break;
+                    case "sad":
+                        response = "Noto que podrías estar sintiéndote un poco triste. ¿Quieres hablar sobre ello?";
+                        break;
+                    case "angry":
+                        response = "Percibo que podrías estar molesto. ¿Hay algo en particular que te esté molestando?";
+                        break;
+                    case "surprised":
+                        response = "¡Vaya! Pareces sorprendido. ¿Qué ha ocurrido?";
+                        break;
+                    case "fearful":
+                        response = "Noto cierta preocupación en ti. ¿Hay algo que te esté causando ansiedad?";
+                        break;
+                    default:
+                        // No hacer nada para emociones neutrales o con baja confianza
+                        return;
+                }
+                
+                // Agregar mensaje del bot si no hay mensajes recientes
+                const lastMessages = Array.from(chatBody.querySelectorAll('.message')).slice(-3);
+                const hasRecentBotMessage = lastMessages.some(msg => 
+                    msg.classList.contains('bot-message') && 
+                    msg.textContent.includes(response.substring(0, 20))
+                );
+                
+                if (!hasRecentBotMessage) {
+                    addMessageToChat('assistant', response);
+                }
+            }
+        }
+        
+        // Alternar detección de emociones
+        function toggleEmotionDetection() {
+            if (toggleEmotionBtn.disabled) {
+                addMessageToChat('system', 'El análisis de emociones no está disponible en este momento.');
+                return;
+            }
+            
+            isEmotionDetectionOn = !isEmotionDetectionOn;
+            
+            if (isEmotionDetectionOn) {
+                if (!localStream || !localStream.getVideoTracks()[0].enabled) {
+                    addMessageToChat('system', 'Por favor, activa tu cámara primero para usar el análisis de emociones.');
+                    isEmotionDetectionOn = false;
+                    return;
+                }
+                
+                toggleEmotionBtn.innerHTML = `<i class="bi bi-emoji-smile-fill"></i>`;
+                emotionDisplay.classList.remove('hidden');
+                emotionHistoryDisplay.classList.remove('hidden');
+                
+                // Iniciar detección cada 1 segundo (para mejor rendimiento)
+                emotionDetectionInterval = setInterval(detectEmotions, 1000);
+                addMessageToChat('system', 'Análisis de emociones activado. Ahora puedo detectar tus expresiones faciales.');
+            } else {
+                toggleEmotionBtn.innerHTML = `<i class="bi bi-emoji-smile"></i>`;
+                emotionDisplay.classList.add('hidden');
+                emotionHistoryDisplay.classList.add('hidden');
+                
+                // Detener detección
+                if (emotionDetectionInterval) {
+                    clearInterval(emotionDetectionInterval);
+                    emotionDetectionInterval = null;
+                }
+                
+                addMessageToChat('system', 'Análisis de emociones desactivado.');
+            }
+        }
+        
+        // Inicializar reconocimiento de voz
+        function initSpeechRecognition() {
+            // Verificar si el navegador soporta reconocimiento de voz
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                addMessageToChat('system', 'Tu navegador no soporta reconocimiento de voz. Usa Chrome o Edge para esta función.');
+                toggleSpeechRecognitionBtn.disabled = true;
+                toggleSpeechRecognitionBtn.title = "Funcionalidad no disponible";
+                return;
+            }
+            
+            // Crear instancia de reconocimiento de voz
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            speechRecognizer = new SpeechRecognition();
+            
+            // Configurar reconocimiento de voz
+            speechRecognizer.continuous = true;
+            speechRecognizer.interimResults = true;
+            speechRecognizer.lang = 'es-ES';
+            
+            // Evento para resultados del reconocimiento
+            speechRecognizer.onresult = (event) => {
+                let interimTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                        
+                        // Enviar automáticamente cuando se detecta una frase completa
+                        if (transcript.trim().length > 0) {
+                            sendMessageFromVoice(transcript);
+                            finalTranscript = ''; // Resetear después de enviar
+                        }
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                // Cambiar animación del avatar cuando se detecta voz
+                if (interimTranscript.length > 0) {
+                    setAvatarState('listening');
+                }
+            };
+            
+            // Manejar errores
+            speechRecognizer.onerror = (event) => {
+                console.error('Error en reconocimiento de voz:', event.error);
+                speechStatus.textContent = `Error: ${event.error}`;
+                setTimeout(() => speechStatus.classList.add('hidden'), 2000);
+            };
+            
+            // Cuando termina el reconocimiento (por pausa)
+            speechRecognizer.onend = () => {
+                if (isSpeechRecognitionOn) {
+                    speechRecognizer.start(); // Reiniciar si aún está activo
+                }
+            };
+        }
+        
+        // Alternar reconocimiento de voz
+        function toggleSpeechRecognition() {
+            if (!speechRecognizer) {
+                initSpeechRecognition();
+            }
+            
+            isSpeechRecognitionOn = !isSpeechRecognitionOn;
+            
+            if (isSpeechRecognitionOn) {
+                if (!localStream || !localStream.getAudioTracks()[0].enabled) {
+                    addMessageToChat('system', 'Por favor, activa tu micrófono primero para usar el reconocimiento de voz.');
+                    isSpeechRecognitionOn = false;
+                    return;
+                }
+                
+                try {
+                    finalTranscript = ''; // Resetear el transcript
+                    speechRecognizer.start();
+                    toggleSpeechRecognitionBtn.innerHTML = `<i class="bi bi-mic-fill"></i>`;
+                    speechStatus.textContent = "Escuchando...";
+                    speechStatus.classList.remove('hidden');
+                    setAvatarState('listening');
+                    addMessageToChat('system', 'Reconocimiento de voz activado. Ahora puedes hablar y tu voz se convertirá en texto.');
+                } catch (error) {
+                    console.error('Error al iniciar reconocimiento de voz:', error);
+                    addMessageToChat('system', 'Error al activar el reconocimiento de voz. Intenta recargar la página.');
+                    isSpeechRecognitionOn = false;
+                }
+            } else {
+                speechRecognizer.stop();
+                toggleSpeechRecognitionBtn.innerHTML = `<i class="bi bi-mic-mute"></i>`;
+                speechStatus.textContent = "Reconocimiento pausado";
+                setTimeout(() => speechStatus.classList.add('hidden'), 2000);
+                setAvatarState('idle');
+                addMessageToChat('system', 'Reconocimiento de voz desactivado.');
+                
+                // Si hay texto no enviado, enviarlo
+                if (finalTranscript.trim().length > 0) {
+                    sendMessageFromVoice(finalTranscript);
+                    finalTranscript = '';
+                }
+            }
+        }
+        
+        async function sendMessageFromVoice(transcript) {
+            if (!transcript || transcript.trim().length === 0) return;
+            
+            // Agregar mensaje del usuario al chat
+            addMessageToChat('user', transcript);
+            chatHistory.push({role: 'user', content: transcript});
+            
+            // Cambiar a estado de procesamiento
+            setAvatarState('processing');
+            
+            // Mostrar indicador de que el bot está escribiendo
+            typingIndicator.style.display = 'block';
+            chatBody.scrollTop = chatBody.scrollHeight;
+            
+            try {
+                // Llamar a la API de ChatGPT (usando el mismo endpoint que el chat normal)
+                const response = await fetch('/chat-api', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        messages: chatHistory,
+                        emotion: currentEmotion
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                
+                const data = await response.json();
+                typingIndicator.style.display = 'none';
+                
+                // Cambiar a estado de habla
+                setAvatarState('speaking');
+                
+                // Agregar respuesta al chat y al historial
+                addMessageToChat('assistant', data.response);
+                chatHistory.push({role: 'assistant', content: data.response});
+                
+                // Volver a estado de escucha después de un tiempo
+                setTimeout(() => {
+                    if (avatarState === 'speaking') {
+                        setAvatarState(isSpeechRecognitionOn ? 'listening' : 'idle');
+                    }
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Error al obtener respuesta:', error);
+                typingIndicator.style.display = 'none';
+                setAvatarState('idle');
+                
+                const fallbackResponses = [
+                    "Lo siento, estoy teniendo dificultades técnicas. ¿Podrías repetir tu último mensaje?",
+                    "Parece que hay un problema con mi conexión. ¿Quieres intentarlo de nuevo?",
+                    "No pude procesar tu mensaje de voz. ¿Podrías intentarlo otra vez?"
+                ];
+                
+                const fallbackResponse = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+                addMessageToChat('assistant', fallbackResponse);
+                chatHistory.push({role: 'assistant', content: fallbackResponse});
+            }
+        }
+        
+        // Inicializar cámara y micrófono
+        async function initMedia() {
+            try {
+                // Solicitar permisos
+                localStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: "user"
+                    }, 
+                    audio: true 
+                });
+                
+                permissionAlert.classList.add('hidden');
+                localVideo.srcObject = localStream;
+                connectionStatus.textContent = "Conectando...";
+                
+                // Configurar controles iniciales
+                toggleVideoBtn.innerHTML = `<i class="bi bi-camera-video"></i>`;
+                toggleEmotionBtn.innerHTML = `<i class="bi bi-emoji-smile"></i>`;
+                toggleSpeechRecognitionBtn.innerHTML = `<i class="bi bi-mic-mute"></i>`;
+                
+                // Iniciar animaciones del avatar
+                setAvatarState('idle');
+                startRandomAvatarAnimations();
+                
+                // Cargar modelos de reconocimiento facial
+                await loadModels();
+                
+                // Inicializar reconocimiento de voz (pero no activarlo aún)
+                initSpeechRecognition();
+                
+                // Simular conexión con el bot (en una implementación real usarías WebRTC)
+                setTimeout(() => {
+                    connectionStatus.textContent = "Conectado";
+                    
+                    // Mensaje de bienvenida del bot
+                    addMessageToChat('assistant', 
+                        '¡Hola! Soy CimaBot. Estamos conectados por video. ' +
+                        'Puedes hablarme directamente (activa el micrófono con el botón verde) ' +
+                        'o escribirme en el chat. ¿En qué puedo ayudarte hoy?');
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Error al acceder a los dispositivos:', error);
+                
+                // Mostrar alerta de permisos
+                permissionAlert.classList.remove('hidden');
+                
+                // Actualizar estado de conexión
+                connectionStatus.textContent = "Permisos denegados";
+                
+                // Mostrar mensaje de error en el chat
+                addMessageToChat('system', 
+                    'No se pudo acceder a la cámara o micrófono. ' +
+                    'Por favor, otorga los permisos necesarios para continuar.');
+            }
+        }
+        
+        // Alternar video
+        toggleVideoBtn.addEventListener('click', () => {
+            if (localStream) {
+                const videoTrack = localStream.getVideoTracks()[0];
+                if (videoTrack) {
+                    videoTrack.enabled = !videoTrack.enabled;
+                    isVideoOn = videoTrack.enabled;
+                    toggleVideoBtn.innerHTML = `<i class="bi bi-camera-video${isVideoOn ? '' : '-off'}"></i>`;
+                    
+                    // Si el video se apaga, también apagar detección de emociones
+                    if (!isVideoOn && isEmotionDetectionOn) {
+                        toggleEmotionDetection();
+                    }
+                }
+            }
+        });
+        
+        // Alternar detección de emociones
+        toggleEmotionBtn.addEventListener('click', toggleEmotionDetection);
+        
+        // Alternar reconocimiento de voz
+        toggleSpeechRecognitionBtn.addEventListener('click', toggleSpeechRecognition);
+        
+        // Botón para reintentar permisos
+        retryPermissionBtn.addEventListener('click', () => {
+            permissionAlert.classList.add('hidden');
+            initMedia();
+        });
+        
+        // Función para enviar mensajes
+        async function sendMessage(event) {
+            event.preventDefault();
+            const message = messageInput.value.trim();
+            
+            if (!message) return;
+            
+            // Agregar mensaje del usuario al chat
+            addMessageToChat('user', message);
+            chatHistory.push({role: 'user', content: message});
+            messageInput.value = '';
+            
+            // Cambiar a estado de procesamiento
+            setAvatarState('processing');
+            
+            // Mostrar indicador de que el bot está escribiendo
+            typingIndicator.style.display = 'block';
+            chatBody.scrollTop = chatBody.scrollHeight;
+            
+            try {
+                // Llamar a la API de ChatGPT
+                const response = await fetch('/chat-api', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        messages: chatHistory,
+                        emotion: currentEmotion // Opcional: pasar emoción detectada
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                
+                const data = await response.json();
+                typingIndicator.style.display = 'none';
+                
+                // Cambiar a estado de habla
+                setAvatarState('speaking');
+                
+                // Agregar respuesta al chat y al historial
+                addMessageToChat('assistant', data.response);
+                chatHistory.push({role: 'assistant', content: data.response});
+                
+                // Volver a estado inactivo después de un tiempo
+                setTimeout(() => {
+                    if (avatarState === 'speaking') {
+                        setAvatarState('idle');
+                    }
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Error al obtener respuesta:', error);
+                typingIndicator.style.display = 'none';
+                setAvatarState('idle');
+                
+                // Respuesta de respaldo si falla la API
+                const fallbackResponses = [
+                    "Lo siento, estoy teniendo dificultades técnicas. ¿Podrías repetir tu última pregunta?",
+                    "Parece que hay un problema con mi conexión. Intentemos nuevamente.",
+                    "No puedo procesar tu solicitud en este momento. ¿Quieres intentarlo de nuevo?"
+                ];
+                
+                const fallbackResponse = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+                addMessageToChat('assistant', fallbackResponse);
+                chatHistory.push({role: 'assistant', content: fallbackResponse});
+            }
+        }
+        
+        // Función para agregar mensajes al chat
+        function addMessageToChat(role, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role === 'user' ? 'user-message' : 'bot-message'}`;
+            messageDiv.textContent = content;
+            chatBody.appendChild(messageDiv);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+        
+        // Permitir enviar mensaje con Enter
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById('chatForm').dispatchEvent(new Event('submit'));
+            }
+        });
+        
+        // Inicializar la aplicación cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar si el navegador soporta los APIs necesarios
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                addMessageToChat('system', 
+                    'Tu navegador no soporta las características necesarias para el videochat. ' +
+                    'Por favor, usa Chrome, Firefox o Edge.');
+                return;
+            }
+            
+            // Iniciar medios
+            initMedia();
+        });
+    </script>
+</body>
+</html>
+    """
+
 
 @app.get("/formulario_identificacion_contacto", response_class=HTMLResponse)
 def formulario_identificacion_contacto():
