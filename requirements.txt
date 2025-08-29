@@ -11,3 +11,4 @@ aiosmtplib
 openai
 tiktoken
 dotenv
+python-dotenv
