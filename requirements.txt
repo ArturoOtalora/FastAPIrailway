@@ -11,3 +11,4 @@ aiosmtplib
 plotly
 openai
 tiktoken
+dotenv
