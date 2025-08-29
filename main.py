@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Form, Request,Query, HTTPException, Response, Request, status 
-from fastapi.responses import HTMLResponse, RedirectResponse,FileResponse,JSONResponse
+from fastapi.responses import HTMLResponse, RedirectResponse,FileResponse
 from fastapi.staticfiles import StaticFiles
 import mysql.connector
 import random
@@ -24,21 +24,12 @@ from email.message import EmailMessage
 import aiosmtplib
 import matplotlib
 import mysql.connector
-import plotly.graph_objects as go
-import pandas as pd
-import numpy as np
-from math import pi
-from typing import List, Optional, Dict
-import webbrowser
-# from openai import OpenAI 
-import openai
-import tiktoken
-from dotenv import load_dotenv
-from openai import OpenAI
-
-
-
-
+from typing import List, Optional
+# import plotly.graph_objects as go
+# import pandas as pd
+# import numpy as np
+# from math import pi
+# import webbrowser
 
 # Configurar la conexión a MySQL desde Railway
 DB_HOST = "shuttle.proxy.rlwy.net"
@@ -60,7 +51,7 @@ preguntas_lista_Premium = [
     "¿Consideras que tus experiencias han contribuido a tu calidad de vida o crecimiento personal?", "¿Celebras tus logros o victorias?",
     "¿Cuando siento una emoción intensa, soy capaz de calmarme antes de actuar o tomar decisiones?", "¿Sientes que te adaptas a cambios o nuevas situaciones con facilidad?",
     "¿Tu bienestar emocional es prioridad en tu vida?", "¿Consideras que has manejado bien los sentimientos de impotencia o duda prolongados?",
-    "¿Sientes que tu círculo cercano te anima a lograr tus metas?", "¿Te sientes agradecido por los logros obtenidos?",
+    "¿Sientes que tu círculo cercano te anima a lograr tus metas?", "¿te sientes agradecido por los logros obtenidos?",
     "¿Has reflexionado personalmente o con un profesional sobre tu salud mental en los últimos seis meses?", "¿En qué medida te sientes valorado y respetado por otros?",
     "¿Sientes que la autoimagen que tienes de ti representa tu más alto valor como ser humano?", "¿Cuándo reflexionas de tu valor personal que tan consciente eres del valor que aportas al mundo?",
     "¿Desde lo que hoy haces, lo consideras tu pasión y te motiva para seguir haciéndolo ?", "¿Los pensamientos que más tienes sustentan tu valor mas alto?","¿Cuándo conoces una verdad sobre tu vida la aceptas con facilidad?",
@@ -110,6 +101,7 @@ def get_db_connection():
         database=DB_NAME,
         port=DB_PORT
     )
+
 @app.post("/guardar_usuario")
 def guardar_usuario(
     nombre: str = Form(...),
@@ -129,116 +121,87 @@ def guardar_usuario(
     otraEmpresa: str = Form(None),
     version: str = Form(...) 
 ):
-    # Inicializar las variables como None
-    conn = None
-    cursor = None
     
-    try:
-        # Determinar el valor final de la empresa
-        empresa_final = otraEmpresa if Empresa == "Otra Empresa" and otraEmpresa else Empresa
+    # conn = get_db_connection()
+    # cursor = conn.cursor()  
+      # Determinar el valor final de la empresa
+    empresa_final = otraEmpresa if Empresa == "Otra Empresa" and otraEmpresa else Empresa
 
+    try:
         conn = get_db_connection()
         cursor = conn.cursor() 
+
+
+        # cursor.execute("ALTER TABLE datos_contacto DROP COLUMN nivel_territorial")
+        #cursor.execute("""ALTER TABLE datos_contacto MODIFY COLUMN redes_sociales VARCHAR(200)""")
+        # cursor.execute("DELETE FROM respuestasForm WHERE usuario_id = %s", (15152150,))
+        # cursor.execute("""
+        # ALTER TABLE datos_contacto
+        # DROP COLUMN telefono_institucional,
+        # ADD COLUMN voto_presidencial ENUM('Sí','No') NOT NULL,
+        # ADD COLUMN municipio_voto VARCHAR(150),
+        # ADD COLUMN referido VARCHAR(150),
+        # ADD COLUMN redes_sociales TEXT NOT NULL
+        # """)
+
+        # cursor.execute("""
+        # CREATE TABLE IF NOT EXISTS datos_contacto (
+        #     id INT AUTO_INCREMENT PRIMARY KEY,
+        #     nombre_completo VARCHAR(150) NOT NULL,
+        #     documento VARCHAR(50) NOT NULL UNIQUE,
+        #     cargo VARCHAR(100) NOT NULL,
+        #     entidad VARCHAR(150) NOT NULL,
+        #     departamento_municipio VARCHAR(150) NOT NULL,
+        #     nivel_territorial VARCHAR(50) NOT NULL,
+        #     telefono_personal VARCHAR(30) NOT NULL,
+        #     telefono_institucional VARCHAR(30),
+        #     correo VARCHAR(150) NOT NULL,
+        #     direccion VARCHAR(200),
+        #     canales_contacto VARCHAR(100) NOT NULL,
+        #     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        # )
+        # """)
+
 
         # Verificar si el número de identificación ya existe
         cursor.execute("SELECT COUNT(*) FROM usuarios WHERE numero_identificacion = %s", (numero_identificacion,))
         (existe,) = cursor.fetchone()
         
         if existe:
-            # ✅ Ya registrado
-            if version == "Chat":
-                return RedirectResponse(url="/chat", status_code=303)
-            else:
-                html_content = f"""
-                <html>
-                <head>
-                    <title>Ya completaste tu evaluación</title>
-                    <style>
-                        body {{font-family: Arial, sans-serif; background:#f4f6f8; display:flex; justify-content:center; align-items:center; height:100vh;}}
-                        .card {{background:white; padding:30px; border-radius:10px; box-shadow:0 4px 8px rgba(0,0,0,0.1); max-width:400px; text-align:center;}}
-                        h2 {{color:#d9534f;}}
-                        a {{display:inline-block; margin-top:15px; text-decoration:none; color:white; background:#007bff; padding:10px 20px; border-radius:5px;}}
-                        a:hover {{background:#0056b3;}}
-                    </style>
-                </head>
-                <body>
-                    <div class="card">
-                        <h2>Ya completaste tu evaluación</h2>
-                        <p>El número de identificación <b>{numero_identificacion}</b> ya realizó el turing. Debes esperar 90 días para volver a hacerlo.</p>
-                        <a href="/">Volver al inicio</a>
-                    </div>
-                </body>
-                </html>
-                """
-                return HTMLResponse(content=html_content, status_code=400)
-        else:
-            # ✅ No registrado
-            if version == "Chat":
-                html_content = f"""
-                <html>
-                <head>
-                    <title>Acceso denegado</title>
-                    <style>
-                        body {{font-family: Arial, sans-serif; background:#f4f6f8; display:flex; justify-content:center; align-items:center; height:100vh;}}
-                        .card {{background:white; padding:30px; border-radius:10px; box-shadow:0 4px 8px rgba(0,0,0,0.1); max-width:400px; text-align:center;}}
-                        h2 {{color:#d9534f;}}
-                        a {{display:inline-block; margin-top:15px; text-decoration:none; color:white; background:#28a745; padding:10px 20px; border-radius:5px;}}
-                        a:hover {{background:#1e7e34;}}
-                    </style>
-                </head>
-                <body>
-                    <div class="card">
-                        <h2>Acceso denegado</h2>
-                        <p>Debes realizar el turing antes de poder ingresar al chat.</p>
-                        <a href="javascript:history.back()">Volver</a>
-                    </div>
-                </body>
-                </html>
-                """
-                return HTMLResponse(content=html_content, status_code=400)
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=400, detail="El número de identificación ya está registrado.")
 
-            # Insertar usuario si no existe y no seleccionó Chat
-            cursor.execute(
-                """
-                INSERT INTO usuarios (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, Peso, Altura, rango_edad, grado_escolaridad, antiguedad, ciudad, Profesion, Empresa)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """,
-                (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, Peso, Altura, rango_edad, grado_escolaridad, antiguedad, ciudad, Profesion, empresa_final)
-            )
-            conn.commit()
-
-            # Redirección según versión
-            if version == "Esencial":
-                return RedirectResponse(url=f"/preguntas_esencial?usuario_id={numero_identificacion}", status_code=303)
-            elif version == "Evolutiva":
-                return RedirectResponse(url=f"/preguntas_evolutiva?usuario_id={numero_identificacion}", status_code=303)
-            elif version == "Premium":
-                return RedirectResponse(url=f"/preguntas_premium?usuario_id={numero_identificacion}", status_code=303)
-            else:
-                return RedirectResponse(url=f"/preguntas?usuario_id={numero_identificacion}", status_code=303)
-
+        # Insertar usuario
+        cursor.execute(
+            """
+            INSERT INTO usuarios (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo,Peso, Altura, rango_edad, grado_escolaridad, antiguedad, ciudad, Profesion, Empresa)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s)
+            """,
+            (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, Peso, Altura, rango_edad, grado_escolaridad, antiguedad, ciudad, Profesion, empresa_final)
+        )
+        conn.commit()
     except mysql.connector.Error as err:
         print(f"Error al insertar usuario: {err}")
-        return HTMLResponse(
-            content=f"<h2>Error en BD</h2><p>Error al guardar el usuario: {err}</p>",
-            status_code=500
-        )
-    except Exception as err:
-        print(f"Error inesperado: {err}")
-        return HTMLResponse(
-            content=f"<h2>Error interno</h2><p>{err}</p>",
-            status_code=500
-        )
+        return {"status": "error", "message": "Error al guardar el usuario."}
     finally:
-        if cursor is not None:
-            cursor.close()
-        if conn is not None:
-            conn.close()
+        cursor.close()
+        conn.close()
+
+    if version == "Esencial":
+        return RedirectResponse(url=f"/preguntas_esencial?usuario_id={numero_identificacion}", status_code=303)
+    elif version == "Evolutiva":
+        return RedirectResponse(url=f"/preguntas_evolutiva?usuario_id={numero_identificacion}", status_code=303)
+    elif version == "Premium":
+        return RedirectResponse(url=f"/preguntas_premium?usuario_id={numero_identificacion}", status_code=303)
+    else:
+        return RedirectResponse(url=f"/preguntas?usuario_id={numero_identificacion}", status_code=303)    
 
 @app.get("/login", response_class=HTMLResponse)
 def login_form():
     return """
  <!DOCTYPE html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Login</title>
@@ -333,7 +296,7 @@ def login_form():
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
-            }n
+            }
         }
     </style>
 </head>
@@ -380,560 +343,292 @@ def login_form():
     """
 @app.post("/login")
 def login(username: str = Form(...), password: str = Form(...)):
-    usuarios_validos = {
-        "invitado": "invitado",
-        "corevital": "Corevital",
-        "advancevital": "AdvanceVital",
-        "premiumvital": "premiumVital"
-    }
-    clave = "Vital2025."
-    
-    user_key = username.lower()  # normalizamos para comparar
-    
-    if user_key in usuarios_validos and password == clave:
-        # Crear respuesta de redirección
-        resp = RedirectResponse(url="/mostrar_pagina1", status_code=status.HTTP_302_FOUND)
-        # Establecer cookie con el valor exacto (con mayúsculas/minúsculas correctas)
-        resp.set_cookie(key="user_type", value=usuarios_validos[user_key], httponly=True)
-        return resp
-    else:
-        return HTMLResponse(
-            "<h3>Credenciales incorrectas. <a href='/login'>Volver</a></h3>", 
-            status_code=401
-        )
+    if username.lower() == "invitado" and password == "Vital2025.":
+        resp = RedirectResponse(url="/mostrar_pagina", status_code=status.HTTP_302_FOUND)
+        return resp  # <-- este return es necesario
+    return HTMLResponse("<h3>Credenciales incorrectas. <a href='/login'>Volver</a></h3>", status_code=401)
 
-@app.get("/mostrar_pagina1", response_class=HTMLResponse)
-def mostrar_pagina1(request: Request):
-    return """
-    <!DOCTYPE html>
-    <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Ingreso - Bienestar Integral</title>
-        <style>
-            body {
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
-                margin: 0;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100vh;
-            }
-            .container {
-                background: #fff;
-                padding: 2rem;
-                border-radius: 20px;
-                box-shadow: 0px 6px 20px rgba(0,0,0,0.15);
-                text-align: center;
-                max-width: 400px;
-                width: 100%;
-                animation: fadeIn 1s ease-in-out;
-            }
-            h2 {
-                color: #2d3748;
-                margin-bottom: 1.5rem;
-            }
-            label {
-                display: block;
-                margin: 0.5rem 0 0.2rem;
-                font-weight: 600;
-                color: #4a5568;
-                text-align: left;
-            }
-            select, input {
-                width: 100%;
-                padding: 0.7rem;
-                border: 1px solid #cbd5e0;
-                border-radius: 12px;
-                margin-bottom: 1rem;
-                outline: none;
-                transition: 0.3s;
-            }
-            select:focus, input:focus {
-                border-color: #48bb78;
-                box-shadow: 0 0 6px rgba(72,187,120,0.4);
-            }
-            button {
-                width: 100%;
-                padding: 0.8rem;
-                background: #48bb78;
-                color: white;
-                border: none;
-                border-radius: 12px;
-                font-size: 1rem;
-                font-weight: bold;
-                cursor: pointer;
-                transition: background 0.3s ease;
-            }
-            button:hover {
-                background: #38a169;
-            }
-            @keyframes fadeIn {
-                from { opacity: 0; transform: translateY(-20px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h2>✨ Bienvenido(a) al Portal de Bienestar Integral ✨</h2>
-            <form action="/verificar_usuario" method="post">
-                <label for="tipo_documento">Tipo de Documento</label>
-                <select id="tipo_documento" name="tipo_documento" required>
-                    <option value="CC">Cédula de Ciudadanía</option>
-                    <option value="TI">Tarjeta de Identidad</option>
-                    <option value="CE">Cédula de Extranjería</option>
-                </select>
-                <label for="numero_identificacion">Número de Identificación</label>
-                <input type="text" id="numero_identificacion" name="numero_identificacion" placeholder="Ingresa tu número" required>
-                <button type="submit">Continuar</button>
-            </form>
-        </div>
-    </body>
-    </html>
-    """
-@app.post("/verificar_usuario", response_class=HTMLResponse)
-def verificar_usuario(
-    request: Request,
-    tipo_documento: str = Form(...),
-    numero_identificacion: str = Form(...)
-):
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    
-    cursor.execute("""
-        SELECT * FROM usuarios 
-        WHERE tipo_documento = %s AND numero_identificacion = %s
-    """, (tipo_documento, numero_identificacion))
-    
-    usuario = cursor.fetchone()
-    conn.close()
-    
-    if usuario:
-        user_type = request.cookies.get("user_type", "invitado")
-
-        if user_type in ["Corevital", "AdvanceVital", "premiumVital"]:
-            version_options = """
-            <button onclick="window.location.href='/chat'" class="btn-option">
-                <div>
-                    <strong>💬 Chat Interactivo</strong><br>
-                    <span>¿Listo para iniciar tu proceso de transformación? Hablemos.</span>
-                </div>
-            </button>
-            """
-        else:
-            version_options = "<p style='color:#e53e3e;'>⚠️ No tienes acceso a versiones especiales.</p>"
-
-        return f"""
-        <!DOCTYPE html>
-        <html lang="es">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Bienvenido</title>
-            <style>
-                body {{
-                    margin: 0;
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    background: linear-gradient(135deg, #c3ecb2 0%, #7dd3fc 100%);
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    height: 100vh;
-                }}
-                .card {{
-                    background: white;
-                    padding: 2rem;
-                    border-radius: 20px;
-                    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-                    text-align: center;
-                    max-width: 500px;
-                    width: 100%;
-                    animation: fadeIn 0.8s ease-in-out;
-                }}
-                h2 {{
-                    color: #2f855a;
-                    margin-bottom: 0.5rem;
-                }}
-                p {{
-                    color: #4a5568;
-                    margin: 0.3rem 0;
-                }}
-                h3 {{
-                    margin-top: 1.5rem;
-                    color: #2d3748;
-                }}
-                .btn-option {{
-                    width: 100%;
-                    padding: 15px 20px;
-                    margin-top: 1rem;
-                    border: none;
-                    border-radius: 15px;
-                    background: #48bb78;
-                    color: white;
-                    font-size: 16px;
-                    font-weight: bold;
-                    text-align: left;
-                    cursor: pointer;
-                    transition: transform 0.2s ease, background 0.3s ease;
-                    box-shadow: 0px 6px 12px rgba(0,0,0,0.1);
-                }}
-                .btn-option span {{
-                    font-size: 14px;
-                    font-weight: normal;
-                    color: #e6fffa;
-                }}
-                .btn-option:hover {{
-                    transform: scale(1.03);
-                    background: #38a169;
-                }}
-                @keyframes fadeIn {{
-                    from {{ opacity: 0; transform: translateY(-15px); }}
-                    to {{ opacity: 1; transform: translateY(0); }}
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="card">
-                <h2>🌿 Bienvenido, {usuario['nombre']} {usuario['apellidos']}</h2>
-                <p><strong>Correo:</strong> {usuario['correo']}</p>
-                <p><strong>Ciudad:</strong> {usuario['ciudad']}</p>
-                <h3>Selecciona tu versión</h3>
-                {version_options}
-            </div>
-        </body>
-        </html>
-        """
-
-    return RedirectResponse(url="/mostrar_pagina", status_code=302)
 @app.get("/mostrar_pagina", response_class=HTMLResponse)
-def mostrar_pagina(request: Request):  # Añadir el parámetro request
-    user_type = request.cookies.get("user_type", "invitado")
-    
-    # Determinar qué opciones mostrar según el tipo de usuario
-       # Determinar qué opciones mostrar según el tipo de usuario
-    if user_type == "Corevital":
-        version_options = """
-        <!-- Versión Esencial -->
-        <button onclick="seleccionarVersion('Esencial')" style="padding: 15px 20px; border: none; border-radius: 10px; background: #E3F2FD; color: #1565C0; font-size: 16px; text-align: left; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer;">
-            <strong>🌱 Versión Esencial – 6 Dimensiones</strong><br>
-            <span style="font-size: 14px; color: #0D47A1;">Lo fundamental para transformar el bienestar desde la raíz.</span>
-        </button>
-        <!-- Chat Interactivo -->
-        <button onclick="seleccionarVersion('Chat')" style="padding: 15px 20px; border: none; border-radius: 10px; background: #E8F5E9; color: #2E7D32; font-size: 16px; text-align: left; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer;">
-            <div>
-                <strong>💬 Chat Interactivo</strong><br>
-                <span style="font-size: 14px; color: #388E3C;">¿listo para iniciar tu proceso de transformación? Hablemos.</span>
-            </div>
-        </button>
-        """
-    elif user_type == "AdvanceVital":
-        version_options = """
-        <!-- Versión Evolutiva -->
-        <button onclick="seleccionarVersion('Evolutiva')" style="padding: 15px 20px; border: none; border-radius: 10px; background: #E8EAF6; color: #3949AB; font-size: 16px; text-align: left; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer;">
-            <strong>🌿 Versión Evolutiva – 6 Dimensiones Expandidas</strong><br>
-            <span style="font-size: 14px; color: #283593;">Expande la comprensión y activa procesos de mejora sostenibles.</span>
-        </button>
-        <!-- Chat Interactivo -->
-        <button onclick="seleccionarVersion('Chat')" style="padding: 15px 20px; border: none; border-radius: 10px; background: #E8F5E9; color: #2E7D32; font-size: 16px; text-align: left; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer;">
-            <div>
-                <strong>💬 Chat Interactivo</strong><br>
-                <span style="font-size: 14px; color: #388E3C;">¿listo para iniciar tu proceso de transformación? Hablemos.</span>
-            </div>
-        </button>
-        """
-    elif user_type == "premiumVital":
-        version_options = """
-        <!-- Versión Premium -->
-        <button onclick="seleccionarVersion('Premium')" style="padding: 15px 20px; border: none; border-radius: 10px; background: #F3E5F5; color: #7B1FA2; font-size: 16px; text-align: left; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer;">
-            <strong>🌟 Versión Premium – 12 Dimensiones</strong><br>
-            <span style="font-size: 14px; color: #6A1B9A;">Lo integral para transformar tu estado natural y mayormente adaptado.</span>
-        </button>
-        <!-- Chat Interactivo -->
-        <button onclick="seleccionarVersion('Chat')" style="padding: 15px 20px; border: none; border-radius: 10px; background: #E8F5E9; color: #2E7D32; font-size: 16px; text-align: left; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer;">
-            <div>
-                <strong>💬 Chat Interactivo</strong><br>
-                <span style="font-size: 14px; color: #388E3C;">¿listo para iniciar tu proceso de transformación? Hablemos.</span>
-            </div>
-        </button>
-        """
-    else:  # usuario invitado
-        version_options = """
-        <!-- Versión Esencial -->
-        <button onclick="seleccionarVersion('Esencial')" style="padding: 15px 20px; border: none; border-radius: 10px; background: #E3F2FD; color: #1565C0; font-size: 16px; text-align: left; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer;">
-            <strong>🌱 Versión Esencial – 6 Dimensiones</strong><br>
-            <span style="font-size: 14px; color: #0D47A1;">Lo fundamental para transformar el bienestar desde la raíz.</span>
-        </button>
-        <!-- Chat Interactivo -->
-        <button onclick="seleccionarVersion('Chat')" style="padding: 15px 20px; border: none; border-radius: 10px; background: #E8F5E9; color: #2E7D32; font-size: 16px; text-align: left; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer;">
-            <div>
-                <strong>💬 Chat Interactivo</strong><br>
-                <span style="font-size: 14px; color: #388E3C;">¿listo para iniciar tu proceso de transformación? Hablemos.</span>
-            </div>
-        </button>
-        """
-    
-    # Retornar el HTML con las opciones adecuadas
-    return f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Turing - Registro de Usuario</title>
-        <style>
-            * {{
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }}
+def mostrar_pagina():
+        # return RedirectResponse(url="/login")
+    return """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Turing - Registro de Usuario</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-            body {{
-                font-family: Arial, sans-serif;
-                background: url('/statics/VITAL.png') no-repeat center center fixed;
-                background-size: contain;
-                background-attachment: fixed;
-                background-color: #f4f4f4;
-                display: flex;
-                flex-direction: column;
-                align-items: center;    
-                justify-content: center;
-                min-height: 100vh;
-                padding: 20px;
-            }}
+        body {
+            font-family: Arial, sans-serif;
+            background: url('/statics/VITAL.png') no-repeat center center fixed;
+            background-size: contain;
+            background-attachment: fixed;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;    
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
 
-            .title-container {{
-                text-align: center;
-                font-size: 25px;
-                font-weight: bold;
-                margin-bottom: 30px;
-                margin-top: -20px;
-                color: #2C3E50;
-            }}
+            .title-container {
+            text-align: center;
+            font-size: 25px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            margin-top: -20px;
+            color: #2C3E50;
+        }
 
-            .container {{
-                background: rgba(255, 255, 255, 0.9);
-                padding: 25px;
-                border-radius: 10px;
-                box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-                width: 100%;
-                max-width: 800px;
-            }}
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 800px;
+        }
 
-            .form-grid {{
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 20px;
-            }}
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
 
-            .form-group {{
-                display: flex;
-                flex-direction: column;
-            }}
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
 
-            label {{
-                font-weight: bold;
-                margin-bottom: 5px;
-                font-size: 14px;
-            }}
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
 
-            input, select {{
-                padding: 10px;
-                border-radius: 5px;
-                border: 1px solid #ccc;
-                font-size: 14px;
-            }}
+        input, select {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
 
-            button {{
-                background: #2575fc;
-                color: white;
-                padding: 12px;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-                font-size: 16px;
-                margin-top: 20px;
-                width: 100%;
-                transition: background 0.3s ease;
-            }}
+        button {
+            background: #2575fc;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+            width: 100%;
+            transition: background 0.3s ease;
+        }
 
-            button:hover {{
-                background: #1e5bc6;
-            }}
+        button:hover {
+            background: #1e5bc6;
+        }
 
-            @media (max-width: 768px) {{
-                .form-grid {{
-                    grid-template-columns: 1fr;
-                }}
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="title-container">
-            <h1>Registro de Usuario</h1>
-        </div>
-        <div class="container">
-            <form action="/guardar_usuario" method="post">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="nombre">Nombre:</label>
-                        <input type="text" id="nombre" name="nombre" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="apellidos">Apellidos:</label>
-                        <input type="text" id="apellidos" name="apellidos" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="tipo_documento">Tipo de Documento:</label>
-                        <select id="tipo_documento" name="tipo_documento" required>
-                            <option value="CC">Cédula de Ciudadanía</option>
-                            <option value="TI">Tarjeta de Identidad</option>
-                            <option value="CE">Cédula de Extranjería</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="numero_identificacion">Número de Identificación:</label>
-                        <input type="text" id="numero_identificacion" name="numero_identificacion" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="correo">Correo Electrónico:</label>
-                        <input type="email" id="correo" name="correo" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="sexo">Sexo:</label>
-                        <select id="sexo" name="sexo" required>
-                            <option value="Masculino">Masculino</option>
-                            <option value="Femenino">Femenino</option>
-                            <option value="Otro">Otro</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="Peso">Peso (KG):</label>
-                        <input type="text" id="Peso" name="Peso" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="Altura">Altura (M):</label>
-                        <input type="text" id="Altura" name="Altura" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="rango_edad">Rango de Edad:</label>
-                        <select id="rango_edad" name="rango_edad" required>
-                            <option value="18-25">18 a 25 años</option>
-                            <option value="26-40">26 a 40 años</option>
-                            <option value="41-55">41 a 55 años</option>
-                            <option value="56-76">56 a 76 años</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="grado_escolaridad">Grado de Escolaridad:</label>
-                        <select id="grado_escolaridad" name="grado_escolaridad" required>
-                            <option value="Basica Primaria">Básica Primaria</option>
-                            <option value="Bachiller">Bachiller</option>
-                            <option value="Pregado">Pregrado</option>
-                            <option value="Posgrado">Posgrado</option>
-                            <option value="Doctorado">Doctorado</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="antiguedad">Antigüedad laborando en la compañía:</label>
-                        <select id="antiguedad" name="antiguedad" required>
-                            <option value="Menos de 1 año">Menos de 1 año</option>
-                            <option value="Entre 1 y 2 años ">Entre 1 y 2 años </option>
-                            <option value="Entre 2 y 5 años">Entre 2 y 5 años</option>
-                            <option value="Mas de 5 años">Mas de 5 años</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="ciudad">Ciudad:</label>
-                        <input type="text" id="ciudad" name="ciudad" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="Profesion">Profesión:</label>
-                        <input type="text" id="Profesion" name="Profesion" required>
-                    </div>
-                   <div class="form-group">
-                        <label for="Empresa">Empresa:</label>
-                        <select id="Empresa" name="Empresa" required onchange="toggleEmpresaInput(this)">
-                            <option value="PARTICULAR">PARTICULAR</option>
-                            <option value="SIES SALUD">SIES SALUD</option>
-                            <option value="AZISTIA">AZISTIA</option>
-                            <option value="HOTEL SONATA 44">HOTEL SONATA 44</option>
-                            <option value="PTC-ASSISTAN">PTC-AZISTIA</option>
-                            <option value="Otra Empresa">Otra Empresa</option>
-                        </select>
-                    </div>
-                   <div class="form-group hidden-input" id="otraEmpresaGroup" style="display: none; margin-top: 10px;">
-                    <label for="otraEmpresa">Nombre de la Empresa:</label>
-                            <div>
-                                <input type="text" id="otraEmpresa" name="otraEmpresa" style="margin-top: 5px;">
-                            </div>
-                        </div>
-                <div class="form-group" style="grid-column: 1 / -1; margin-top: 10px;">
-                    <label style="font-weight: normal;">
-                        <input type="checkbox" name="autorizacion_datos" required>
-                        Autorizo de manera libre, voluntaria, previa, explícita e informada a Vital Value, para que en 
-                        los términos legales establecidos, Se informa que los datos y la información de carácter personal suministrados,
-                        serán objeto de tratamiento (únicamente estadístico) de acuerdo con lo establecido en la Ley 1581 de 2012,
-                        el Decreto 1377 de 2013. La información que usted responda será totalmente confidencial.
-                        En caso de no autorizar el tratamiento, la recolección y/o el almacenamiento de la información,
-                        no continúe con el diligenciamiento de la encuesta.
-                    </label>
-                </div>
-                <button type="submit" id="btnRegistrar">Registrar</button>
-            </form>
-        </div>
-         <script>
-            function toggleEmpresaInput(select) {{
-                const otraEmpresaGroup = document.getElementById("otraEmpresaGroup");
-                otraEmpresaGroup.style.display = select.value === "Otra Empresa" ? "block" : "none";
-            }}
-        </script>
-    </body>
-    <!-- Modal de Selección de Versión con colores coherentes al logo azul -->
-    <div id="versionModal" style="display: none; position: fixed; top: 0; left: 0;
-         width: 100%; height: 100%; background: rgba(0,0,0,0.6); 
-         justify-content: center; align-items: center; z-index: 1000; font-family: 'Segoe UI', sans-serif;">
-      <div style="background: #fff; padding: 30px; border-radius: 12px; text-align: center; max-width: 550px; width: 90%; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
-        <h2 style="margin-bottom: 15px; font-size: 24px; color: #0D47A1;">Selecciona una Versión</h2>
-        <p style="margin-bottom: 25px; font-size: 16px; color: #555;">¿Con qué versión deseas continuar?</p>
-
-        <div style="display: flex; flex-direction: column; gap: 15px;">
-          {version_options}
-        </div>
-      </div>
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="title-container">
+        <h1>Registro de Usuario</h1>
     </div>
-    <script>
-          const form = document.querySelector("form");
-        const modal = document.getElementById("versionModal");
-        const btnRegistrar = document.getElementById("btnRegistrar");
+    <div class="container">
+        <form action="/guardar_usuario" method="post">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="nombre">Nombre:</label>
+                    <input type="text" id="nombre" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="apellidos">Apellidos:</label>
+                    <input type="text" id="apellidos" name="apellidos" required>
+                </div>
+                <div class="form-group">
+                    <label for="tipo_documento">Tipo de Documento:</label>
+                    <select id="tipo_documento" name="tipo_documento" required>
+                        <option value="CC">Cédula de Ciudadanía</option>
+                        <option value="TI">Tarjeta de Identidad</option>
+                        <option value="CE">Cédula de Extranjería</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="numero_identificacion">Número de Identificación:</label>
+                    <input type="text" id="numero_identificacion" name="numero_identificacion" required>
+                </div>
+                <div class="form-group">
+                    <label for="correo">Correo Electrónico:</label>
+                    <input type="email" id="correo" name="correo" required>
+                </div>
+                <div class="form-group">
+                    <label for="sexo">Sexo:</label>
+                    <select id="sexo" name="sexo" required>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Femenino">Femenino</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="Peso">Peso (KG):</label>
+                    <input type="text" id="Peso" name="Peso" required>
+                </div>
+                <div class="form-group">
+                    <label for="Altura">Altura (M):</label>
+                    <input type="text" id="Altura" name="Altura" required>
+                </div>
+                <div class="form-group">
+                    <label for="rango_edad">Rango de Edad:</label>
+                    <select id="rango_edad" name="rango_edad" required>
+                        <option value="18-25">18 a 25 años</option>
+                        <option value="26-40">26 a 40 años</option>
+                        <option value="41-55">41 a 55 años</option>
+                        <option value="56-76">56 a 76 años</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="grado_escolaridad">Grado de Escolaridad:</label>
+                    <select id="grado_escolaridad" name="grado_escolaridad" required>
+                        <option value="Basica Primaria">Básica Primaria</option>
+                        <option value="Bachiller">Bachiller</option>
+                        <option value="Pregado">Pregrado</option>
+                        <option value="Posgrado">Posgrado</option>
+                        <option value="Doctorado">Doctorado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="antiguedad">Antigüedad laborando en la compañía:</label>
+                    <select id="antiguedad" name="antiguedad" required>
+                        <option value="Menos de 1 año">Menos de 1 año</option>
+                        <option value="Entre 1 y 2 años ">Entre 1 y 2 años </option>
+                        <option value="Entre 2 y 5 años">Entre 2 y 5 años</option>
+                        <option value="Mas de 5 años">Mas de 5 años</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="ciudad">Ciudad:</label>
+                    <input type="text" id="ciudad" name="ciudad" required>
+                </div>
+                <div class="form-group">
+                    <label for="Profesion">Profesión:</label>
+                    <input type="text" id="Profesion" name="Profesion" required>
+                </div>
+               <div class="form-group">
+                    <label for="Empresa">Empresa:</label>
+                    <select id="Empresa" name="Empresa" required onchange="toggleEmpresaInput(this)">
+                        <option value="PARTICULAR">PARTICULAR</option>
+                        <option value="SIES SALUD">SIES SALUD</option>
+                        <option value="AZISTIA">AZISTIA</option>
+                        <option value="HOTEL SONATA 44">HOTEL SONATA 44</option>
+                        <option value="PTC-ASSISTAN">PTC-AZISTIA</option>
+                        <option value="Otra Empresa">Otra Empresa</option>
+                    </select>
+                </div>
+               <div class="form-group hidden-input" id="otraEmpresaGroup" style="display: none; margin-top: 10px;">
+                <label for="otraEmpresa">Nombre de la Empresa:</label>
+                        <div>
+                            <input type="text" id="otraEmpresa" name="otraEmpresa" style="margin-top: 5px;">
+                        </div>
+                    </div>
+            <div class="form-group" style="grid-column: 1 / -1; margin-top: 10px;">
+                <label style="font-weight: normal;">
+                    <input type="checkbox" name="autorizacion_datos" required>
+                    Autorizo de manera libre, voluntaria, previa, explícita e informada a Vital Value, para que en 
+                    los términos legales establecidos, Se informa que los datos y la información de carácter personal suministrados,
+                    serán objeto de tratamiento (únicamente estadístico) de acuerdo con lo establecido en la Ley 1581 de 2012,
+                    el Decreto 1377 de 2013. La información que usted responda será totalmente confidencial.
+                    En caso de no autorizar el tratamiento, la recolección y/o el almacenamiento de la información,
+                    no continúe con el diligenciamiento de la encuesta.
+                </label>
+            </div>
+            <button type="submit" id="btnRegistrar">Registrar</button>
+        </form>
+    </div>
+     <script>
+        function toggleEmpresaInput(select) {
+            const otraEmpresaGroup = document.getElementById("otraEmpresaGroup");
+            otraEmpresaGroup.style.display = select.value === "Otra Empresa" ? "block" : "none";
+        }
+    </script>
+</body>
+<!-- Modal de Selección de Versión con colores coherentes al logo azul -->
+<div id="versionModal" style="display: none; position: fixed; top: 0; left: 0;
+     width: 100%; height: 100%; background: rgba(0,0,0,0.6); 
+     justify-content: center; align-items: center; z-index: 1000; font-family: 'Segoe UI', sans-serif;">
+  <div style="background: #fff; padding: 30px; border-radius: 12px; text-align: center; max-width: 550px; width: 90%; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
+    <h2 style="margin-bottom: 15px; font-size: 24px; color: #0D47A1;">Selecciona una Versión</h2>
+    <p style="margin-bottom: 25px; font-size: 16px; color: #555;">¿Con qué versión deseas continuar?</p>
 
-        let fueClickEnRegistrar = false;
+    <div style="display: flex; flex-direction: column; gap: 15px;">
 
-        btnRegistrar.addEventListener("click", function (e) {{
-            e.preventDefault();
+      <!-- Versión Esencial -->
+      <button onclick="seleccionarVersion('Esencial')" style="padding: 15px 20px; border: none; border-radius: 10px;
+              background: #E3F2FD; color: #1565C0; font-size: 16px; text-align: left; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer;">
+        <strong>🌱 Versión Esencial – 6 Dimensiones</strong><br>
+        <span style="font-size: 14px; color: #0D47A1;">Lo fundamental para transformar el bienestar desde la raíz.</span>
+      </button>
 
-            // Validar que todos los campos requeridos estén diligenciados
-            if (!form.checkValidity()) {{
-                form.reportValidity(); // Muestra los mensajes de validación del navegador
-                return;
-            }}
+      <!-- Versión Evolutiva -->
+      <button onclick="seleccionarVersion('Evolutiva')" style="padding: 15px 20px; border: none; border-radius: 10px;
+              background: #E8EAF6; color: #3949AB; font-size: 16px; text-align: left; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer;">
+        <strong>🌿  Versión Evolutiva – 6 Dimensiones Expandidas</strong><br>
+        <span style="font-size: 14px; color: #283593;">Expande la comprensión y activa procesos de mejora sostenibles.</span>
+      </button>
 
-            // Validar que la casilla de autorización esté marcada
-            const autorizacion = form.querySelector("input[name='autorizacion_datos']");
-            if (!autorizacion.checked) {{
-                alert("Debes autorizar el tratamiento de datos para continuar.");
-                return;
-            }}
+      <!-- Versión Trascendente -->
+      <button onclick="seleccionarVersion('Premium')" style="padding: 15px 20px; border: none; border-radius: 10px;
+              background: #F3E5F5; color: #7B1FA2; font-size: 16px; text-align: left; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer;">
+        <strong>🌟 Versión Premium – 12 Dimensiones</strong><br>
+        <span style="font-size: 14px; color: #6A1B9A;">Lo integral para transformar tu estado natural y mayormente adaptado.</span>
+      </button>
 
-            // Si todo es válido, mostrar el modal
-            fueClickEnRegistrar = true;
-            modal.style.display = "flex";
-        }});
+    </div>
+  </div>
+</div>
+<script>
+      const form = document.querySelector("form");
+    const modal = document.getElementById("versionModal");
+    const btnRegistrar = document.getElementById("btnRegistrar");
 
-        function seleccionarVersion(version) {{
+    let fueClickEnRegistrar = false;
+
+    btnRegistrar.addEventListener("click", function (e) {
+        e.preventDefault();
+
+        // Validar que todos los campos requeridos estén diligenciados
+        if (!form.checkValidity()) {
+            form.reportValidity(); // Muestra los mensajes de validación del navegador
+            return;
+        }
+
+        // Validar que la casilla de autorización esté marcada
+        const autorizacion = form.querySelector("input[name='autorizacion_datos']");
+        if (!autorizacion.checked) {
+            alert("Debes autorizar el tratamiento de datos para continuar.");
+            return;
+        }
+
+        // Si todo es válido, mostrar el modal
+        fueClickEnRegistrar = true;
+        modal.style.display = "flex";
+    });
+
+    function seleccionarVersion(version) {
         if (!fueClickEnRegistrar) return;
 
-        // Crear campo oculto con la versión seleccionada
         const inputHidden = document.createElement("input");
         inputHidden.type = "hidden";
         inputHidden.name = "version";
@@ -943,1234 +638,15 @@ def mostrar_pagina(request: Request):  # Añadir el parámetro request
         modal.style.display = "none";
         fueClickEnRegistrar = false;
         form.submit();
-    }}
-
-        function toggleEmpresaInput(select) {{
-            const otraEmpresaGroup = document.getElementById("otraEmpresaGroup");
-            otraEmpresaGroup.style.display = select.value === "Otra Empresa" ? "block" : "none";
-        }}
-    </script>
-    </html>
-    """
-load_dotenv() 
-# Configuración inicial
-def configure_openai():
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise ValueError("OPENAI_API_KEY no está en .env")
-    return {
-        "api_key": api_key,
-        "model_name": "gpt-3.5-turbo",
-        "context_tokens": 4096,  # Ajusta según tus necesidades
-        "response_tokens": 500   # Ajusta según tus necesidades
     }
 
-# Inicialización del cliente
-try:
-    config = configure_openai()
-    client = OpenAI(api_key=config["api_key"])
-    token_encoder = tiktoken.encoding_for_model(config["model_name"])
-    print("✅ OpenAI listo")
-except Exception as e:
-    print(f"❌ Error: {str(e)}")
-    client = None
-
-# Inicializar configuración y cliente
-try:
-    config = configure_openai()
-    client = OpenAI(api_key=config["api_key"])
-    token_encoder = tiktoken.encoding_for_model(config["model_name"])
-    print("OpenAI configurado correctamente")
-except Exception as e:
-    print(f"Error inicializando OpenAI: {str(e)}")
-    client = None
-
-def get_token_encoder(model_name: str):
-    """Obtiene el encoder de tokens adecuado"""
-    try:
-        return tiktoken.encoding_for_model(model_name)
-    except:
-        return tiktoken.get_encoding("cl100k_base")
-
-# Gestión del prompt
-def get_system_prompt(emotion_context: str = "") -> str:
-    """Genera el prompt del sistema con contexto de emociones"""
-    return f"""
-En adelante posiciónate como un terapeuta donde eres CimaBot, un asistente virtual de salud emocional con las siguientes características 
-1. Personalidad: Empático (centrándose siempre y directamente en los recursos y la capacidad de acción, no en describir el estado de baja vibración), compasivo, profesional, cercano, paciente y no juzgador, alentador y positivo.
-2. Funcionalidades:
-- Posicionándote como un psicólogo y mentoring Life coaching, donde todo cambio parte en base al Ser.
--Realizar acompañamiento emocional y mental para el equilibrio de bienestar integral en cada una de las siguientes dimensiones: Financiera, emocional, vital corporal, ambiental, existencial y mental.
-- La conversación debe seguir un modelo de conversación natural para facilitar el desarrollo personal y profesional a través de la toma de consciencia, basado en las siguiente etapas clave (Sin limitarse a ellas): Goal (Meta), Reality (Realidad), Options (Opciones) y Will (Voluntad).
-- Proponer un texto corto de entendimiento de la situación y sus oportunidades, así como una pregunta que lleve a reflexión o indagación.
-- Brindando tanto preguntas para la toma de conciencia como nuevas ideas y/o perspectivas que le permitan a la persona cambiar su enfoque hacia a la vida y su nivel de conciencia 
-- Analizar emociones a través de expresiones faciales (si están disponibles)
-- Ofrecer apoyo emocional
-- Sugerir técnicas para el manejo del estrés, emociones de baja vibración y creencias limitantes.
-- Siempre usar lenguaje que transmita contención sin anclar en ese estado, centrándome en los hechos y en la capacidad de acción de la persona. Así mismo usar Lenguaje neutral y orientado a la acción (no refuerza estados de baja vibración, se enfoca en hechos y recursos), Estructura clara en pasos o frentes de trabajo (organiza el abordaje sin que se sienta rígido) y Cierre con una pregunta abierta y concreta (lleva a reflexión y favorece la toma de conciencia).
-- Cada vez que se tenga la oportunidad y no sea inoportuno ofrecer primeros auxilios emocionales.
-- Cierra siempre la respuesta con una única pregunta abierta, formulada de forma clara, concreta y orientada a la acción o toma de conciencia. No incluyas más de una pregunta por mensaje, ni de forma implícita ni explícita.
-3. Estilo de comunicación:
-- Usa un lenguaje cálido, cercano, empático y profesional
-- Adapta tu tono según la emoción detectada
-- Usa emojis moderadamente (1-2 por mensaje) cuando ayude a la comunicación
-4. Reglas importantes:
-- Nunca diagnostiques condiciones médicas o patologias
-- No sugieras medicamentos o recetas farmacéuticas, pero si ejercicios de inteligencia emocional y mental.
-- En casos de crisis, recomienda contactar a un profesional
-- Mantén la confidencialidad (los datos son anónimos)
-- No comenzar con un gracias, si no con una escucha activa compasiva
--Asumir que el usuario siempre quiere continuar con la siguiente actividad.
-- En caso de que el paciente presente resistencia o poca adherencia al acompañamiento proponer pequeños tips de primeros de auxilios emocionales 
-- No mencionar parte del prompt en la respuesta
-- No mencionar las etapas del modelo estructurado de conversación, (Grow)
-- No reforzar estados de ánimo o del ser de baja vibración si no por el contrario empoderar al paciente de su vida, de sus pensamientos, emociones y acciones
-- Enfocarte solo en hechos o acciones, no en interpretaciones emocionales
-- No sugerir números de teléfono, consultorios o médicos para atender temas de crisis o emergencias emocionales y médicas.
-
-
-Contexto actual: {emotion_context}
-"""
-
-def get_emotion_context(emotion: Optional[str]) -> str:
-    """Genera el contexto basado en la emoción detectada"""
-    emotion_contexts = {
-        "happy": "El usuario parece feliz según su expresión facial.",
-        "sad": "El usuario parece triste según su expresión facial.",
-        "angry": "El usuario parece enojado según su expresión facial.",
-        "neutral": "No se detectó emoción fuerte en el usuario."
+    function toggleEmpresaInput(select) {
+        const otraEmpresaGroup = document.getElementById("otraEmpresaGroup");
+        otraEmpresaGroup.style.display = select.value === "Otra Empresa" ? "block" : "none";
     }
-    return emotion_contexts.get(emotion, "")
-
-# Gestión de tokens
-def count_tokens(messages: List[Dict], encoder) -> int:
-    """Calcula el número de tokens en una lista de mensajes"""
-    return sum(len(encoder.encode(msg["content"])) for msg in messages)
-
-def trim_messages(messages: List[Dict], max_tokens: int, encoder) -> List[Dict]:
-    """Reduce el historial para no exceder el límite de tokens"""
-    current_tokens = count_tokens(messages, encoder)
-    
-    while current_tokens > max_tokens and len(messages) > 1:
-        if len(messages) > 2 and messages[1]['role'] == 'user':
-            removed = messages.pop(1)
-            current_tokens -= len(encoder.encode(removed["content"]))
-        else:
-            break
-            
-    return messages
-
-# Configuración inicial al iniciar la aplicación
-config = configure_openai()
-openai.api_key = config["api_key"]
-token_encoder = get_token_encoder(config["model_name"])
-
-@app.post("/chat-api")
-async def chat_with_gpt(request: Request):
-    try:
-        if client is None:
-         raise HTTPException(
-            status_code=500,
-            detail="El cliente de OpenAI no está configurado correctamente."
-        )
-        data = await request.json()
-        user_messages = data.get("messages", [])
-        emotion = data.get("emotion", None)
-
-        # Construir mensajes
-        messages = [
-            {"role": "system", "content": get_system_prompt(get_emotion_context(emotion))},
-            *user_messages
-        ]
-
-        # Ajustar historial
-        messages = trim_messages(
-            messages,
-            config["context_tokens"],
-            token_encoder
-        )
-
-        # Llamada a OpenAI
-        response = client.chat.completions.create(
-            model=config["model_name"],
-            messages=messages,
-            temperature=0.7,
-            max_tokens=config["response_tokens"],
-            top_p=0.9,
-            frequency_penalty=0.5,
-            presence_penalty=0.5
-        )
-
-        return JSONResponse({
-            "response": response.choices[0].message.content,
-            "tokens_used": response.usage.total_tokens
-        })
-
-    except Exception as e:
-        print(f"Error en chat-api: {str(e)}")  # Log del error
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error al procesar tu solicitud: {str(e)}"
-        )
-    
-@app.get("/chat", response_class=HTMLResponse)
-async def chat_interactivo():
-    return """
-        <!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CimaBot - Videochat con Chat</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .main-container {
-            max-width: 1200px;
-            margin: 20px auto;
-        }
-        .video-container {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        .video-box {
-            flex: 1;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            overflow: hidden;
-            position: relative;
-            background-color: #000;
-            min-height: 300px;
-        }
-        .video-box h6 {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: rgba(0,0,0,0.7);
-            color: white;
-            margin: 0;
-            padding: 5px 10px;
-            font-size: 12px;
-        }
-        #localVideo, #remoteVideo {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .video-controls {
-            position: absolute;
-            bottom: 30px;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            z-index: 10;
-        }
-        .chat-container {
-            display: flex;
-            gap: 15px;
-            height: 400px;
-        }
-        .chat-messages {
-            flex: 2;
-            border-radius: 8px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            background-color: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .chat-header {
-            background: linear-gradient(135deg, #007bff, #00b4ff);
-            color: white;
-            padding: 10px 15px;
-            font-weight: bold;
-        }
-        .chat-body {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-        }
-        .message {
-            margin-bottom: 15px;
-            max-width: 80%;
-            padding: 10px 15px;
-            border-radius: 18px;
-            line-height: 1.4;
-            position: relative;
-        }
-        .user-message {
-            background-color: #e3f2fd;
-            margin-left: auto;
-            border-bottom-right-radius: 5px;
-        }
-        .bot-message {
-            background-color: #f1f1f1;
-            margin-right: auto;
-            border-bottom-left-radius: 5px;
-        }
-        .chat-input-container {
-            padding: 10px;
-            border-top: 1px solid #eee;
-            background-color: #f8f9fa;
-        }
-        .typing-indicator {
-            display: none;
-            padding: 10px 15px;
-            background-color: #f1f1f1;
-            border-radius: 18px;
-            margin-bottom: 15px;
-            width: fit-content;
-            border-bottom-left-radius: 5px;
-        }
-        .typing-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: #666;
-            margin: 0 2px;
-            animation: typingAnimation 1.4s infinite ease-in-out;
-        }
-        .typing-dot:nth-child(1) { animation-delay: 0s; }
-        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes typingAnimation {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-5px); }
-        }
-        .btn-media {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-        }
-        .connection-status {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: rgba(0,0,0,0.5);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            z-index: 10;
-        }
-        .video-placeholder {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 16px;
-            height: 100%;
-        }
-        .permission-alert {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-            width: 80%;
-            max-width: 600px;
-        }
-        .hidden {
-            display: none !important;
-        }
-        .emotion-display {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background-color: rgba(0,0,0,0.5);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            z-index: 10;
-        }
-        .emotion-history {
-            position: absolute;
-            bottom: 70px;
-            left: 10px;
-            background-color: rgba(0,0,0,0.5);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            z-index: 10;
-            max-width: 80%;
-        }
-        .speech-recognition-status {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0,0,0,0.7);
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            z-index: 10;
-        }
-        
-        /* Estilos para el avatar animado */
-.avatar-container {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #f0f8ff;
-}
-
-.avatar-image {
-    width: 70%;
-    height: auto;
-    transition: all 0.3s ease;
-    filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.2));
-}
-
-/* Animaciones corregidas para el avatar */
-.avatar-breathing {
-    animation: breathing 3s infinite ease-in-out;
-}
-
-.avatar-listening {
-    animation: listening 1.2s infinite ease-in-out;
-}
-
-.avatar-speaking {
-    animation: speaking 0.7s infinite ease-in-out;
-}
-
-.avatar-blinking {
-    animation: blinking 5s infinite ease-in-out;
-}
-
-.avatar-idle {
-    animation: idleMovement 12s infinite ease-in-out;
-}
-
-/* Definiciones de keyframes mejoradas */
-@keyframes breathing {
-    0%, 100% { 
-        transform: scale(1); 
-    }
-    50% { 
-        transform: scale(1.05); 
-    }
-}
-
-@keyframes listening {
-    0%, 100% { 
-        transform: translateY(0); 
-    }
-    50% { 
-        transform: translateY(-8px); 
-    }
-}
-
-@keyframes speaking {
-    0%, 100% { 
-        transform: scale(1); 
-        opacity: 1;
-    }
-    25% { 
-        transform: scale(1.08); 
-        opacity: 0.95;
-    }
-    50% { 
-        transform: scale(1); 
-        opacity: 1;
-    }
-    75% { 
-        transform: scale(1.05); 
-        opacity: 0.97;
-    }
-}
-
-@keyframes blinking {
-    0%, 88% { 
-        opacity: 1; 
-    }
-    90%, 92% { 
-        opacity: 0.3; 
-    }
-    94%, 100% { 
-        opacity: 1; 
-    }
-}
-
-@keyframes idleMovement {
-    0%, 100% { 
-        transform: translateX(0) rotate(0); 
-    }
-    33% { 
-        transform: translateX(3px) rotate(0.7deg); 
-    }
-    66% { 
-        transform: translateX(-3px) rotate(-0.7deg); 
-    }
-}
-    </style>
-</head>
-<body>
-    <div class="main-container">
-        <h4 class="mb-4">CimaBot - Videochat con Chat Integrado</h4>
-        
-        <!-- Alerta para permisos -->
-        <div id="permissionAlert" class="alert alert-warning permission-alert hidden">
-            <strong>Permisos requeridos:</strong> Por favor, permite el acceso a tu cámara y micrófono para usar esta función.
-            <button id="retryPermissionBtn" class="btn btn-sm btn-warning ms-2">Intentar nuevamente</button>
-        </div>
-        
-        <div class="video-container">
-            <div class="video-box">
-                <div id="localVideoContainer">
-                    <video id="localVideo" autoplay playsinline muted></video>
-                    <div id="emotionDisplay" class="emotion-display hidden">Emoción: Analizando...</div>
-                    <div id="emotionProgress" class="emotion-progress hidden">Cargando modelos: 0%</div>
-                    <div id="emotionHistory" class="emotion-history hidden"></div>
-                    <div id="speechStatus" class="speech-recognition-status hidden">Escuchando...</div>
-                    <h6>Tu cámara</h6>
-                    <div class="video-controls">
-                        <button id="toggleVideo" class="btn btn-media btn-primary">
-                            <i class="bi bi-camera-video"></i>
-                        </button>
-                        <button id="toggleEmotion" class="btn btn-media btn-primary">
-                            <i class="bi bi-emoji-smile"></i>
-                        </button>
-                        <button id="toggleSpeechRecognition" class="btn btn-media btn-success">
-                            <i class="bi bi-mic-mute"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="video-box">
-                <div id="remoteVideoContainer">
-                    <div class="avatar-container" id="avatarContainer">
-                        <img src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png" alt="Avatar de CimaBot" class="avatar-image" id="cimaBotAvatar">
-                    </div>
-                    <video id="remoteVideo" autoplay playsinline class="hidden"></video>
-                    <h6>CimaBot</h6>
-                    <div class="connection-status" id="connectionStatus">
-                        Desconectado
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="chat-container">
-            <div class="chat-messages">
-                <div class="chat-header">
-                    Chat con CimaBot
-                </div>
-                <div class="chat-body" id="chatBody">
-                    <div class="typing-indicator" id="typingIndicator">
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                    </div>
-                </div>
-                <div class="chat-input-container">
-                    <form id="chatForm" onsubmit="sendMessage(event)">
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="messageInput" 
-                                   placeholder="Escribe tu mensaje..." required>
-                            <button class="btn btn-primary" type="submit">
-                                <i class="bi bi-send"></i>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Iconos de Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    
-    <!-- Incluir face-api.js para detección de emociones -->
-    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-    
-    <script>
-        // Variables globales
-        let chatHistory = [];
-        let currentEmotion = null;
-        let localStream = null;
-        let peerConnection = null;
-        let isVideoOn = true;
-        let isEmotionDetectionOn = false;
-        let emotionDetectionInterval = null;
-        let emotionHistory = [];
-        let isSpeechRecognitionOn = false;
-        let speechRecognizer = null;
-        let finalTranscript = '';
-        let avatarState = 'idle'; // Estados: idle, listening, speaking, processing
-        let avatarAnimationInterval = null;
-        
-        // Traducción de emociones
-        const emociones_es = {
-            "happy": "Feliz",
-            "sad": "Triste",
-            "angry": "Enojado",
-            "surprised": "Sorprendido",
-            "fearful": "Miedo",
-            "disgusted": "Asco",
-            "neutral": "Neutral"
-        };
-        
-        // Elementos del DOM
-        const localVideo = document.getElementById('localVideo');
-        const remoteVideo = document.getElementById('remoteVideo');
-        const cimaBotAvatar = document.getElementById('cimaBotAvatar');
-        const avatarContainer = document.getElementById('avatarContainer');
-        const toggleVideoBtn = document.getElementById('toggleVideo');
-        const toggleEmotionBtn = document.getElementById('toggleEmotion');
-        const toggleSpeechRecognitionBtn = document.getElementById('toggleSpeechRecognition');
-        const connectionStatus = document.getElementById('connectionStatus');
-        const chatBody = document.getElementById('chatBody');
-        const messageInput = document.getElementById('messageInput');
-        const typingIndicator = document.getElementById('typingIndicator');
-        const permissionAlert = document.getElementById('permissionAlert');
-        const retryPermissionBtn = document.getElementById('retryPermissionBtn');
-        const emotionDisplay = document.getElementById('emotionDisplay');
-        const emotionProgress = document.getElementById('emotionProgress');
-        const emotionHistoryDisplay = document.getElementById('emotionHistory');
-        const speechStatus = document.getElementById('speechStatus');
-        
-        // Control de animaciones del avatar
-      function setAvatarState(state) {
-        if (avatarState === state) return;
-            
-            avatarState = state;
-            
-            // Remover todas las clases de animación primero
-            cimaBotAvatar.classList.remove(
-                'avatar-breathing', 
-                'avatar-listening', 
-                'avatar-speaking', 
-                'avatar-blinking',
-                'avatar-idle'
-            );
-            
-            // Aplicar las animaciones correspondientes al nuevo estado
-            switch(state) {
-                case 'idle':
-                    // Animación de respiración + parpadeo + movimiento suave
-                    setTimeout(() => {
-                        cimaBotAvatar.classList.add('avatar-breathing', 'avatar-blinking', 'avatar-idle');
-                    }, 100);
-                    break;
-                    
-                case 'listening':
-                    // Animación de escucha (movimiento vertical)
-                    setTimeout(() => {
-                        cimaBotAvatar.classList.add('avatar-listening');
-                    }, 100);
-                    break;
-                    
-                case 'speaking':
-                    // Animación de habla (pulsación más pronunciada)
-                    setTimeout(() => {
-                        cimaBotAvatar.classList.add('avatar-speaking');
-                    }, 100);
-                    break;
-                    
-                case 'processing':
-                    // Similar a escuchar pero con respiración
-                    setTimeout(() => {
-                        cimaBotAvatar.classList.add('avatar-listening', 'avatar-breathing');
-                    }, 100);
-                    break;
-            }
-            
-            console.log("Avatar state changed to:", state);
-        }
-                
-        // Animación aleatoria para mantener vivo el avatar
-        function startRandomAvatarAnimations() {
-            if (avatarAnimationInterval) clearInterval(avatarAnimationInterval);
-            
-            avatarAnimationInterval = setInterval(() => {
-                if (avatarState === 'idle') {
-                    // Pequeñas animaciones aleatorias mientras está inactivo
-                    const random = Math.random();
-                    if (random < 0.3) {
-                        // Parpadeo extra
-                        cimaBotAvatar.style.animation = 'blinking 4s infinite ease-in-out';
-                        setTimeout(() => {
-                            if (avatarState === 'idle') {
-                                cimaBotAvatar.style.animation = 'breathing 4s infinite ease-in-out, blinking 4s infinite ease-in-out, idleMovement 8s infinite ease-in-out';
-                            }
-                        }, 200);
-                    }
-                }
-            }, 5000);
-        }
-        
-        // Cargar modelos de face-api.js desde CDN alternativo
-        async function loadModels() {
-            try {
-                emotionProgress.classList.remove('hidden');
-                emotionProgress.textContent = "Cargando modelos: 0%";
-                
-                // Configurar la ruta base para los modelos (usando un CDN público)
-                faceapi.env.monkeyPatch({
-                    createCanvasElement: () => document.createElement('canvas'),
-                    createImageElement: () => document.createElement('img')
-                });
-                
-                // URLs de los modelos desde un CDN público
-                const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
-                
-                // Cargar modelos con progreso
-                const modelsToLoad = [
-                    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL)
-                ];
-                
-                let loaded = 0;
-                const total = modelsToLoad.length;
-                
-                for (const modelPromise of modelsToLoad) {
-                    await modelPromise;
-                    loaded++;
-                    const progress = Math.round((loaded / total) * 100);
-                    emotionProgress.textContent = `Cargando modelos: ${progress}%`;
-                }
-                
-                emotionProgress.textContent = "Modelos cargados correctamente";
-                setTimeout(() => emotionProgress.classList.add('hidden'), 2000);
-                
-                console.log('Modelos cargados correctamente');
-                addMessageToChat('system', 'Modelos de reconocimiento facial cargados. Puedes activar el análisis de emociones.');
-                
-            } catch (error) {
-                console.error('Error cargando modelos:', error);
-                emotionProgress.textContent = "Error cargando modelos";
-                addMessageToChat('system', 
-                    'No se pudieron cargar los modelos de análisis de emociones. ' +
-                    'La función de reconocimiento facial no estará disponible.');
-                
-                // Desactivar el botón de emociones
-                toggleEmotionBtn.disabled = true;
-                toggleEmotionBtn.title = "Funcionalidad no disponible";
-            }
-        }
-        
-        // Detectar emociones en el video
-        async function detectEmotions() {
-            if (!isEmotionDetectionOn || !localVideo || !localStream) return;
-            
-            try {
-                const options = new faceapi.TinyFaceDetectorOptions({
-                    inputSize: 512,  // Tamaño mayor para mejor precisión
-                    scoreThreshold: 0.5  // Umbral de confianza
-                });
-                
-                const detections = await faceapi.detectAllFaces(
-                    localVideo, 
-                    options
-                ).withFaceLandmarks(true).withFaceExpressions();
-                
-                if (detections.length > 0) {
-                    const expressions = detections[0].expressions;
-                    const dominantEmotion = Object.entries(expressions).reduce(
-                        (a, b) => a[1] > b[1] ? a : b
-                    )[0];
-                    
-                    const confidence = expressions[dominantEmotion];
-                    const emotionText = emociones_es[dominantEmotion] || dominantEmotion;
-                    
-                    // Mostrar emoción con porcentaje de confianza
-                    emotionDisplay.textContent = `Emoción: ${emotionText} (${Math.round(confidence * 100)}%)`;
-                    emotionDisplay.classList.remove('hidden');
-                    
-                    // Guardar en historial (últimas 5 emociones)
-                    emotionHistory.push({
-                        emotion: emotionText,
-                        confidence: confidence,
-                        timestamp: new Date().toLocaleTimeString()
-                    });
-                    
-                    if (emotionHistory.length > 5) {
-                        emotionHistory.shift();
-                    }
-                    
-                    // Mostrar historial formateado
-                    const historyText = emotionHistory.map(e => 
-                        `${e.emotion} (${Math.round(e.confidence * 100)}%)`
-                    ).join(' → ');
-                    
-                    emotionHistoryDisplay.textContent = `Historial: ${historyText}`;
-                    emotionHistoryDisplay.classList.remove('hidden');
-                    
-                    // Adaptar respuesta del bot según emoción
-                    adaptBotResponse(dominantEmotion, confidence);
-                } else {
-                    emotionDisplay.textContent = 'No se detectó rostro';
-                }
-            } catch (error) {
-                console.error('Error detectando emociones:', error);
-                emotionDisplay.textContent = 'Error en análisis';
-            }
-        }
-        
-        // Adaptar respuesta del bot según la emoción detectada
-        function adaptBotResponse(emotion, confidence) {
-            currentEmotion = emotion;
-            // Solo adaptar si la confianza es mayor al 60%
-            if (confidence > 0.6) {
-                let response = "";
-                
-                switch(emotion) {
-                    case "happy":
-                        response = "Pareces estar de buen humor hoy. ¿Te gustaría compartir qué te hace sentir así?";
-                        break;
-                    case "sad":
-                        response = "Noto que podrías estar sintiéndote un poco triste. ¿Quieres hablar sobre ello?";
-                        break;
-                    case "angry":
-                        response = "Percibo que podrías estar molesto. ¿Hay algo en particular que te esté molestando?";
-                        break;
-                    case "surprised":
-                        response = "¡Vaya! Pareces sorprendido. ¿Qué ha ocurrido?";
-                        break;
-                    case "fearful":
-                        response = "Noto cierta preocupación en ti. ¿Hay algo que te esté causando ansiedad?";
-                        break;
-                    default:
-                        // No hacer nada para emociones neutrales o con baja confianza
-                        return;
-                }
-                
-                // Agregar mensaje del bot si no hay mensajes recientes
-                const lastMessages = Array.from(chatBody.querySelectorAll('.message')).slice(-3);
-                const hasRecentBotMessage = lastMessages.some(msg => 
-                    msg.classList.contains('bot-message') && 
-                    msg.textContent.includes(response.substring(0, 20))
-                );
-                
-                if (!hasRecentBotMessage) {
-                    addMessageToChat('assistant', response);
-                }
-            }
-        }
-        
-        // Alternar detección de emociones
-        function toggleEmotionDetection() {
-            if (toggleEmotionBtn.disabled) {
-                addMessageToChat('system', 'El análisis de emociones no está disponible en este momento.');
-                return;
-            }
-            
-            isEmotionDetectionOn = !isEmotionDetectionOn;
-            
-            if (isEmotionDetectionOn) {
-                if (!localStream || !localStream.getVideoTracks()[0].enabled) {
-                    addMessageToChat('system', 'Por favor, activa tu cámara primero para usar el análisis de emociones.');
-                    isEmotionDetectionOn = false;
-                    return;
-                }
-                
-                toggleEmotionBtn.innerHTML = `<i class="bi bi-emoji-smile-fill"></i>`;
-                emotionDisplay.classList.remove('hidden');
-                emotionHistoryDisplay.classList.remove('hidden');
-                
-                // Iniciar detección cada 1 segundo (para mejor rendimiento)
-                emotionDetectionInterval = setInterval(detectEmotions, 1000);
-                addMessageToChat('system', 'Análisis de emociones activado. Ahora puedo detectar tus expresiones faciales.');
-            } else {
-                toggleEmotionBtn.innerHTML = `<i class="bi bi-emoji-smile"></i>`;
-                emotionDisplay.classList.add('hidden');
-                emotionHistoryDisplay.classList.add('hidden');
-                
-                // Detener detección
-                if (emotionDetectionInterval) {
-                    clearInterval(emotionDetectionInterval);
-                    emotionDetectionInterval = null;
-                }
-                
-                addMessageToChat('system', 'Análisis de emociones desactivado.');
-            }
-        }
-        
-        // Inicializar reconocimiento de voz
-        function initSpeechRecognition() {
-            // Verificar si el navegador soporta reconocimiento de voz
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                addMessageToChat('system', 'Tu navegador no soporta reconocimiento de voz. Usa Chrome o Edge para esta función.');
-                toggleSpeechRecognitionBtn.disabled = true;
-                toggleSpeechRecognitionBtn.title = "Funcionalidad no disponible";
-                return;
-            }
-            
-            // Crear instancia de reconocimiento de voz
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            speechRecognizer = new SpeechRecognition();
-            
-            // Configurar reconocimiento de voz
-            speechRecognizer.continuous = true;
-            speechRecognizer.interimResults = true;
-            speechRecognizer.lang = 'es-ES';
-            
-            // Evento para resultados del reconocimiento
-            speechRecognizer.onresult = (event) => {
-                let interimTranscript = '';
-                
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript;
-                    if (event.results[i].isFinal) {
-                        finalTranscript += transcript;
-                        
-                        // Enviar automáticamente cuando se detecta una frase completa
-                        if (transcript.trim().length > 0) {
-                            sendMessageFromVoice(transcript);
-                            finalTranscript = ''; // Resetear después de enviar
-                        }
-                    } else {
-                        interimTranscript += transcript;
-                    }
-                }
-                
-                // Cambiar animación del avatar cuando se detecta voz
-                if (interimTranscript.length > 0) {
-                    setAvatarState('listening');
-                }
-            };
-            
-            // Manejar errores
-            speechRecognizer.onerror = (event) => {
-                console.error('Error en reconocimiento de voz:', event.error);
-                speechStatus.textContent = `Error: ${event.error}`;
-                setTimeout(() => speechStatus.classList.add('hidden'), 2000);
-            };
-            
-            // Cuando termina el reconocimiento (por pausa)
-            speechRecognizer.onend = () => {
-                if (isSpeechRecognitionOn) {
-                    speechRecognizer.start(); // Reiniciar si aún está activo
-                }
-            };
-        }
-        
-        // Alternar reconocimiento de voz
-        function toggleSpeechRecognition() {
-            if (!speechRecognizer) {
-                initSpeechRecognition();
-            }
-            
-            isSpeechRecognitionOn = !isSpeechRecognitionOn;
-            
-            if (isSpeechRecognitionOn) {
-                if (!localStream || !localStream.getAudioTracks()[0].enabled) {
-                    addMessageToChat('system', 'Por favor, activa tu micrófono primero para usar el reconocimiento de voz.');
-                    isSpeechRecognitionOn = false;
-                    return;
-                }
-                
-                try {
-                    finalTranscript = ''; // Resetear el transcript
-                    speechRecognizer.start();
-                    toggleSpeechRecognitionBtn.innerHTML = `<i class="bi bi-mic-fill"></i>`;
-                    speechStatus.textContent = "Escuchando...";
-                    speechStatus.classList.remove('hidden');
-                    setAvatarState('listening');
-                    addMessageToChat('system', 'Reconocimiento de voz activado. Ahora puedes hablar y tu voz se convertirá en texto.');
-                } catch (error) {
-                    console.error('Error al iniciar reconocimiento de voz:', error);
-                    addMessageToChat('system', 'Error al activar el reconocimiento de voz. Intenta recargar la página.');
-                    isSpeechRecognitionOn = false;
-                }
-            } else {
-                speechRecognizer.stop();
-                toggleSpeechRecognitionBtn.innerHTML = `<i class="bi bi-mic-mute"></i>`;
-                speechStatus.textContent = "Reconocimiento pausado";
-                setTimeout(() => speechStatus.classList.add('hidden'), 2000);
-                setAvatarState('idle');
-                addMessageToChat('system', 'Reconocimiento de voz desactivado.');
-                
-                // Si hay texto no enviado, enviarlo
-                if (finalTranscript.trim().length > 0) {
-                    sendMessageFromVoice(finalTranscript);
-                    finalTranscript = '';
-                }
-            }
-        }
-        
-        async function sendMessageFromVoice(transcript) {
-            if (!transcript || transcript.trim().length === 0) return;
-            
-            // Agregar mensaje del usuario al chat
-            addMessageToChat('user', transcript);
-            chatHistory.push({role: 'user', content: transcript});
-            
-            // Cambiar a estado de procesamiento
-            setAvatarState('processing');
-            
-            // Mostrar indicador de que el bot está escribiendo
-            typingIndicator.style.display = 'block';
-            chatBody.scrollTop = chatBody.scrollHeight;
-            
-            try {
-                // Llamar a la API de ChatGPT (usando el mismo endpoint que el chat normal)
-                const response = await fetch('/chat-api', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        messages: chatHistory,
-                        emotion: currentEmotion
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Error en la respuesta del servidor');
-                }
-                
-                const data = await response.json();
-                typingIndicator.style.display = 'none';
-                
-                // Cambiar a estado de habla
-                setAvatarState('speaking');
-                
-                // Agregar respuesta al chat y al historial
-                addMessageToChat('assistant', data.response);
-                chatHistory.push({role: 'assistant', content: data.response});
-                
-                // Volver a estado de escucha después de un tiempo
-                setTimeout(() => {
-                    if (avatarState === 'speaking') {
-                        setAvatarState(isSpeechRecognitionOn ? 'listening' : 'idle');
-                    }
-                }, 3000);
-                
-            } catch (error) {
-                console.error('Error al obtener respuesta:', error);
-                typingIndicator.style.display = 'none';
-                setAvatarState('idle');
-                
-                const fallbackResponses = [
-                    "Lo siento, estoy teniendo dificultades técnicas. ¿Podrías repetir tu último mensaje?",
-                    "Parece que hay un problema con mi conexión. ¿Quieres intentarlo de nuevo?",
-                    "No pude procesar tu mensaje de voz. ¿Podrías intentarlo otra vez?"
-                ];
-                
-                const fallbackResponse = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
-                addMessageToChat('assistant', fallbackResponse);
-                chatHistory.push({role: 'assistant', content: fallbackResponse});
-            }
-        }
-        
-        // Inicializar cámara y micrófono
-        async function initMedia() {
-            try {
-                // Solicitar permisos
-                localStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: {
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 },
-                        facingMode: "user"
-                    }, 
-                    audio: true 
-                });
-                
-                permissionAlert.classList.add('hidden');
-                localVideo.srcObject = localStream;
-                connectionStatus.textContent = "Conectando...";
-                
-                // Configurar controles iniciales
-                toggleVideoBtn.innerHTML = `<i class="bi bi-camera-video"></i>`;
-                toggleEmotionBtn.innerHTML = `<i class="bi bi-emoji-smile"></i>`;
-                toggleSpeechRecognitionBtn.innerHTML = `<i class="bi bi-mic-mute"></i>`;
-                
-                // Iniciar animaciones del avatar
-                setAvatarState('idle');
-                startRandomAvatarAnimations();
-                
-                // Cargar modelos de reconocimiento facial
-                await loadModels();
-                
-                // Inicializar reconocimiento de voz (pero no activarlo aún)
-                initSpeechRecognition();
-                
-                // Simular conexión con el bot (en una implementación real usarías WebRTC)
-                setTimeout(() => {
-                    connectionStatus.textContent = "Conectado";
-                    
-                    // Mensaje de bienvenida del bot
-                    addMessageToChat('assistant', 
-                        '¡Hola! Soy CimaBot. Estamos conectados por video. ' +
-                        'Puedes hablarme directamente (activa el micrófono con el botón verde) ' +
-                        'o escribirme en el chat. ¿En qué puedo ayudarte hoy?');
-                }, 2000);
-                
-            } catch (error) {
-                console.error('Error al acceder a los dispositivos:', error);
-                
-                // Mostrar alerta de permisos
-                permissionAlert.classList.remove('hidden');
-                
-                // Actualizar estado de conexión
-                connectionStatus.textContent = "Permisos denegados";
-                
-                // Mostrar mensaje de error en el chat
-                addMessageToChat('system', 
-                    'No se pudo acceder a la cámara o micrófono. ' +
-                    'Por favor, otorga los permisos necesarios para continuar.');
-            }
-        }
-        
-        // Alternar video
-        toggleVideoBtn.addEventListener('click', () => {
-            if (localStream) {
-                const videoTrack = localStream.getVideoTracks()[0];
-                if (videoTrack) {
-                    videoTrack.enabled = !videoTrack.enabled;
-                    isVideoOn = videoTrack.enabled;
-                    toggleVideoBtn.innerHTML = `<i class="bi bi-camera-video${isVideoOn ? '' : '-off'}"></i>`;
-                    
-                    // Si el video se apaga, también apagar detección de emociones
-                    if (!isVideoOn && isEmotionDetectionOn) {
-                        toggleEmotionDetection();
-                    }
-                }
-            }
-        });
-        
-        // Alternar detección de emociones
-        toggleEmotionBtn.addEventListener('click', toggleEmotionDetection);
-        
-        // Alternar reconocimiento de voz
-        toggleSpeechRecognitionBtn.addEventListener('click', toggleSpeechRecognition);
-        
-        // Botón para reintentar permisos
-        retryPermissionBtn.addEventListener('click', () => {
-            permissionAlert.classList.add('hidden');
-            initMedia();
-        });
-        
-        // Función para enviar mensajes
-        async function sendMessage(event) {
-            event.preventDefault();
-            const message = messageInput.value.trim();
-            
-            if (!message) return;
-            
-            // Agregar mensaje del usuario al chat
-            addMessageToChat('user', message);
-            chatHistory.push({role: 'user', content: message});
-            messageInput.value = '';
-            
-            // Cambiar a estado de procesamiento
-            setAvatarState('processing');
-            
-            // Mostrar indicador de que el bot está escribiendo
-            typingIndicator.style.display = 'block';
-            chatBody.scrollTop = chatBody.scrollHeight;
-            
-            try {
-                // Llamar a la API de ChatGPT
-                const response = await fetch('/chat-api', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        messages: chatHistory,
-                        emotion: currentEmotion // Opcional: pasar emoción detectada
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Error en la respuesta del servidor');
-                }
-                
-                const data = await response.json();
-                typingIndicator.style.display = 'none';
-                
-                // Cambiar a estado de habla
-                setAvatarState('speaking');
-                
-                // Agregar respuesta al chat y al historial
-                addMessageToChat('assistant', data.response);
-                chatHistory.push({role: 'assistant', content: data.response});
-                
-                // Volver a estado inactivo después de un tiempo
-                setTimeout(() => {
-                    if (avatarState === 'speaking') {
-                        setAvatarState('idle');
-                    }
-                }, 3000);
-                
-            } catch (error) {
-                console.error('Error al obtener respuesta:', error);
-                typingIndicator.style.display = 'none';
-                setAvatarState('idle');
-                
-                // Respuesta de respaldo si falla la API
-                const fallbackResponses = [
-                    "Lo siento, estoy teniendo dificultades técnicas. ¿Podrías repetir tu última pregunta?",
-                    "Parece que hay un problema con mi conexión. Intentemos nuevamente.",
-                    "No puedo procesar tu solicitud en este momento. ¿Quieres intentarlo de nuevo?"
-                ];
-                
-                const fallbackResponse = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
-                addMessageToChat('assistant', fallbackResponse);
-                chatHistory.push({role: 'assistant', content: fallbackResponse});
-            }
-        }
-        
-        // Función para agregar mensajes al chat
-        function addMessageToChat(role, content) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${role === 'user' ? 'user-message' : 'bot-message'}`;
-            messageDiv.textContent = content;
-            chatBody.appendChild(messageDiv);
-            chatBody.scrollTop = chatBody.scrollHeight;
-        }
-        
-        // Permitir enviar mensaje con Enter
-        messageInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                document.getElementById('chatForm').dispatchEvent(new Event('submit'));
-            }
-        });
-        
-        // Inicializar la aplicación cuando el DOM esté listo
-        document.addEventListener('DOMContentLoaded', function() {
-            // Verificar si el navegador soporta los APIs necesarios
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                addMessageToChat('system', 
-                    'Tu navegador no soporta las características necesarias para el videochat. ' +
-                    'Por favor, usa Chrome, Firefox o Edge.');
-                return;
-            }
-            
-            // Iniciar medios
-            initMedia();
-        });
-    </script>
-</body>
+</script>
 </html>
     """
-
 
 @app.get("/formulario_identificacion_contacto", response_class=HTMLResponse)
 def formulario_identificacion_contacto():
@@ -2523,6 +999,7 @@ async def guardar_datos_contacto(
         conn.close()
 
     return {"status": "success", "message": "Datos guardados correctamente"}
+
 @app.get("/preguntas_premium", response_class=HTMLResponse)
 def mostrar_preguntas(usuario_id: int, pagina: int = Query(1, alias="pagina")):
     # Definición de categorías y preguntas asociadas
@@ -4004,7 +2481,7 @@ def generar_graficos_por_categoria(valores_respuestas):
     plt.savefig("statics/radar_general.png", dpi=300, bbox_inches="tight")
     plt.close()
 
-def generar_graficos_interactivos(valores_respuestas,usuario_id):
+def generar_graficos_interactivos(valores_respuestas):
     categorias = ["Ambiental", "Vital", "Emocional", "Mental", "Existencial", "Financiera"]
     dimensiones = {
         "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
@@ -4060,14 +2537,6 @@ def generar_graficos_interactivos(valores_respuestas,usuario_id):
         }
     }
     
-    # Blue color palette
-    primary_color = '#1f77b4'
-    secondary_color = '#4a90e2'
-    fill_color = 'rgba(74, 144, 226, 0.3)'
-    grid_color = 'rgba(200, 200, 200, 0.5)'
-    text_color = '#333333'
-    bg_color = 'rgba(245, 248, 250, 0.8)'
-    
     # Generate individual radar charts for each category
     individual_charts = []
     inicio = 0
@@ -4087,30 +2556,19 @@ def generar_graficos_interactivos(valores_respuestas,usuario_id):
             for i, d in enumerate(dim)
         ]
         
-        # Create radar chart with modern blue theme and smaller size
+        # Create radar chart
         fig = go.Figure()
         
-        # Add trace for the data
         fig.add_trace(go.Scatterpolar(
-            r=np.append(valores, valores[0]),
-            theta=np.append(dim, dim[0]),
+            r=valores,
+            theta=dim,
             fill='toself',
             name=categoria,
-            line=dict(color=primary_color, width=2),
-            fillcolor=fill_color,
-            customdata=np.append(respuestas_categoria, respuestas_categoria[0]),
+            line=dict(color='#2E8B57'),
+            fillcolor='rgba(144, 238, 144, 0.5)',
+            customdata=respuestas_categoria,
             hovertemplate="<b>%{theta}</b><br>%{text}<br>Valor original: %{customdata}<extra></extra>",
-            text=np.append(tooltips, tooltips[0])
-        ))
-        
-        # Add a circle at 50% for reference
-        fig.add_trace(go.Scatterpolar(
-            r=[0.5]*len(dim),
-            theta=dim,
-            mode='lines',
-            line=dict(color='gray', width=1, dash='dot'),
-            showlegend=False,
-            hoverinfo='none'
+            text=tooltips
         ))
         
         fig.update_layout(
@@ -4119,46 +2577,30 @@ def generar_graficos_interactivos(valores_respuestas,usuario_id):
                     visible=True,
                     range=[0, 1],
                     tickvals=[0, 0.2, 0.4, 0.6, 0.8, 1],
-                    ticktext=["0%", "20%", "40%", "60%", "80%", "100%"],
-                    gridcolor=grid_color,
-                    linewidth=1.5,
-                    tickfont=dict(size=9)
+                    ticktext=["0%", "20%", "40%", "60%", "80%", "100%"]
                 ),
                 angularaxis=dict(
                     direction="clockwise",
-                    rotation=90,
-                    linecolor='gray',
-                    gridcolor=grid_color,
-                    tickfont=dict(size=10)
-                ),
-                bgcolor=bg_color
+                    rotation=90
+                )
             ),
-            title=dict(
-                text=f'<b>{categoria}</b><br><span style="font-size:12px;color:gray">Promedio: {promedio*100:.1f}%</span>',
-                x=0.5,
-                xanchor='center',
-                font=dict(size=16, color=text_color)
-            ),
+            title=f'<b>Perfil en {categoria}</b><br><span style="font-size:14px;color:gray">Promedio: {promedio*100:.1f}%</span>',
             showlegend=False,
-            height=400,  # Reduced from 600
-            width=500,   # Reduced from 700
-            margin=dict(t=80, b=40, l=40, r=40),  # Reduced margins
+            height=600,
             template='plotly_white',
             font=dict(
                 family="Arial, sans-serif",
-                size=11,  # Slightly smaller font
-                color=text_color
-            ),
-            paper_bgcolor='white',
-            plot_bgcolor='rgba(0,0,0,0)'
+                size=12,
+                color="RebeccaPurple"
+            )
         )
         
         # Save as HTML
         filename = f"radar_{categoria.lower()}.html"
-        fig.write_html(filename, full_html=False, include_plotlyjs='cdn')
+        fig.write_html(filename)
         individual_charts.append(filename)
     
-    # Generate consolidated radar chart with smaller size
+    # Generate consolidated radar chart
     promedios_categorias = []
     inicio = 0
     
@@ -4173,28 +2615,14 @@ def generar_graficos_interactivos(valores_respuestas,usuario_id):
     # Create consolidated radar chart
     fig_consolidado = go.Figure()
     
-    # Add main trace
     fig_consolidado.add_trace(go.Scatterpolar(
-        r=np.append(promedios_categorias, promedios_categorias[0]),
-        theta=np.append(categorias, categorias[0]),
+        r=promedios_categorias,
+        theta=categorias,
         fill='toself',
         name='Perfil General',
-        line=dict(color=primary_color, width=2.5),
-        fillcolor=fill_color,
-        hoverinfo='r+theta',
-        hovertemplate='<b>%{theta}</b><br>Puntuación: %{r:.0%}<extra></extra>'
+        line=dict(color='#2E8B57'),
+        fillcolor='rgba(144, 238, 144, 0.5)'
     ))
-    
-    # Add reference circles
-    for level in [0.2, 0.4, 0.6, 0.8]:
-        fig_consolidado.add_trace(go.Scatterpolar(
-            r=[level]*7,
-            theta=categorias + [categorias[0]],
-            mode='lines',
-            line=dict(color='gray', width=0.5, dash='dot'),
-            showlegend=False,
-            hoverinfo='none'
-        ))
     
     fig_consolidado.update_layout(
         polar=dict(
@@ -4202,821 +2630,333 @@ def generar_graficos_interactivos(valores_respuestas,usuario_id):
                 visible=True,
                 range=[0, 1],
                 tickvals=[0, 0.2, 0.4, 0.6, 0.8, 1],
-                ticktext=["0%", "20%", "40%", "60%", "80%", "100%"],
-                gridcolor=grid_color,
-                linewidth=1.5,
-                tickfont=dict(size=10)  # Smaller font
+                ticktext=["0%", "20%", "40%", "60%", "80%", "100%"]
             ),
             angularaxis=dict(
                 direction="clockwise",
-                rotation=90,
-                linecolor='gray',
-                gridcolor=grid_color,
-                tickfont=dict(size=11)  # Smaller font
-            ),
-            bgcolor=bg_color
+                rotation=90
+            )
         ),
-        title=dict(
-            text='<b>Perfil General</b>',
-            x=0.5,
-            y=0.95,
-            xanchor='center',
-            font=dict(size=18, color=text_color)  # Smaller title
-        ),
+        title='<b>Perfil General de Bienestar</b>',
         showlegend=False,
-        height=500,  # Reduced from 700
-        width=600,   # Reduced from 800
-        margin=dict(t=100, b=150, l=60, r=60),  # Reduced margins
+        height=700,
         template='plotly_white',
-        font=dict(family="Arial", size=11, color=text_color),  # Smaller font
-        paper_bgcolor='white'
+        font=dict(
+            family="Arial, sans-serif",
+            size=12,
+            color="RebeccaPurple"
+        )
     )
-     
+    
+    # Add table with percentages
+    tabla_df = pd.DataFrame({
+        "Categoría": categorias,
+        "Porcentaje": [f"{v*100:.1f}%" for v in promedios_categorias]
+    })
+    
+    fig_consolidado.add_annotation(
+        x=0.5,
+        y=-0.3,
+        xref="paper",
+        yref="paper",
+        text=tabla_df.to_html(index=False),
+        showarrow=False,
+        align="center",
+        bordercolor="#333333",
+        borderwidth=1,
+        borderpad=4,
+        bgcolor="#ffffff"
+    )
+    
     # Save consolidated chart
     consolidated_filename = "radar_general.html"
-    fig_consolidado.write_html(consolidated_filename, full_html=False, include_plotlyjs='cdn')
+    fig_consolidado.write_html(consolidated_filename)
     
-    # Generate dashboard (assuming this function exists)
-    generate_dashboard(individual_charts, consolidated_filename,usuario_id)
-    
+    # Generate a dashboard HTML that combines all charts
+    # Asumo que tienes una función generate_dashboard definida en otro lugar
+    generate_dashboard(individual_charts, consolidated_filename)
     return individual_charts + [consolidated_filename]
-def obtener_imagen_categoria(categoria):
-    """Devuelve URL de imagen representativa para cada categoría"""
-    imagenes = {
-        "Ambiental": "https://images.unsplash.com/photo-1541332693222-7a3ac02abb0c",
-        "Vital": "https://images.unsplash.com/photo-1617465811498-69b30dbfd82e",
-        "Emocional": "https://images.unsplash.com/photo-1615361012778-56ee35ec8bc5",
-        "Mental": "https://images.unsplash.com/photo-1633174504412-830d4d745638",
-        "Existencial": "https://images.unsplash.com/photo-1700418980234-afc1c5597ff1",
-        "Financiera": "https://images.unsplash.com/photo-1683307367585-004c8522df2f"
-    }
-    return imagenes.get(categoria, "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40")
 
-def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
-    import os
-    import webbrowser
-    import json
-    from openai import OpenAI 
-    import re
 
-    # Configuración de OpenAI (reemplaza con tu API key)
-    
-   
-    def get_chatgpt_interpretation(category, score, dimensions, dimension_scores):
-        """Obtiene interpretación de ChatGPT para una categoría usando la API v1.0.0+"""
-        try:
-            prompt = f"""Como experto en bienestar, analiza estos resultados:
-
-            Categoría: {category}
-            Puntuación: {score}/10
-            Dimensiones: {', '.join(f'{d}:{s}' for d,s in zip(dimensions, dimension_scores))}
-
-            Proporciona:
-            1. Interpretación breve (1 frases) y en la respuesta no aparezca Interpretación breve
-            2. 1 Fortaleza y áreas a mejorar
-            Usa un tono profesional y constructivo en español."""
-
-            response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "Eres un coach de bienestar experto."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=350
-            )
-            return response.choices[0].message.content
-        except Exception as e:
-            print(f"Error al obtener interpretación de ChatGPT: {e}")
-            return None
-
-    # Leer los datos de los gráficos generados
-    categorias = ["Ambiental", "Vital", "Emocional", "Mental", "Existencial", "Financiera"]
-    
-    # Dimensiones para cada categoría
-    dimensiones = {
-        "Ambiental": ["Autocuidado", "Armonía ambiental", "Accesibilidad Ambiental", "Atención preventiva", "Conciencia ambiental"],
-        "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
-        "Emocional": ["Autoconocimiento", "Autoregulación", "Cuidado Personal", "Motivación", "Resiliencia"],
-        "Mental": ["Disfruta De La Realidad", "Manejo Del Stress", "Relaciones Saludables", "Conexión Con Otros", "Seguridad Y Confianza"],
-        "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Por Qué Estoy Aquí?", "Propósito De Vida", "Quién Soy"],
-        "Financiera": ["Ahorro", "Deuda", "Ingresos", "Inversión", "Presupuesto"]
-    }
-
-    # Obtener los valores promedio de cada categoría y las puntuaciones por dimensión
-    promedios = {}
-    dimension_scores = {}
-    
-    for categoria in categorias:
-        chart_file = f"radar_{categoria.lower()}.html"
-        if chart_file in individual_charts:
-            with open(chart_file, 'r', encoding='utf-8') as f:
-                content = f.read()
-                
-                # Extraer el promedio
-                start = content.find("Promedio: ") + len("Promedio: ")
-                end = content.find("%", start)
-                promedio = float(content[start:end])
-                promedios[categoria] = promedio / 10
-                
-                # Extraer valores de dimensiones usando regex
-                data_match = re.search(r'customdata":\s*\[([^\]]+)\]', content)
-                if data_match:
-                    dim_values_str = data_match.group(1)
-                    dim_values = []
-                    for val in dim_values_str.split(','):
-                        try:
-                            clean_val = val.strip().strip('[').strip(']')
-                            if clean_val:
-                                dim_values.append(float(clean_val))
-                        except ValueError:
-                            continue
-                    
-                    dimension_scores[categoria] = dim_values[:5]
-    # Obtener interpretaciones de ChatGPT para cada categoría
-    ai_interpretations = {}
-    for categoria in categorias:
-        if categoria in promedios:
-            interpretation = get_chatgpt_interpretation(
-                categoria,
-                promedios[categoria],
-                dimensiones[categoria],
-                dimension_scores[categoria]
-            )
-            ai_interpretations[categoria] = interpretation or "Interpretación no disponible"
-
-    # Datos de interpretación para los tooltips
+def generate_dashboard(individual_charts, consolidated_chart):
+    # Datos de interpretación para los tooltips (puedes personalizarlos)
     interpretaciones = {
-        "Ambiental": "Tu relación con la Tierra es un reflejo de tu conexión con la vida. Tus hábitos cotidianos desde el consumo hasta el manejo de recursos muestran cómo honras el ecosistema del que formas parte. Esta evaluación te ayudará a identificar acciones para transformar tu impacto, no solo como un acto ecológico, sino como un compromiso con tu propio bienestar integral",
-        "Vital": "Tu cuerpo es el lienzo donde se refleja tu autocuidado. Los hábitos que has construido desde la nutrición hasta el descanso revelan cómo dialogas con tu energía física. Este análisis no juzga, sino que ilumina oportunidades para alinear tus acciones con las necesidades únicas de tu organismo.Aquí descubrirás cómo fortalecer tu vitalidad para que cada día sea una expresión de tu vitalidad",
-        "Emocional": "Las emociones son ventanas a tu mundo interno. Tus respuestas reflejan cómo entiendes y gestionas la alegría, el estrés o la incertidumbre, y cómo estas experiencias moldean tus relaciones y decisiones. Este espacio de observación te invita a observar patrones, celebrar tus avances y reconocer dónde puedes cultivar mayor equilibrio emocional para vivir con autenticidad y serenidad",
-        "Mental": "Tu mente es un jardín: sus pensamientos y creencias dan forma a tu realidad. Este análisis explora cómo cultivas flexibilidad ante los desafíos, gratitud frente a los logros y claridad en tus decisiones. Descubrirás si tus patrones mentales te acercan a la plenitud o si hay terrenos fértiles para sembrar nuevas perspectivas",
-        "Existencial": "¿Qué huella quieres grabar en el mundo? Tus respuestas revelan cómo conectas tus acciones diarias con un propósito más profundo. En esta introspección explorarás si tu vida actual resuena con tus valores y principios y como conectas con un propósito y sentido de vida superior",
-        "Financiera": "El dinero no solo se cuenta: se gestiona con mente y corazón. Tus elecciones financieras desde el ahorro hasta la inversión hablan de tus valores y tu capacidad para equilibrar lo práctico con lo emocional. Este análisis te guiará a identificar tu coeficiente emocional financiero, así como fortalezas y áreas donde transformar preocupaciones en estrategias claras, construyendo seguridad material y paz interior"
+        "Ambiental": "Cómo interactúas con tu entorno físico y espacios vitales",
+        "Vital": "Estado de tu salud física y hábitos de vida",
+        "Emocional": "Gestión de tus emociones y bienestar psicológico",
+        "Mental": "Estado cognitivo y manejo de pensamientos",
+        "Existencial": "Sentido de propósito y autoconocimiento profundo",
+        "Financiera": "Relación con el dinero y seguridad económica"
     }
 
-
-    # Colores y emojis para cada categoría
-    categoria_estilos = {
-        "Ambiental": {
-            "color": "teal", 
-            "emoji": "🌱",
-            "bg_color": "#E6FFFA",
-            "text_color": "#234E52",
-            "border_color": "#4FD1C5"
-        },
-        "Vital": {
-            "color": "green",
-            "emoji": "💪",
-            "bg_color": "#F0FFF4",
-            "text_color": "#22543D",
-            "border_color": "#68D391"
-        },
-        "Emocional": {
-            "color": "purple",
-            "emoji": "😊",
-            "bg_color": "#FAF5FF",
-            "text_color": "#44337A",
-            "border_color": "#B794F4"
-        },
-        "Mental": {
-            "color": "blue",
-            "emoji": "🧠",
-            "bg_color": "#EBF8FF",
-            "text_color": "#2C5282",
-            "border_color": "#63B3ED"
-        },
-        "Existencial": {
-            "color": "indigo",
-            "emoji": "🔍",
-            "bg_color": "#F8FAFF",
-            "text_color": "#3C366B",
-            "border_color": "#7F9CF5"
-        },
-        "Financiera": {
-            "color": "gray",
-            "emoji": "💰",
-            "bg_color": "#F7FAFC",
-            "text_color": "#4A5568",
-            "border_color": "#A0AEC0"
-        }
-    }
-
-    # Calcular el promedio general
-    promedio_general = sum(promedios.values()) / len(promedios) if promedios else 0
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT nombre, apellidos  FROM usuarios WHERE numero_identificacion = %s", (usuario_id,))
-    nombre_completo_global = cursor.fetchone()
-    nombre_completo = f"{nombre_completo_global[0]} {nombre_completo_global[1]}" 
-
-    # Generar el HTML del dashboard
     html_template = f"""
     <!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Análisis de Percepción del Bienestar</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-       :root {{
-      --color-primary: #6366F1;
-      --color-success: #10B981;
-      --color-warning: #F59E0B;
-      --color-danger: #EF4444;
-      --color-info: #3B82F6;
-      --color-purple: #8B5CF6;
-      --color-gray-100: #F3F4F6;
-      --color-gray-200: #E5E7EB;
-      --color-gray-300: #D1D5DB;
-      --color-gray-700: #374151;
-      --color-gray-900: #111827;
-      
-      /* Nueva paleta emocional */
-      --color-teal: #4FD1C5;
-      --color-green: #68D391;
-      --color-purple: #B794F4;
-      --color-blue: #63B3ED;
-      --color-indigo: #7F9CF5;
-      --color-gray: #A0AEC0;
-      
-      --color-teal-light: #E6FFFA;
-      --color-green-light: #F0FFF4;
-      --color-purple-light: #FAF5FF;
-      --color-blue-light: #EBF8FF;
-      --color-indigo-light: #F8FAFF;
-      --color-gray-light: #F7FAFC;
-      
-      --color-teal-dark: #234E52;
-      --color-green-dark: #22543D;
-      --color-purple-dark: #44337A;
-      --color-blue-dark: #2C5282;
-      --color-indigo-dark: #3C366B;
-      --color-gray-dark: #4A5568;
-    }}
-    
-    body {{
-      font-family: 'Inter', sans-serif;
-      background: #f9fafb;
-      margin: 0;
-      padding: 2rem;
-      color: var(--color-gray-900);
-      line-height: 1.6;
-    }}
-
-    .container {{
-      max-width: 1200px;
-      margin: 0 auto;
-    }}
-
-    h1 {{
-      font-family: 'Playfair Display', serif;
-      font-size: 2.25rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-      color: var(--color-gray-900);
-      line-height: 1.2;
-    }}
-
-    h2 {{
-      font-size: 1.25rem;
-      font-weight: 600;
-      margin-bottom: 1.5rem;
-      color: var(--color-gray-700);
-    }}
-
-    .header {{
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 2rem;
-    }}
-
-    .dashboard-grid {{
-      display: grid;
-      grid-template-columns: 1fr 1.5fr;
-      gap: 2rem;
-      align-items: start;
-    }}
-
-    @media (max-width: 768px) {{
-      .dashboard-grid {{
-        grid-template-columns: 1fr;
-      }}
-    }}
-
-    .summary-card {{
-      height: auto;
-      display: flex;
-      flex-direction: column;
-      min-height: 0;
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }}
-
-    .summary-image {{
-      width: 100%;
-      border-radius: 8px;
-      margin-bottom: 1rem;
-    }}
-
-    .metrics-container {{
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 1.5rem;
-      margin-top: 1.5rem;
-    }}
-
-    .metric-card {{
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-      transition: all 0.3s ease;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      height: 220px;
-      cursor: pointer;
-      border: 2px solid transparent;
-      position: relative;
-      overflow: hidden;
-    }}
-
-    .metric-card:hover {{
-      transform: translateY(-5px);
-      box-shadow: 0 10px 15px rgba(0,0,0,0.1);
-    }}
-
-    /* Estilos específicos por categoría */
-    .metric-card.teal {{
-      background: var(--color-teal-light);
-      border-color: var(--color-teal);
-      color: var(--color-teal-dark);
-    }}
-    
-    .metric-card.green {{
-      background: var(--color-green-light);
-      border-color: var(--color-green);
-      color: var(--color-green-dark);
-    }}
-    
-    .metric-card.purple {{
-      background: var(--color-purple-light);
-      border-color: var(--color-purple);
-      color: var(--color-purple-dark);
-    }}
-    
-    .metric-card.blue {{
-      background: var(--color-blue-light);
-      border-color: var(--color-blue);
-      color: var(--color-blue-dark);
-    }}
-    
-    .metric-card.indigo {{
-      background: var(--color-indigo-light);
-      border-color: var(--color-indigo);
-      color: var(--color-indigo-dark);
-    }}
-    
-    .metric-card.gray {{
-      background: var(--color-gray-light);
-      border-color: var(--color-gray);
-      color: var(--color-gray-dark);
-    }}
-
-    .metric-header {{
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 0.5rem;
-      text-align: center;
-      width: 100%;
-    }}
-
-    .metric-title {{
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 0.75rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }}
-
-    .metric-value {{
-      font-size: 2.5rem;
-      font-weight: 700;
-      margin: 0.75rem 0;
-      text-align: center;
-      font-feature-settings: 'tnum';
-      font-variant-numeric: tabular-nums;
-    }}
-    
-    .category-image {{
-      width: 100%;
-      height: 100px;
-      object-fit: cover;
-      border-radius: 8px;
-      margin-top: auto;
-      border: 1px solid rgba(0,0,0,0.1);
-    }}
-
-    .metric-footer {{
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: auto;
-      width: 100%;
-    }}
-    
-    .metrics-container {{
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 1.5rem;
-      margin-top: 1.5rem;
-    }}
-    
-    .progress-container {{
-      margin-top: 1.5rem;
-      background: white;
-      padding: 1.5rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }}
-
-    .progress-bar {{
-      height: 8px;
-      background: var(--color-gray-200);
-      border-radius: 4px;
-      overflow: hidden;
-      margin-top: 1rem;
-    }}
-
-    .progress-fill {{
-      height: 100%;
-      background: linear-gradient(90deg, var(--color-teal), var(--color-indigo));
-      border-radius: 4px;
-    }}
-
-    .level-indicator {{
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.85rem;
-      color: var(--color-gray-700);
-      margin-top: 0.75rem;
-    }}
-
-    .level-indicator span.active {{
-      color: var(--color-indigo);
-      font-weight: 600;
-    }}
-
-    .description {{
-      font-size: 1rem;
-      color: var(--color-gray-700);
-      margin-top: 1.5rem;
-      line-height: 1.6;
-    }}
-    
-    .highlight {{
-      font-weight: 600;
-      color: var(--color-indigo-dark);
-    }}
-
-    .emoji {{
-      font-size: 1.5rem;
-      margin-right: 0.5rem;
-    }}
-
-    /* Estilos para los iframes de gráficos */
-    .chart-container.consolidated {{
-      width: 100%;
-      height: 550px;
-      min-height: 500px;
-      border: none;
-      margin-bottom: 1.5rem;
-      background: white;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }}
-    
-    .chart-container iframe {{
-      width: 100%;
-      height: 100%;
-      border: none;
-    }}
-    
-    /* Modal Styles */
-    .modal {{
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0,0,0,0.5);
-      z-index: 1000;
-      justify-content: center;
-      align-items: center;
-    }}
-
-    .modal-content {{
-      background: white;
-      border-radius: 16px;
-      width: 90%;
-      max-width: 700px;
-      max-height: 90vh;
-      overflow-y: auto;
-      padding: 2.5rem;
-      box-shadow: 0 20px 25px rgba(0,0,0,0.2);
-      position: relative;
-    }}
-
-    .close-modal {{
-      position: absolute;
-      top: 1.5rem;
-      right: 1.5rem;
-      font-size: 1.75rem;
-      cursor: pointer;
-      color: var(--color-gray-700);
-      background: var(--color-gray-100);
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
-    }}
-
-    .modal-header {{
-      text-align: center;
-      margin-bottom: 2rem;
-    }}
-
-    .modal-header h2 {{
-      font-size: 1.75rem;
-      color: var(--color-gray-900);
-      margin-bottom: 0.75rem;
-      font-family: 'Playfair Display', serif;
-    }}
-
-    .modal-header .evaluation {{
-      font-size: 3rem;
-      font-weight: 700;
-      margin: 1.5rem 0;
-      color: var(--color-indigo-dark);
-    }}
-
-    .modal-section {{
-      margin-bottom: 2rem;
-    }}
-
-    .modal-section h3 {{
-      font-size: 1.25rem;
-      color: var(--color-gray-900);
-      margin-bottom: 1rem;
-      border-bottom: 2px solid var(--color-gray-200);
-      padding-bottom: 0.75rem;
-      font-weight: 600;
-    }}
-
-    .modal-section p {{
-      font-size: 1rem;
-      color: var(--color-gray-700);
-      line-height: 1.8;
-      text-align: justify;
-    }}
-
-    .metric-details {{
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1.5rem;
-      margin-top: 1.5rem;
-    }}
-
-    .metric-detail {{
-      background: var(--color-gray-100);
-      padding: 1rem;
-      border-radius: 8px;
-      border-left: 4px solid var(--color-indigo);
-    }}
-
-    .metric-detail .label {{
-      font-size: 0.9rem;
-      color: var(--color-gray-700);
-      font-weight: 500;
-    }}
-
-    .metric-detail .value {{
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin-top: 0.5rem;
-      color: var(--color-indigo-dark);
-    }}
-
-    .attention-section {{
-      background: var(--color-gray-100);
-      padding: 1.5rem;
-      border-radius: 12px;
-      margin-top: 2rem;
-      border-left: 4px solid var(--color-danger);
-    }}
-
-    .attention-section h3 {{
-      color: var(--color-danger);
-      margin-bottom: 1rem;
-    }}
-    
-    .intro-text {{
-      font-size: 1.05rem;
-      text-align: justify;
-      margin-bottom: 1.5rem;
-      color: var(--color-gray-700);
-      line-height: 1.8;
-      background: white;
-      padding: 1.5rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }}
-    .top-section {{
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 2rem;
-      margin-bottom: 2rem;
-    }}
-    
-    @media (max-width: 768px) {{
-      .top-section {{
-        grid-template-columns: 1fr;
-      }}
-    }}
-    
-    .consolidated-chart {{
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-      height: 100%;
-    }}
-    
-    .summary-container {{
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      height: 100%;
-    }}
-    
-    .metrics-section {{
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }}
-
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <div>
-        <h1>Análisis de Bienestar Personal</h1>
-          <h2>{f"Resumen para {nombre_completo}" if nombre_completo else "Resumen de tus métricas clave"}</h2>
-      </div>
-    </div>
-    <div class="dashboard-grid">
-      <div class="summary-card">
-        <div class="chart-container consolidated">
-          <iframe src="{consolidated_chart}" width="100%" height="100%"></iframe>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Dashboard de Bienestar Integral</title>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <style>
+            body {{
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                margin: 0;
+                padding: 20px;
+                background-color: #f8f9fa;
+            }}
+            .header {{
+                background: linear-gradient(135deg, #2E8B57, #3CB371);
+                color: white;
+                padding: 25px;
+                text-align: center;
+                border-radius: 10px;
+                margin-bottom: 30px;
+                box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+                position: relative;
+                overflow: hidden;
+            }}
+            .header::after {{
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path fill="rgba(255,255,255,0.1)" d="M0,0 L100,0 L100,100 L0,100 Z" /></svg>');
+                opacity: 0.1;
+            }}
+            .chart-container {{
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 25px;
+            }}
+            .chart-box {{
+                background-color: white;
+                border-radius: 10px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+                padding: 20px;
+                width: calc(50% - 40px);
+                min-width: 500px;
+                transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }}
+            .chart-box:hover {{
+                transform: translateY(-5px);
+                box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+            }}
+            .chart-title {{
+                text-align: center;
+                margin-bottom: 15px;
+                color: #2F4F4F;
+                font-size: 1.3em;
+                position: relative;
+                display: inline-block;
+            }}
+            .chart-title::after {{
+                content: '';
+                position: absolute;
+                bottom: -5px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 50px;
+                height: 3px;
+                background: #3CB371;
+                transition: width 0.3s;
+            }}
+            .chart-title:hover::after {{
+                width: 100%;
+            }}
+            .consolidated {{
+                width: 85%;
+                margin: 30px auto;
+            }}
+            iframe {{
+                width: 100%;
+                height: 600px;
+                border: none;
+                border-radius: 8px;
+                transition: all 0.3s;
+            }}
+            iframe:hover {{
+                box-shadow: 0 0 0 2px rgba(46, 139, 87, 0.3);
+            }}
+            .tabs {{
+                display: flex;
+                justify-content: center;
+                margin-bottom: 25px;
+                flex-wrap: wrap;
+            }}
+            .tab {{
+                padding: 12px 25px;
+                background-color: #e9ecef;
+                cursor: pointer;
+                border-radius: 30px;
+                margin: 0 8px 10px;
+                transition: all 0.3s;
+                font-weight: 500;
+                position: relative;
+            }}
+            .tab:hover {{
+                background-color: #d1e7dd;
+                color: #0a3622;
+            }}
+            .tab.active {{
+                background: linear-gradient(135deg, #2E8B57, #3CB371);
+                color: white;
+                box-shadow: 0 4px 8px rgba(46, 139, 87, 0.3);
+            }}
+            .tab-content {{
+                display: none;
+                animation: fadeIn 0.5s;
+            }}
+            @keyframes fadeIn {{
+                from {{ opacity: 0; }}
+                to {{ opacity: 1; }}
+            }}
+            .tab-content.active {{
+                display: block;
+            }}
+            /* Tooltip styles */
+            .tooltip {{
+                position: relative;
+                display: inline-block;
+            }}
+            .tooltip .tooltiptext {{
+                 visibility: hidden;
+                width: 180px;
+                background-color: #333;
+                color: #fff;
+                text-align: center;
+                border-radius: 6px;
+                padding: 8px;
+                position: absolute;
+                z-index: 1;
+                bottom: 125%;
+                left: 50%;
+                transform: translateX(-50%);
+                opacity: 0;
+                transition: opacity 0.3s;
+                font-size: 0.8em;  /* Tamaño más pequeño */
+                font-weight: normal;
+            }}
+            .tooltip .tooltiptext::after {{
+                content: "";
+                position: absolute;
+                top: 100%;
+                left: 50%;
+                margin-left: -5px;
+                border-width: 5px;
+                border-style: solid;
+                border-color: #333 transparent transparent transparent;
+            }}
+            .tooltip:hover .tooltiptext {{
+                visibility: visible;
+                opacity: 1;
+            }}
+            /* Info icon */
+            .info-icon {{
+                margin-left: 6px;
+                color: #6c757d;
+                cursor: help;
+                font-size: 0.65em; /* Más pequeño */
+                vertical-align: middle; /* Alinea con el texto */
+                transition: color 0.3s;
+            }}
+            .info-icon:hover {{
+                color: #2E8B57;
+            }}
+            /* Responsive design */
+            @media (max-width: 768px) {{
+                .chart-box {{
+                    width: 100%;
+                    min-width: auto;
+                }}
+                .consolidated {{
+                    width: 95%;
+                }}
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1><i class="fas fa-chart-pie"></i> Dashboard de Bienestar Integral</h1>
+            <p>Visualización de tu perfil de bienestar</p>
         </div>
-        <h2>Resumen General</h2>
-        <div class="progress-container">
-          <div class="progress-bar">
-            <div class="progress-fill" style="width: {{ promedio_general * 10 }}%"></div>
-          </div>
-          <div class="level-indicator">
-            <span class="{{ 'active' if promedio_general < 4.0 else '' }}">Bajo</span>
-            <span class="{{ 'active' if 4.0 <= promedio_general < 7.0 else '' }}">Medio</span>
-            <span class="{{ 'active' if promedio_general >= 7.0 else '' }}">Alto</span>
-          </div>
-        </div>
-        <div class="description">
-          Tu bienestar general se encuentra en un nivel {'bajo' if promedio_general < 4.0 else 'medio' if promedio_general < 7.0 else 'alto'}. 
-          Revisa las métricas detalladas para identificar áreas de mejora.
-        </div>
-      </div>
-      <div>
-        <div class="summary-card">
-          <h2>Métricas por Dimensión</h2>
-           <p style="text-align: justify; margin-bottom: 1rem; color: var(--color-gray-700); font-size: 0.9rem;">
-            Este informe ofrece una visión personal de tu bienestar integral, destacando tus fortalezas y áreas de mejora. 
-            Sirve como una herramienta de autoconocimiento que invita a la reflexión y acción, resaltando tu nivel de energía 
-            y disposición para enfrentar desafíos. Reconoce que el bienestar es un proceso dinámico, en el que celebrar tus 
-            logros y trabajar en tu desarrollo te acerca a una vida más plena y auténtica.
-        </p>
-            <div class="metrics-container">
-            {''.join([
-                f'''
-                <div class="metric-card {categoria_estilos[categoria]['color']}" onclick="showModal('{categoria}')">
-                    <span class="metric-title">{categoria}</span>
-                    <span class="metric-value">{promedios.get(categoria, 0):.1f}</span>
-                    <img src="{obtener_imagen_categoria(categoria)}" alt="{categoria}" class="category-image">
-                </div>
-                '''
-                for categoria in categorias
-            ])}
-        </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div id="detailModal" class="modal">
-    <div class="modal-content">
-      <span class="close-modal" onclick="closeModal()">&times;</span>
-      <div class="modal-header">
-        <h2 id="modalTitle">DETALLES</h2>
-            <div class="evaluation" id="modalEvaluation">0.0</div>
-            <p id="modalDescription" style="text-align: justify;">Descripción de la categoría seleccionada.</p>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('general')">
+                <i class="fas fa-globe"></i> Vista General
             </div>
-
-     <div class="modal-section">
-        <h3>INTERPRETACIÓN</h3>
-        <div id="modalInterpretation" style="white-space: pre-line; text-align: justify;">Interpretación generada automáticamente...</div>
+            <div class="tab" onclick="showTab('individual')">
+                <i class="fas fa-layer-group"></i> Vista por Categoría
+            </div>
         </div>
-
-      <div class="modal-section">
-        <h3>GRÁFICO</h3>
-        <div class="chart-container" style="height: 400px;">
-          <iframe id="modalChart" src="" width="100%" height="100%"></iframe>
+        
+        <div id="general" class="tab-content active">
+            <div class="chart-box consolidated">
+                <h2 class="chart-title">
+                    Perfil General
+                    <span class="tooltip">
+                        <i class="fas fa-info-circle info-icon"></i>
+                        <span class="tooltiptext">Esta vista muestra un resumen consolidado de todas tus áreas de bienestar</span>
+                    </span>
+                </h2>
+                <iframe src="{consolidated_chart}"></iframe>
+            </div>
         </div>
-      </div>
+        
+        <div id="individual" class="tab-content">
+            <div class="chart-container">
+                {"".join([f'''
+                <div class="chart-box">
+                    <h3 class="chart-title">
+                        {chart.replace("radar_", "").replace(".html", "").title()}
+                        <span class="tooltip">
+                            <i class="fas fa-info-circle info-icon"></i>
+                            <span class="tooltiptext">{interpretaciones.get(chart.replace("radar_", "").replace(".html", "").title(), "Información detallada sobre esta categoría")}</span>
+                        </span>
+                    </h3>
+                    <iframe src="{chart}"></iframe>
+                </div>
+                ''' for chart in individual_charts])}
+            </div>
+        </div>
+        
+        <script>
+            function showTab(tabId) {{
+                // Hide all tab contents
+                document.querySelectorAll('.tab-content').forEach(content => {{
+                    content.classList.remove('active');
+                }});
+                
+                // Show selected tab content
+                document.getElementById(tabId).classList.add('active');
+                
+                // Update tab styles
+                document.querySelectorAll('.tab').forEach(tab => {{
+                    tab.classList.remove('active');
+                }});
+                
+                event.currentTarget.classList.add('active');
+            }}
 
-      <div class="attention-section modal-section" id="modalAttention">
-        <h3>RECOMENDACIONES</h3>
-        <p id="modalRecommendations">Recomendaciones específicas para mejorar en esta área.</p>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // Datos de interpretaciones de IA
-    const aiInterpretations = {json.dumps(ai_interpretations)};
-    
-    function showModal(category) {{
-      // Actualizar el contenido del modal según la categoría seleccionada
-      document.getElementById('modalTitle').textContent = category.toUpperCase();
-      document.getElementById('modalEvaluation').textContent = {json.dumps(promedios)}[category].toFixed(1);
-      document.getElementById('modalDescription').textContent = {json.dumps(interpretaciones)}[category];
-      
-      // Mostrar interpretación de IA si está disponible
-      const interpretation = aiInterpretations[category] || "Interpretación no disponible en este momento.";
-      document.getElementById('modalInterpretation').textContent = interpretation;
-      
-      document.getElementById('modalChart').src = "radar_" + category.toLowerCase() + ".html";
-      
-      // Recomendaciones basadas en el puntaje
-      const score = {json.dumps(promedios)}[category];
-      let recommendations = "";
-      
-      if(score < 4) {{
-        recommendations = "Esta área necesita atención inmediata. Considera implementar cambios significativos y buscar apoyo profesional si es necesario.";
-        document.getElementById('modalAttention').style.display = 'block';
-      }} else if(score < 7) {{
-        recommendations = "Hay espacio para mejorar en esta área. Pequeños ajustes en tus hábitos podrían marcar una gran diferencia.";
-        document.getElementById('modalAttention').style.display = 'block';
-      }} else {{
-        recommendations = "¡Buen trabajo en esta área! Sigue manteniendo estos buenos hábitos y considera compartir tus estrategias con otros.";
-        document.getElementById('modalAttention').style.display = 'none';
-      }}
-      
-      document.getElementById('modalRecommendations').textContent = recommendations;
-
-      // Mostrar el modal
-      document.getElementById('detailModal').style.display = 'flex';
-    }}
-
-    function closeModal() {{
-      document.getElementById('detailModal').style.display = 'none';
-    }}
-
-    // Cerrar modal al hacer clic fuera del contenido
-    window.onclick = function(event) {{
-      const modal = document.getElementById('detailModal');
-      if (event.target === modal) {{
-        closeModal();
-      }}
-    }}
-  </script>
-</body>
-</html>
+            // Efecto adicional al pasar el mouse sobre los gráficos
+            document.querySelectorAll('.chart-box').forEach(box => {{
+                box.addEventListener('mouseenter', function() {{
+                    this.querySelector('iframe').style.transform = 'scale(1.01)';
+                }});
+                box.addEventListener('mouseleave', function() {{
+                    this.querySelector('iframe').style.transform = 'scale(1)';
+                }});
+            }});
+        </script>
+    </body>
+    </html>
     """
+    
     with open("dashboard_bienestar.html", "w", encoding="utf-8") as f:
         f.write(html_template)
 
@@ -5265,45 +3205,6 @@ def agregar_pie_pagina(c, width, page_num):
     c.setFont("Helvetica", 10)
     c.setFillColor(colors.black)
     c.drawCentredString(width - 40, 30, f"Página {page_num}")       
-
-def generar_recomendaciones_gpt(respuestas_usuario, nombre_usuario):
-    # Convertir respuestas a un formato legible para GPT
-    respuestas_texto = "\n".join([f"Pregunta: {pregunta}, Respuesta: {respuesta}" 
-                                for pregunta, respuesta in respuestas_usuario])
-    
-    prompt = f"""
-    Eres un experto en bienestar integral y coaching de vida. A continuación, encontrarás las respuestas de {nombre_usuario} a un cuestionario de autoevaluación en 6 dimensiones: 
-    - Salud física (Alimentación, Descanso, Ejercicio,Hábitos Saludables,Salud Vital Corporal)
-    - Salud emocional (Autoregulación, Cuidado Personal,Motivación,Resiliencia)
-    - Salud mental (Disfruta De La Realidad, Manejo Del Stress,Relaciones Saludables,Conexión Con Otros,Seguridad Y Confianza)
-    - Sentido existencial (Autenticidad Conmigo Mismo, Lo Que Piensas Te Motiva,Por Qué Estoy Aquí,Propósito De Vida,Quién Soy)
-    - Salud financiera (Ahorro, Deuda,Ingresos,Inversión,Presupuesto)
-    - Salud ambiental (Autocuidado, Armonía ambiental,Accesibilidad Ambiental,Atención preventiva,Conciencia ambiental)
-
-    Respuestas del usuario:
-    {respuestas_texto}
-
-    Por favor, genera:
-    1. Un análisis conciso (1 párrafo) destacando las fortalezas principales del usuario.
-    2. 3 áreas de oportunidad específicas basadas en sus respuestas más bajas.
-    3. 5 recomendaciones personalizadas y prácticas para mejorar, usando el formato:
-       - [Dimensión]: [Acción concreta] (Ej: "Salud física: Camina 20 minutos al día")
-    4. Una frase motivacional personalizada.
-
-    Usa un tono empático y profesional. Evita jerga médica.
-    """
-    
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-            max_tokens=500
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        print(f"Error al llamar a la API: {e}")
-        return None
      
     
 def generar_pdf_con_analisis(usuario_id):
@@ -5385,23 +3286,12 @@ def generar_pdf_con_analisis(usuario_id):
     # Convertir respuestas a valores numéricos
     valores_respuestas = np.array([int(respuesta) for _, respuesta in respuestas])
     generar_graficos_por_categoria(valores_respuestas)
-    generar_graficos_interactivos(valores_respuestas,usuario_id)
+    # generar_graficos_interactivos(valores_respuestas)
     
     # Análisis básico
     promedio = np.mean(valores_respuestas)
     min_valor = np.min(valores_respuestas)
     max_valor = np.max(valores_respuestas)
-
-    # recomendaciones_gpt = generar_recomendaciones_gpt(respuestas, nombre_completo)
-
-    # if recomendaciones_gpt:
-    #     secciones = recomendaciones_gpt.split("\n\n")  
-    #     fortalezas = secciones[0] if len(secciones) > 0 else ""
-    #     oportunidades = secciones[1] if len(secciones) > 1 else ""
-    #     recomendaciones = "\n".join(secciones[2:-1]) if len(secciones) > 2 else ""
-    #     motivacion = secciones[-1] if len(secciones) > 3 else ""
-    # else:
-    #     fortalezas = oportunidades = recomendaciones = motivacion = "No se pudieron generar recomendaciones personalizadas."
 
     # Determinar tendencias
     if promedio >= 8:
@@ -5892,7 +3782,7 @@ def generar_pdf_con_analisis_Premium(usuario_id):
     nombre_completo = f"{nombre_completo_global[0]} {nombre_completo_global[1]}"  # Concatena nombre y apellido
 
     c = canvas.Canvas(pdf_path, pagesize=letter)
-    width, height = letterb
+    width, height = letter
     background_path = "statics/BKVITAL.PNG"
     background_path_pie = "statics/pie.PNG"
     c = canvas.Canvas(pdf_path, pagesize=letter)
@@ -6551,7 +4441,6 @@ async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagi
                 ruta_descarga = f"/descargar_pdf_Premium?usuario_id={usuario_id}"
             else:
                 ruta_descarga = f"/descargar_pdf?usuario_id={usuario_id}"
-                
             contenido_html = f"""
             <html>
             <head>
@@ -6561,64 +4450,49 @@ async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagi
                 <style>
                     body {{
                         font-family: 'Roboto', sans-serif;
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        min-height: 100vh;
-                        margin: 0;
-                        background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+                        text-align: center;
+                        padding: 50px;
+                        background-color: #f4f4f4;
                     }}
                     .container {{
                         background: white;
-                        padding: 40px 30px;
-                        border-radius: 16px;
-                        box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.15);
+                        padding: 30px;
+                        border-radius: 12px;
+                        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+                        display: inline-block;
                         max-width: 500px;
-                        width: 90%;
-                        text-align: center;
-                        animation: fadeIn 0.8s ease-in-out;
                     }}
                     h1 {{
-                        color: #222;
-                        margin-bottom: 15px;
-                        font-size: 28px;
+                        color: #333;
                     }}
                     p {{
                         font-size: 18px;
-                        color: #555;
-                        margin-bottom: 25px;
+                        color: #666;
                     }}
                     button {{
                         background-color: #007bff;
                         color: white;
                         border: none;
-                        padding: 14px 28px;
-                        font-size: 17px;
-                        border-radius: 10px;
+                        padding: 15px 25px;
+                        font-size: 18px;
+                        border-radius: 8px;
                         cursor: pointer;
-                        margin: 10px 5px;
-                        transition: transform 0.2s, background 0.3s;
+                        margin-top: 20px;
+                        transition: background 0.3s ease-in-out;
                     }}
                     button:hover {{
                         background-color: #0056b3;
-                        transform: translateY(-2px);
-                    }}
-                    button:active {{
-                        transform: scale(0.97);
-                    }}
-                    @keyframes fadeIn {{
-                        from {{ opacity: 0; transform: translateY(-20px); }}
-                        to {{ opacity: 1; transform: translateY(0); }}
                     }}
                 </style>
             </head>
             <body>
-                <div class="container">
+                 <div class="container">
                     <h1>¡Gracias por tu tiempo!</h1>
-                    <p>Haz clic en el botón para continuar:</p>
-                    <button onclick="window.location.href='{ruta_descarga}'">📥 Generar Reporte Interactivo y Descargar Análisis</button>
-                    <button onclick="window.location.href='/chat'">💬 Ingresar a Chat</button>
+                    <p>Haz clic en el botón para generar y descargar tu análisis de respuestas:</p>
+                        <button onclick="window.location.href='{ruta_descarga}'">Generar y Descargar Análisis</button>
                 </div>
+                </div>
+               
             </body>
             </html>
             """
@@ -6759,12 +4633,12 @@ async def descargar_pdf_Premium(usuario_id: int):
 
     try:
         await aiosmtplib.send(
-            #  message,
-            #  hostname="smtp.gmail.com",
-            #  port=587,
-            #  start_tls=True,
-            #  username="correopruebavital@gmail.com",
-            #  password="cxvi hyne temx xmgt"
+             message,
+             hostname="smtp.gmail.com",
+             port=587,
+             start_tls=True,
+             username="correopruebavital@gmail.com",
+             password="cxvi hyne temx xmgt"
         )
     except Exception as e:
         print(f"Error al enviar el correo: {e}")
@@ -6791,12 +4665,12 @@ async def descargar_pdf(usuario_id: int):
 
     try:
         await aiosmtplib.send(
-            #  message,
-            #  hostname="smtp.gmail.com",
-            #  port=587,
-            #  start_tls=True,
-            #  username="correopruebavital@gmail.com",
-            #  password="cxvi hyne temx xmgt"
+             message,
+             hostname="smtp.gmail.com",
+             port=587,
+             start_tls=True,
+             username="correopruebavital@gmail.com",
+             password="cxvi hyne temx xmgt"
         )
     except Exception as e:
         print(f"Error al enviar el correo: {e}")
@@ -6825,12 +4699,12 @@ async def enviar_pdf_email(usuario_id: int = Form(...), correo_destino: str = Fo
     # Envía el correo
     try:
         await aiosmtplib.send(
-        #    message,
-        #    hostname="smtp.gmail.com",
-        #     port=587,
-        #    start_tls=True,
-        #     username="correopruebavital@gmail.com",
-        #    password="cxvi hyne temx xmgt"
+           message,
+           hostname="smtp.gmail.com",
+            port=587,
+           start_tls=True,
+            username="correopruebavital@gmail.com",
+           password="cxvi hyne temx xmgt"
         )
         return {"mensaje": f"PDF enviado a {correo_destino} correctamente."}
     except Exception as e:
@@ -6839,10 +4713,4 @@ async def enviar_pdf_email(usuario_id: int = Form(...), correo_destino: str = Fo
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run(
-    app,
-    host="127.0.0.1",
-    port=8000,
-    ssl_certfile="localhost+2.pem",  # Windows
-    ssl_keyfile="localhost+2-key.pem"
-)
+    uvicorn.run(app, host="127.0.0.1", port=8000)
