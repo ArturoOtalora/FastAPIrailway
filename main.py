@@ -4345,14 +4345,17 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     # Obtener interpretaciones de ChatGPT para cada categoría
     ai_interpretations = {}
     for categoria in categorias:
-        if categoria in promedios:
-            interpretation = get_chatgpt_interpretation(
-                categoria,
-                promedios[categoria],
-                dimensiones[categoria],
-                dimension_scores[categoria]
-            )
-            ai_interpretations[categoria] = interpretation or "Interpretación no disponible"
+        if categoria in promedios and categoria in dimension_scores:
+          interpretation = get_chatgpt_interpretation(
+            categoria,
+            promedios[categoria],
+            dimensiones[categoria],
+            dimension_scores[categoria]
+         )
+          ai_interpretations[categoria] = interpretation or "Interpretación no disponible"
+        else:
+         logging.warning(f"No hay datos completos para la categoría {categoria}")
+         ai_interpretations[categoria] = "Datos no disponibles para esta categoría"
 
     # Datos de interpretación para los tooltips
     interpretaciones = {
