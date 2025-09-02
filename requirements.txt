@@ -8,7 +8,7 @@ numpy
 matplotlib
 pandas
 aiosmtplib
+plotly
 openai
 tiktoken
 dotenv
-python-dotenv
