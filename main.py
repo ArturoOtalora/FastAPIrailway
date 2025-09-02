@@ -35,7 +35,10 @@ import openai
 import tiktoken
 from dotenv import load_dotenv
 from openai import OpenAI
-import logging
+
+
+
+
 
 # Configurar la conexión a MySQL desde Railway
 DB_HOST = "shuttle.proxy.rlwy.net"
@@ -4257,17 +4260,8 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     import re
 
     # Configuración de OpenAI (reemplaza con tu API key)
-    load_dotenv()
-
-# Configuración inicial
-    def configure_openai():
-        api_key = os.getenv("OPENAI_API_KEY")
-        if not api_key:
-            raise ValueError("OPENAI_API_KEY no está en .env")
-        return OpenAI(api_key=api_key)
-
-    # Crear cliente de OpenAI
-    client = configure_openai()    
+    
+   
     def get_chatgpt_interpretation(category, score, dimensions, dimension_scores):
         """Obtiene interpretación de ChatGPT para una categoría usando la API v1.0.0+"""
         try:
@@ -4312,7 +4306,7 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     # Obtener los valores promedio de cada categoría y las puntuaciones por dimensión
     promedios = {}
     dimension_scores = {}
-    print("Archivos recibidos en individual_charts:", individual_charts)
+    
     for categoria in categorias:
         chart_file = f"radar_{categoria.lower()}.html"
         if chart_file in individual_charts:
@@ -4342,17 +4336,14 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     # Obtener interpretaciones de ChatGPT para cada categoría
     ai_interpretations = {}
     for categoria in categorias:
-        if categoria in promedios and categoria in dimension_scores:
-          interpretation = get_chatgpt_interpretation(
-            categoria,
-            promedios[categoria],
-            dimensiones[categoria],
-            dimension_scores[categoria]
-         )
-          ai_interpretations[categoria] = interpretation or "Interpretación no disponible"
-        else:
-         logging.warning(f"No hay datos completos para la categoría {categoria}")
-         ai_interpretations[categoria] = "Datos no disponibles para esta categoría"
+        if categoria in promedios:
+            interpretation = get_chatgpt_interpretation(
+                categoria,
+                promedios[categoria],
+                dimensiones[categoria],
+                dimension_scores[categoria]
+            )
+            ai_interpretations[categoria] = interpretation or "Interpretación no disponible"
 
     # Datos de interpretación para los tooltips
     interpretaciones = {

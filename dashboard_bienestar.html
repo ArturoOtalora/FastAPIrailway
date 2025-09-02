@@ -511,25 +511,25 @@
             
                 <div class="metric-card teal" onclick="showModal('Ambiental')">
                     <span class="metric-title">Ambiental</span>
-                    <span class="metric-value">5.6</span>
+                    <span class="metric-value">7.8</span>
                     <img src="https://images.unsplash.com/photo-1541332693222-7a3ac02abb0c" alt="Ambiental" class="category-image">
                 </div>
                 
                 <div class="metric-card green" onclick="showModal('Vital')">
                     <span class="metric-title">Vital</span>
-                    <span class="metric-value">6.2</span>
+                    <span class="metric-value">7.8</span>
                     <img src="https://images.unsplash.com/photo-1617465811498-69b30dbfd82e" alt="Vital" class="category-image">
                 </div>
                 
                 <div class="metric-card purple" onclick="showModal('Emocional')">
                     <span class="metric-title">Emocional</span>
-                    <span class="metric-value">8.4</span>
+                    <span class="metric-value">8.0</span>
                     <img src="https://images.unsplash.com/photo-1615361012778-56ee35ec8bc5" alt="Emocional" class="category-image">
                 </div>
                 
                 <div class="metric-card blue" onclick="showModal('Mental')">
                     <span class="metric-title">Mental</span>
-                    <span class="metric-value">8.7</span>
+                    <span class="metric-value">8.0</span>
                     <img src="https://images.unsplash.com/photo-1633174504412-830d4d745638" alt="Mental" class="category-image">
                 </div>
                 
@@ -541,7 +541,7 @@
                 
                 <div class="metric-card gray" onclick="showModal('Financiera')">
                     <span class="metric-title">Financiera</span>
-                    <span class="metric-value">9.1</span>
+                    <span class="metric-value">8.4</span>
                     <img src="https://images.unsplash.com/photo-1683307367585-004c8522df2f" alt="Financiera" class="category-image">
                 </div>
                 
@@ -580,12 +580,12 @@
 
   <script>
     // Datos de interpretaciones de IA
-    const aiInterpretations = {"Ambiental": "1. Los resultados muestran un nivel de bienestar ambiental promedio, con \u00e1reas de mejora identificadas en las diferentes dimensiones evaluadas.\n\n2. Fortaleza: La puntuaci\u00f3n general de 5.56 refleja un enfoque equilibrado en las distintas dimensiones ambientales. \u00c1reas a mejorar: Se podr\u00eda trabajar en aumentar la conciencia ambiental y la armon\u00eda ambiental para mejorar la puntuaci\u00f3n general en esta categor\u00eda.", "Vital": "1. Los resultados muestran una puntuaci\u00f3n general en la categor\u00eda vital de 6.22/10, indicando un nivel intermedio en tu bienestar general.\n\n2. Fortaleza: Tienes buenos h\u00e1bitos de descanso y ejercicio. \u00c1reas a mejorar: Trabajar en mejorar la alimentaci\u00f3n y la salud vital corporal para equilibrar tu bienestar general. \u00a1Sigue as\u00ed!", "Emocional": "1. Los resultados sugieren un buen nivel de inteligencia emocional, con fortalezas en autoregulaci\u00f3n, cuidado personal, motivaci\u00f3n y resiliencia.\n\n2. Fortaleza: Autoregulaci\u00f3n. \u00c1reas a mejorar: Autoconocimiento para profundizar en la comprensi\u00f3n de las propias emociones y su impacto en el bienestar emocional.", "Mental": "1. Los resultados muestran una excelente salud mental, destacando en disfrutar de la realidad y mantener relaciones saludables, aunque se puede trabajar en el manejo del estr\u00e9s para alcanzar un equilibrio a\u00fan mayor.\n\n2. Fortaleza: Disfruta de la realidad. \u00c1reas a mejorar: Manejo del estr\u00e9s. Se recomienda implementar t\u00e9cnicas de gesti\u00f3n del estr\u00e9s, como la meditaci\u00f3n o el ejercicio regular, para fortalecer esta dimensi\u00f3n y mantener un bienestar integral.", "Existencial": "1. Los resultados indican que la persona tiene una s\u00f3lida conexi\u00f3n con su autenticidad, motivaci\u00f3n interna, prop\u00f3sito de vida y autoconocimiento, lo que sugiere una fuerte base existencial.\n\n2. Fortaleza: La autenticidad y la claridad en el prop\u00f3sito de vida son puntos destacados. \u00c1reas a mejorar: Puede explorar a\u00fan m\u00e1s a fondo el significado de su existencia y c\u00f3mo se alinea con sus valores m\u00e1s profundos para una mayor satisfacci\u00f3n y sentido de plenitud.", "Financiera": "1. Los resultados indican una excelente gesti\u00f3n financiera en t\u00e9rminos de ahorro, deuda, ingresos, inversi\u00f3n y presupuesto, con una puntuaci\u00f3n destacada en la dimensi\u00f3n de presupuesto.\n\n2. Fortaleza: La fortaleza principal es la habilidad para mantener un presupuesto s\u00f3lido. \u00c1reas a mejorar: Puede considerar diversificar las inversiones para aumentar el potencial de crecimiento a largo plazo."};
+    const aiInterpretations = {"Ambiental": "Interpretaci\u00f3n no disponible", "Vital": "Interpretaci\u00f3n no disponible", "Emocional": "Interpretaci\u00f3n no disponible", "Mental": "Interpretaci\u00f3n no disponible", "Existencial": "Interpretaci\u00f3n no disponible", "Financiera": "Interpretaci\u00f3n no disponible"};
     
     function showModal(category) {
       // Actualizar el contenido del modal según la categoría seleccionada
       document.getElementById('modalTitle').textContent = category.toUpperCase();
-      document.getElementById('modalEvaluation').textContent = {"Ambiental": 5.5600000000000005, "Vital": 6.220000000000001, "Emocional": 8.440000000000001, "Mental": 8.67, "Existencial": 8.89, "Financiera": 9.11}[category].toFixed(1);
+      document.getElementById('modalEvaluation').textContent = {"Ambiental": 7.779999999999999, "Vital": 7.779999999999999, "Emocional": 8.0, "Mental": 8.0, "Existencial": 8.89, "Financiera": 8.440000000000001}[category].toFixed(1);
       document.getElementById('modalDescription').textContent = {"Ambiental": "Tu relaci\u00f3n con la Tierra es un reflejo de tu conexi\u00f3n con la vida. Tus h\u00e1bitos cotidianos desde el consumo hasta el manejo de recursos muestran c\u00f3mo honras el ecosistema del que formas parte. Esta evaluaci\u00f3n te ayudar\u00e1 a identificar acciones para transformar tu impacto, no solo como un acto ecol\u00f3gico, sino como un compromiso con tu propio bienestar integral", "Vital": "Tu cuerpo es el lienzo donde se refleja tu autocuidado. Los h\u00e1bitos que has construido desde la nutrici\u00f3n hasta el descanso revelan c\u00f3mo dialogas con tu energ\u00eda f\u00edsica. Este an\u00e1lisis no juzga, sino que ilumina oportunidades para alinear tus acciones con las necesidades \u00fanicas de tu organismo.Aqu\u00ed descubrir\u00e1s c\u00f3mo fortalecer tu vitalidad para que cada d\u00eda sea una expresi\u00f3n de tu vitalidad", "Emocional": "Las emociones son ventanas a tu mundo interno. Tus respuestas reflejan c\u00f3mo entiendes y gestionas la alegr\u00eda, el estr\u00e9s o la incertidumbre, y c\u00f3mo estas experiencias moldean tus relaciones y decisiones. Este espacio de observaci\u00f3n te invita a observar patrones, celebrar tus avances y reconocer d\u00f3nde puedes cultivar mayor equilibrio emocional para vivir con autenticidad y serenidad", "Mental": "Tu mente es un jard\u00edn: sus pensamientos y creencias dan forma a tu realidad. Este an\u00e1lisis explora c\u00f3mo cultivas flexibilidad ante los desaf\u00edos, gratitud frente a los logros y claridad en tus decisiones. Descubrir\u00e1s si tus patrones mentales te acercan a la plenitud o si hay terrenos f\u00e9rtiles para sembrar nuevas perspectivas", "Existencial": "\u00bfQu\u00e9 huella quieres grabar en el mundo? Tus respuestas revelan c\u00f3mo conectas tus acciones diarias con un prop\u00f3sito m\u00e1s profundo. En esta introspecci\u00f3n explorar\u00e1s si tu vida actual resuena con tus valores y principios y como conectas con un prop\u00f3sito y sentido de vida superior", "Financiera": "El dinero no solo se cuenta: se gestiona con mente y coraz\u00f3n. Tus elecciones financieras desde el ahorro hasta la inversi\u00f3n hablan de tus valores y tu capacidad para equilibrar lo pr\u00e1ctico con lo emocional. Este an\u00e1lisis te guiar\u00e1 a identificar tu coeficiente emocional financiero, as\u00ed como fortalezas y \u00e1reas donde transformar preocupaciones en estrategias claras, construyendo seguridad material y paz interior"}[category];
       
       // Mostrar interpretación de IA si está disponible
@@ -595,7 +595,7 @@
       document.getElementById('modalChart').src = "radar_" + category.toLowerCase() + ".html";
       
       // Recomendaciones basadas en el puntaje
-      const score = {"Ambiental": 5.5600000000000005, "Vital": 6.220000000000001, "Emocional": 8.440000000000001, "Mental": 8.67, "Existencial": 8.89, "Financiera": 9.11}[category];
+      const score = {"Ambiental": 7.779999999999999, "Vital": 7.779999999999999, "Emocional": 8.0, "Mental": 8.0, "Existencial": 8.89, "Financiera": 8.440000000000001}[category];
       let recommendations = "";
       
       if(score < 4) {
