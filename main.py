@@ -35,10 +35,7 @@ import openai
 import tiktoken
 from dotenv import load_dotenv
 from openai import OpenAI
-
-
-
-
+import logging
 
 # Configurar la conexión a MySQL desde Railway
 DB_HOST = "shuttle.proxy.rlwy.net"
