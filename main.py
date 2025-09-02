@@ -4315,7 +4315,7 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     # Obtener los valores promedio de cada categoría y las puntuaciones por dimensión
     promedios = {}
     dimension_scores = {}
-    
+    print("Archivos recibidos en individual_charts:", individual_charts)
     for categoria in categorias:
         chart_file = f"radar_{categoria.lower()}.html"
         if chart_file in individual_charts:
