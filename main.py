@@ -5903,7 +5903,7 @@ def generar_pdf_con_analisis_Premium(usuario_id):
     nombre_completo = f"{nombre_completo_global[0]} {nombre_completo_global[1]}"  # Concatena nombre y apellido
 
     c = canvas.Canvas(pdf_path, pagesize=letter)
-    width, height = letterb
+    width, height = letter
     background_path = "statics/BKVITAL.PNG"
     background_path_pie = "statics/pie.PNG"
     c = canvas.Canvas(pdf_path, pagesize=letter)
