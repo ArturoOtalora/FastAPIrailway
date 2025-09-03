@@ -5034,6 +5034,17 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     file_path = os.path.abspath("dashboard_bienestar.html")
     webbrowser.open_new_tab(f"file://{file_path}")
 
+@app.get("/descargar-dashboard/{usuario_id}")
+def descargar_dashboard(usuario_id: str):
+    file_path = os.path.abspath("dashboard_bienestar.html")
+    if not os.path.exists(file_path):
+        return {"error": "El dashboard no existe, primero ejecútalo."}
+    return FileResponse(
+        path=file_path,
+        filename=f"dashboard_bienestar_{usuario_id}.html",
+        media_type="text/html"
+    )
+
 def generar_graficos_por_categoria_Premium(valores_respuestas):
         matplotlib.use('Agg') 
         categorias = ["Vital", "Emocional", "Mental", "Existencial", "Financiera","Ambiental","Creatividad","Mentalidad digital","Bienestar social","Bienestar profesional","Manejo del agotamiento","Conexion interior"]
