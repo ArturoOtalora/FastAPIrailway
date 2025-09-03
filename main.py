@@ -36,7 +36,7 @@ import tiktoken
 from dotenv import load_dotenv
 from openai import OpenAI
 import logging
-from flask import send_file, url_for, redirect
+
 
 # Configurar la conexión a MySQL desde Railway
 DB_HOST = "shuttle.proxy.rlwy.net"
@@ -4235,10 +4235,9 @@ def generar_graficos_interactivos(valores_respuestas,usuario_id):
     fig_consolidado.write_html(consolidated_filename, full_html=False, include_plotlyjs='cdn')
     
     # Generate dashboard (assuming this function exists)
-    # generate_dashboard(individual_charts, consolidated_filename,usuario_id)
+    generate_dashboard(individual_charts, consolidated_filename,usuario_id)
     
-    dashboard_path = generate_dashboard(individual_charts, consolidated_filename, usuario_id)
-    return individual_charts + [consolidated_filename], dashboard_path
+    return individual_charts + [consolidated_filename]
 def obtener_imagen_categoria(categoria):
     """Devuelve URL de imagen representativa para cada categoría"""
     imagenes = {
@@ -4257,7 +4256,6 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     import json
     from openai import OpenAI 
     import re
-    from flask import url_for
 
     # Configuración de OpenAI (reemplaza con tu API key)
     load_dotenv()
@@ -4298,26 +4296,7 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
         except Exception as e:
             print(f"Error al obtener interpretación de ChatGPT: {e}")
             return None
-        if not os.path.exists('static'):
-           os.makedirs('static')
 
-        individual_charts_web = []
-    for chart_file in individual_charts:
-        if os.path.exists(chart_file):
-            new_filename = f"{usuario_id}_{os.path.basename(chart_file)}"
-            new_path = os.path.join('static', new_filename)
-            os.rename(chart_file, new_path)
-            individual_charts_web.append(url_for('static', filename=new_filename, _external=True))
-    
-    # Mover gráfico consolidado
-    if os.path.exists(consolidated_chart):
-        new_consolidated = f"{usuario_id}_{os.path.basename(consolidated_chart)}"
-        new_consolidated_path = os.path.join('static', new_consolidated)
-        os.rename(consolidated_chart, new_consolidated_path)
-        consolidated_chart_web = url_for('static', filename=new_consolidated, _external=True)
-    else:
-        consolidated_chart_web = ""
-   
     # Leer los datos de los gráficos generados
     categorias = ["Ambiental", "Vital", "Emocional", "Mental", "Existencial", "Financiera"]
     
@@ -4926,7 +4905,7 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     <div class="dashboard-grid">
       <div class="summary-card">
         <div class="chart-container consolidated">
-          <iframe src="{consolidated_chart_web}" width="100%" height="100%"></iframe>
+          <iframe src="{consolidated_chart}" width="100%" height="100%"></iframe>
         </div>
         <h2>Resumen General</h2>
         <div class="progress-container">
@@ -5049,21 +5028,22 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
 </body>
 </html>
     """
-    dashboard_filename = f"dashboard_bienestar_{usuario_id}.html"
-    dashboard_path = os.path.join('static', dashboard_filename)
-    with open(dashboard_filename, "w", encoding="utf-8") as f:
+    with open("dashboard_bienestar.html", "w", encoding="utf-8") as f:
         f.write(html_template)
 
-    return dashboard_filename
     file_path = os.path.abspath("dashboard_bienestar.html")
     webbrowser.open_new_tab(f"file://{file_path}")
 
-@app.route('/dashboard/<usuario_id>')
-def ver_dashboard(usuario_id):
-    try:
-        return send_file(f"dashboard_bienestar_{usuario_id}.html")
-    except FileNotFoundError:
-        return "Dashboard no encontrado", 404
+@app.get("/descargar-dashboard/{usuario_id}")
+def descargar_dashboard(usuario_id: str):
+    file_path = os.path.abspath("dashboard_bienestar.html")
+    if not os.path.exists(file_path):
+        return {"error": "El dashboard no existe, primero ejecútalo."}
+    return FileResponse(
+        path=file_path,
+        filename=f"dashboard_bienestar_{usuario_id}.html",
+        media_type="text/html"
+    )
 
 def generar_graficos_por_categoria_Premium(valores_respuestas):
         matplotlib.use('Agg') 
