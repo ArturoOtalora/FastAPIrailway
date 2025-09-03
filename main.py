@@ -4259,7 +4259,7 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
 
     # Configuración de OpenAI (reemplaza con tu API key)
     load_dotenv()
-
+ 
 # Configuración inicial
     def configure_openai():
         api_key = os.getenv("OPENAI_API_KEY")
@@ -4313,7 +4313,9 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     # Obtener los valores promedio de cada categoría y las puntuaciones por dimensión
     promedios = {}
     dimension_scores = {}
-    
+    print(f"Contenido de dimension_scores: {dimension_scores}")
+    print(f"Claves disponibles: {list(dimension_scores.keys())}")
+    print(f"Intentando acceder a: {categoria}")
     for categoria in categorias:
         chart_file = f"radar_{categoria.lower()}.html"
         if chart_file in individual_charts:
@@ -4349,7 +4351,7 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
             categoria,
             promedios[categoria],
             dimensiones[categoria],
-            dimension_scores.get(categoria, 0) 
+            dimension_scores[categoria]
          )
           ai_interpretations[categoria] = interpretation or "Interpretación no disponible"
         else:
