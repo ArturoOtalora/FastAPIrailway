@@ -4005,12 +4005,12 @@ def generar_graficos_por_categoria(valores_respuestas):
 def generar_graficos_interactivos(valores_respuestas,usuario_id):
     categorias = ["Ambiental", "Vital", "Emocional", "Mental", "Existencial", "Financiera"]
     dimensiones = {
-        "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
+        "Ambiental": ["Autocuidado", "Armonía ambiental", "Accesibilidad Ambiental", "Atención preventiva", "Conciencia ambiental"],
+         "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
         "Emocional": ["Autoconocimiento", "Autoregulación", "Cuidado Personal", "Motivación", "Resiliencia"],
         "Mental": ["Disfruta De La Realidad", "Manejo Del Stress", "Relaciones Saludables", "Conexión Con Otros", "Seguridad Y Confianza"],
         "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Por Qué Estoy Aquí?", "Propósito De Vida", "Quién Soy"],
         "Financiera": ["Ahorro", "Deuda", "Ingresos", "Inversión", "Presupuesto"],
-        "Ambiental": ["Autocuidado", "Armonía ambiental", "Accesibilidad Ambiental", "Atención preventiva", "Conciencia ambiental"]
     }
     
     textos_personalizados = {
@@ -4153,8 +4153,9 @@ def generar_graficos_interactivos(valores_respuestas,usuario_id):
         
         # Save as HTML
         filename = f"radar_{categoria.lower()}.html"
-        fig.write_html(filename, full_html=False, include_plotlyjs='cdn')
-        individual_charts.append(filename)
+        filepath = os.path.join('statics', f"{usuario_id}_{filename}")
+        fig.write_html(filepath, full_html=False, include_plotlyjs='cdn')
+        individual_charts.append(filepath)
     
     # Generate consolidated radar chart with smaller size
     promedios_categorias = []
