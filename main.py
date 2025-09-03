@@ -35,9 +35,7 @@ import openai
 import tiktoken
 from dotenv import load_dotenv
 from openai import OpenAI
-
-
-
+import logging
 
 
 # Configurar la conexión a MySQL desde Railway
@@ -4260,7 +4258,17 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     import re
 
     # Configuración de OpenAI (reemplaza con tu API key)
-    
+    load_dotenv()
+
+# Configuración inicial
+    def configure_openai():
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY no está en .env")
+        return OpenAI(api_key=api_key)
+
+    # Crear cliente de OpenAI
+    client = configure_openai()    
     def get_chatgpt_interpretation(category, score, dimensions, dimension_scores):
         """Obtiene interpretación de ChatGPT para una categoría usando la API v1.0.0+"""
         try:
@@ -4333,16 +4341,20 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
                     
                     dimension_scores[categoria] = dim_values[:5]
     # Obtener interpretaciones de ChatGPT para cada categoría
+    logging.info(f"Archivos recibidos en individual_charts: {individual_charts}")
     ai_interpretations = {}
     for categoria in categorias:
-        if categoria in promedios:
-            interpretation = get_chatgpt_interpretation(
-                categoria,
-                promedios[categoria],
-                dimensiones[categoria],
-                dimension_scores[categoria]
-            )
-            ai_interpretations[categoria] = interpretation or "Interpretación no disponible"
+        if categoria in promedios and categoria in dimension_scores:
+          interpretation = get_chatgpt_interpretation(
+            categoria,
+            promedios[categoria],
+            dimensiones[categoria],
+            dimension_scores.get(categoria, 0) 
+         )
+          ai_interpretations[categoria] = interpretation or "Interpretación no disponible"
+        else:
+         logging.warning(f"No hay datos completos para la categoría {categoria}")
+         ai_interpretations[categoria] = "Datos no disponibles para esta categoría"
 
     # Datos de interpretación para los tooltips
     interpretaciones = {
@@ -5021,6 +5033,17 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
 
     file_path = os.path.abspath("dashboard_bienestar.html")
     webbrowser.open_new_tab(f"file://{file_path}")
+
+@app.get("/descargar-dashboard/{usuario_id}")
+def descargar_dashboard(usuario_id: str):
+    file_path = os.path.abspath("dashboard_bienestar.html")
+    if not os.path.exists(file_path):
+        return {"error": "El dashboard no existe, primero ejecútalo."}
+    return FileResponse(
+        path=file_path,
+        filename=f"dashboard_bienestar_{usuario_id}.html",
+        media_type="text/html"
+    )
 
 def generar_graficos_por_categoria_Premium(valores_respuestas):
         matplotlib.use('Agg') 
@@ -5891,7 +5914,7 @@ def generar_pdf_con_analisis_Premium(usuario_id):
     nombre_completo = f"{nombre_completo_global[0]} {nombre_completo_global[1]}"  # Concatena nombre y apellido
 
     c = canvas.Canvas(pdf_path, pagesize=letter)
-    width, height = letterb
+    width, height = letter
     background_path = "statics/BKVITAL.PNG"
     background_path_pie = "statics/pie.PNG"
     c = canvas.Canvas(pdf_path, pagesize=letter)
