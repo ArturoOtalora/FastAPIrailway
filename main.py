@@ -4261,7 +4261,6 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
 
     # Configuración de OpenAI (reemplaza con tu API key)
     
-   
     def get_chatgpt_interpretation(category, score, dimensions, dimension_scores):
         """Obtiene interpretación de ChatGPT para una categoría usando la API v1.0.0+"""
         try:
