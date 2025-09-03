@@ -4005,12 +4005,12 @@ def generar_graficos_por_categoria(valores_respuestas):
 def generar_graficos_interactivos(valores_respuestas,usuario_id):
     categorias = ["Ambiental", "Vital", "Emocional", "Mental", "Existencial", "Financiera"]
     dimensiones = {
-        "Ambiental": ["Autocuidado", "Armonía ambiental", "Accesibilidad Ambiental", "Atención preventiva", "Conciencia ambiental"],
-         "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
+        "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
         "Emocional": ["Autoconocimiento", "Autoregulación", "Cuidado Personal", "Motivación", "Resiliencia"],
         "Mental": ["Disfruta De La Realidad", "Manejo Del Stress", "Relaciones Saludables", "Conexión Con Otros", "Seguridad Y Confianza"],
         "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Por Qué Estoy Aquí?", "Propósito De Vida", "Quién Soy"],
         "Financiera": ["Ahorro", "Deuda", "Ingresos", "Inversión", "Presupuesto"],
+        "Ambiental": ["Autocuidado", "Armonía ambiental", "Accesibilidad Ambiental", "Atención preventiva", "Conciencia ambiental"]
     }
     
     textos_personalizados = {
@@ -4153,9 +4153,8 @@ def generar_graficos_interactivos(valores_respuestas,usuario_id):
         
         # Save as HTML
         filename = f"radar_{categoria.lower()}.html"
-        filepath = os.path.join('statics', f"{usuario_id}_{filename}")
-        fig.write_html(filepath, full_html=False, include_plotlyjs='cdn')
-        individual_charts.append(filepath)
+        fig.write_html(filename, full_html=False, include_plotlyjs='cdn')
+        individual_charts.append(filename)
     
     # Generate consolidated radar chart with smaller size
     promedios_categorias = []
@@ -4236,9 +4235,7 @@ def generar_graficos_interactivos(valores_respuestas,usuario_id):
     fig_consolidado.write_html(consolidated_filename, full_html=False, include_plotlyjs='cdn')
     
     # Generate dashboard (assuming this function exists)
-    dashboard_filename = generate_dashboard(individual_charts, consolidated_filename, usuario_id)
-    
-    return individual_charts + [consolidated_filename], dashboard_filename
+    generate_dashboard(individual_charts, consolidated_filename,usuario_id)
     
     return individual_charts + [consolidated_filename]
 def obtener_imagen_categoria(categoria):
@@ -4259,7 +4256,6 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     import json
     from openai import OpenAI 
     import re
-    from flask import url_for
 
     # Configuración de OpenAI (reemplaza con tu API key)
     load_dotenv()
@@ -4301,23 +4297,6 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
             print(f"Error al obtener interpretación de ChatGPT: {e}")
             return None
 
-    individual_charts_web = []
-    for chart_file in individual_charts:
-        if os.path.exists(chart_file):
-            new_filename = f"{usuario_id}_{os.path.basename(chart_file)}"
-            new_path = os.path.join('statics', new_filename)
-            os.rename(chart_file, new_path)
-            individual_charts_web.append(url_for('statics', filename=new_filename, _external=True))
-    
-    # Mover gráfico consolidado
-    if os.path.exists(consolidated_chart):
-        new_consolidated = f"{usuario_id}_{os.path.basename(consolidated_chart)}"
-        new_consolidated_path = os.path.join('statics', new_consolidated)
-        os.rename(consolidated_chart, new_consolidated_path)
-        consolidated_chart_web = url_for('statics', filename=new_consolidated, _external=True)
-    else:
-        consolidated_chart_web = ""
-
     # Leer los datos de los gráficos generados
     categorias = ["Ambiental", "Vital", "Emocional", "Mental", "Existencial", "Financiera"]
     
@@ -4337,10 +4316,8 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     
     for categoria in categorias:
         chart_file = f"radar_{categoria.lower()}.html"
-        chart_path = os.path.join('statics', f"{usuario_id}_{chart_file}")
-        
-        if os.path.exists(chart_path):
-            with open(chart_path, 'r', encoding='utf-8') as f:
+        if chart_file in individual_charts:
+            with open(chart_file, 'r', encoding='utf-8') as f:
                 content = f.read()
                 
                 # Extraer el promedio
@@ -5051,21 +5028,23 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
 </body>
 </html>
     """
-    dashboard_filename = f"dashboard_bienestar_{usuario_id}.html"
-    dashboard_path = os.path.join('statics', dashboard_filename)
-    with open(dashboard_path, "w", encoding="utf-8") as f:
+    with open("dashboard_bienestar.html", "w", encoding="utf-8") as f:
         f.write(html_template)
 
-    return dashboard_filename
     file_path = os.path.abspath("dashboard_bienestar.html")
     webbrowser.open_new_tab(f"file://{file_path}")
 
-@app.route('/dashboard/<usuario_id>')
-def ver_dashboard(usuario_id):
-    try:
-        return send_file(f"statics/dashboard_bienestar_{usuario_id}.html")
-    except FileNotFoundError:
-        return "Dashboard no encontrado. Por favor, complete primero la evaluación.", 404
+@app.get("/descargar-dashboard/{usuario_id}")
+def descargar_dashboard(usuario_id: str):
+    file_path = os.path.abspath("dashboard_bienestar.html")
+    if not os.path.exists(file_path):
+        return {"error": "El dashboard no existe, primero ejecútalo."}
+    return FileResponse(
+        path=file_path,
+        filename=f"dashboard_bienestar_{usuario_id}.html",
+        media_type="text/html"
+    )
+
 def generar_graficos_por_categoria_Premium(valores_respuestas):
         matplotlib.use('Agg') 
         categorias = ["Vital", "Emocional", "Mental", "Existencial", "Financiera","Ambiental","Creatividad","Mentalidad digital","Bienestar social","Bienestar profesional","Manejo del agotamiento","Conexion interior"]
