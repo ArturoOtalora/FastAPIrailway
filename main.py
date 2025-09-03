@@ -4302,7 +4302,7 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     
     # Dimensiones para cada categoría
     dimensiones = {
-        "Ambiental": ["Autocuidado", "Armonía ambiental", "Accesibilidad Ambiental", "Atención preventiva", "Conciencia ambiental"],
+        # "Ambiental": ["Autocuidado", "Armonía ambiental", "Accesibilidad Ambiental", "Atención preventiva", "Conciencia ambiental"],
         "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
         "Emocional": ["Autoconocimiento", "Autoregulación", "Cuidado Personal", "Motivación", "Resiliencia"],
         "Mental": ["Disfruta De La Realidad", "Manejo Del Stress", "Relaciones Saludables", "Conexión Con Otros", "Seguridad Y Confianza"],
@@ -4313,9 +4313,7 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     # Obtener los valores promedio de cada categoría y las puntuaciones por dimensión
     promedios = {}
     dimension_scores = {}
-    print(f"Contenido de dimension_scores: {dimension_scores}")
-    print(f"Claves disponibles: {list(dimension_scores.keys())}")
-    print(f"Intentando acceder a: {categoria}")
+    
     for categoria in categorias:
         chart_file = f"radar_{categoria.lower()}.html"
         if chart_file in individual_charts:
