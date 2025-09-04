@@ -4003,14 +4003,11 @@ def generar_graficos_por_categoria(valores_respuestas):
     plt.close()
 
 def generar_graficos_interactivos(valores_respuestas,usuario_id):
-    categorias = ["Ambiental", "Vital", "Emocional", "Mental", "Existencial", "Financiera"]
+    categorias = ["Vital", "Emocional"]
     dimensiones = {
         "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
         "Emocional": ["Autoconocimiento", "Autoregulación", "Cuidado Personal", "Motivación", "Resiliencia"],
-        "Mental": ["Disfruta De La Realidad", "Manejo Del Stress", "Relaciones Saludables", "Conexión Con Otros", "Seguridad Y Confianza"],
-        "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Por Qué Estoy Aquí?", "Propósito De Vida", "Quién Soy"],
-        "Financiera": ["Ahorro", "Deuda", "Ingresos", "Inversión", "Presupuesto"],
-        "Ambiental": ["Autocuidado", "Armonía ambiental", "Accesibilidad Ambiental", "Atención preventiva", "Conciencia ambiental"]
+        
     }
     
     textos_personalizados = {
@@ -4302,12 +4299,10 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     
     # Dimensiones para cada categoría
     dimensiones = {
-        "Ambiental": ["Autocuidado", "Armonía ambiental", "Accesibilidad Ambiental", "Atención preventiva", "Conciencia ambiental"],
+       
         "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
         "Emocional": ["Autoconocimiento", "Autoregulación", "Cuidado Personal", "Motivación", "Resiliencia"],
-        "Mental": ["Disfruta De La Realidad", "Manejo Del Stress", "Relaciones Saludables", "Conexión Con Otros", "Seguridad Y Confianza"],
-        "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Por Qué Estoy Aquí?", "Propósito De Vida", "Quién Soy"],
-        "Financiera": ["Ahorro", "Deuda", "Ingresos", "Inversión", "Presupuesto"]
+       
     }
 
     # Obtener los valores promedio de cada categoría y las puntuaciones por dimensión
@@ -4358,12 +4353,10 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
 
     # Datos de interpretación para los tooltips
     interpretaciones = {
-        "Ambiental": "Tu relación con la Tierra es un reflejo de tu conexión con la vida. Tus hábitos cotidianos desde el consumo hasta el manejo de recursos muestran cómo honras el ecosistema del que formas parte. Esta evaluación te ayudará a identificar acciones para transformar tu impacto, no solo como un acto ecológico, sino como un compromiso con tu propio bienestar integral",
+        
         "Vital": "Tu cuerpo es el lienzo donde se refleja tu autocuidado. Los hábitos que has construido desde la nutrición hasta el descanso revelan cómo dialogas con tu energía física. Este análisis no juzga, sino que ilumina oportunidades para alinear tus acciones con las necesidades únicas de tu organismo.Aquí descubrirás cómo fortalecer tu vitalidad para que cada día sea una expresión de tu vitalidad",
         "Emocional": "Las emociones son ventanas a tu mundo interno. Tus respuestas reflejan cómo entiendes y gestionas la alegría, el estrés o la incertidumbre, y cómo estas experiencias moldean tus relaciones y decisiones. Este espacio de observación te invita a observar patrones, celebrar tus avances y reconocer dónde puedes cultivar mayor equilibrio emocional para vivir con autenticidad y serenidad",
-        "Mental": "Tu mente es un jardín: sus pensamientos y creencias dan forma a tu realidad. Este análisis explora cómo cultivas flexibilidad ante los desafíos, gratitud frente a los logros y claridad en tus decisiones. Descubrirás si tus patrones mentales te acercan a la plenitud o si hay terrenos fértiles para sembrar nuevas perspectivas",
-        "Existencial": "¿Qué huella quieres grabar en el mundo? Tus respuestas revelan cómo conectas tus acciones diarias con un propósito más profundo. En esta introspección explorarás si tu vida actual resuena con tus valores y principios y como conectas con un propósito y sentido de vida superior",
-        "Financiera": "El dinero no solo se cuenta: se gestiona con mente y corazón. Tus elecciones financieras desde el ahorro hasta la inversión hablan de tus valores y tu capacidad para equilibrar lo práctico con lo emocional. Este análisis te guiará a identificar tu coeficiente emocional financiero, así como fortalezas y áreas donde transformar preocupaciones en estrategias claras, construyendo seguridad material y paz interior"
+        
     }
 
 
