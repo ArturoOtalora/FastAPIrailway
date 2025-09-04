@@ -4295,7 +4295,7 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
             return None
 
     # Leer los datos de los gráficos generados
-    categorias = ["Ambiental", "Vital", "Emocional", "Mental", "Existencial", "Financiera"]
+    categorias = ["Vital", "Emocional"]
     
     # Dimensiones para cada categoría
     dimensiones = {
