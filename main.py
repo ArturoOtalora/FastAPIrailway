@@ -35,11 +35,7 @@ import openai
 import tiktoken
 from dotenv import load_dotenv
 from openai import OpenAI
-
-
-
-# # Acceder a la respuesta
-# print(response.choices[0].message.content)
+import logging
 
 
 # Configurar la conexión a MySQL desde Railway
@@ -394,7 +390,7 @@ def login(username: str = Form(...), password: str = Form(...)):
     
     if user_key in usuarios_validos and password == clave:
         # Crear respuesta de redirección
-        resp = RedirectResponse(url="/mostrar_pagina", status_code=status.HTTP_302_FOUND)
+        resp = RedirectResponse(url="/mostrar_pagina1", status_code=status.HTTP_302_FOUND)
         # Establecer cookie con el valor exacto (con mayúsculas/minúsculas correctas)
         resp.set_cookie(key="user_type", value=usuarios_validos[user_key], httponly=True)
         return resp
@@ -403,7 +399,213 @@ def login(username: str = Form(...), password: str = Form(...)):
             "<h3>Credenciales incorrectas. <a href='/login'>Volver</a></h3>", 
             status_code=401
         )
-     
+
+@app.get("/mostrar_pagina1", response_class=HTMLResponse)
+def mostrar_pagina1(request: Request):
+    return """
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Ingreso - Bienestar Integral</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+                margin: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+            }
+            .container {
+                background: #fff;
+                padding: 2rem;
+                border-radius: 20px;
+                box-shadow: 0px 6px 20px rgba(0,0,0,0.15);
+                text-align: center;
+                max-width: 400px;
+                width: 100%;
+                animation: fadeIn 1s ease-in-out;
+            }
+            h2 {
+                color: #2d3748;
+                margin-bottom: 1.5rem;
+            }
+            label {
+                display: block;
+                margin: 0.5rem 0 0.2rem;
+                font-weight: 600;
+                color: #4a5568;
+                text-align: left;
+            }
+            select, input {
+                width: 100%;
+                padding: 0.7rem;
+                border: 1px solid #cbd5e0;
+                border-radius: 12px;
+                margin-bottom: 1rem;
+                outline: none;
+                transition: 0.3s;
+            }
+            select:focus, input:focus {
+                border-color: #48bb78;
+                box-shadow: 0 0 6px rgba(72,187,120,0.4);
+            }
+            button {
+                width: 100%;
+                padding: 0.8rem;
+                background: #48bb78;
+                color: white;
+                border: none;
+                border-radius: 12px;
+                font-size: 1rem;
+                font-weight: bold;
+                cursor: pointer;
+                transition: background 0.3s ease;
+            }
+            button:hover {
+                background: #38a169;
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(-20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h2>✨ Bienvenido(a) al Portal de Bienestar Integral ✨</h2>
+            <form action="/verificar_usuario" method="post">
+                <label for="tipo_documento">Tipo de Documento</label>
+                <select id="tipo_documento" name="tipo_documento" required>
+                    <option value="CC">Cédula de Ciudadanía</option>
+                    <option value="TI">Tarjeta de Identidad</option>
+                    <option value="CE">Cédula de Extranjería</option>
+                </select>
+                <label for="numero_identificacion">Número de Identificación</label>
+                <input type="text" id="numero_identificacion" name="numero_identificacion" placeholder="Ingresa tu número" required>
+                <button type="submit">Continuar</button>
+            </form>
+        </div>
+    </body>
+    </html>
+    """
+@app.post("/verificar_usuario", response_class=HTMLResponse)
+def verificar_usuario(
+    request: Request,
+    tipo_documento: str = Form(...),
+    numero_identificacion: str = Form(...)
+):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    cursor.execute("""
+        SELECT * FROM usuarios 
+        WHERE tipo_documento = %s AND numero_identificacion = %s
+    """, (tipo_documento, numero_identificacion))
+    
+    usuario = cursor.fetchone()
+    conn.close()
+    
+    if usuario:
+        user_type = request.cookies.get("user_type", "invitado")
+
+        if user_type in ["Corevital", "AdvanceVital", "premiumVital"]:
+            version_options = """
+            <button onclick="window.location.href='/chat'" class="btn-option">
+                <div>
+                    <strong>💬 Chat Interactivo</strong><br>
+                    <span>¿Listo para iniciar tu proceso de transformación? Hablemos.</span>
+                </div>
+            </button>
+            """
+        else:
+            version_options = "<p style='color:#e53e3e;'>⚠️ No tienes acceso a versiones especiales.</p>"
+
+        return f"""
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Bienvenido</title>
+            <style>
+                body {{
+                    margin: 0;
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    background: linear-gradient(135deg, #c3ecb2 0%, #7dd3fc 100%);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100vh;
+                }}
+                .card {{
+                    background: white;
+                    padding: 2rem;
+                    border-radius: 20px;
+                    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+                    text-align: center;
+                    max-width: 500px;
+                    width: 100%;
+                    animation: fadeIn 0.8s ease-in-out;
+                }}
+                h2 {{
+                    color: #2f855a;
+                    margin-bottom: 0.5rem;
+                }}
+                p {{
+                    color: #4a5568;
+                    margin: 0.3rem 0;
+                }}
+                h3 {{
+                    margin-top: 1.5rem;
+                    color: #2d3748;
+                }}
+                .btn-option {{
+                    width: 100%;
+                    padding: 15px 20px;
+                    margin-top: 1rem;
+                    border: none;
+                    border-radius: 15px;
+                    background: #48bb78;
+                    color: white;
+                    font-size: 16px;
+                    font-weight: bold;
+                    text-align: left;
+                    cursor: pointer;
+                    transition: transform 0.2s ease, background 0.3s ease;
+                    box-shadow: 0px 6px 12px rgba(0,0,0,0.1);
+                }}
+                .btn-option span {{
+                    font-size: 14px;
+                    font-weight: normal;
+                    color: #e6fffa;
+                }}
+                .btn-option:hover {{
+                    transform: scale(1.03);
+                    background: #38a169;
+                }}
+                @keyframes fadeIn {{
+                    from {{ opacity: 0; transform: translateY(-15px); }}
+                    to {{ opacity: 1; transform: translateY(0); }}
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="card">
+                <h2>🌿 Bienvenido, {usuario['nombre']} {usuario['apellidos']}</h2>
+                <p><strong>Correo:</strong> {usuario['correo']}</p>
+                <p><strong>Ciudad:</strong> {usuario['ciudad']}</p>
+                <h3>Selecciona tu versión</h3>
+                {version_options}
+            </div>
+        </body>
+        </html>
+        """
+
+    return RedirectResponse(url="/mostrar_pagina", status_code=302)
 @app.get("/mostrar_pagina", response_class=HTMLResponse)
 def mostrar_pagina(request: Request):  # Añadir el parámetro request
     user_type = request.cookies.get("user_type", "invitado")
@@ -4056,7 +4258,17 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     import re
 
     # Configuración de OpenAI (reemplaza con tu API key)
-    
+    load_dotenv()
+ 
+# Configuración inicial
+    def configure_openai():
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY no está en .env")
+        return OpenAI(api_key=api_key)
+
+    # Crear cliente de OpenAI
+    client = configure_openai()    
     def get_chatgpt_interpretation(category, score, dimensions, dimension_scores):
         """Obtiene interpretación de ChatGPT para una categoría usando la API v1.0.0+"""
         try:
@@ -4129,16 +4341,20 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
                     
                     dimension_scores[categoria] = dim_values[:5]
     # Obtener interpretaciones de ChatGPT para cada categoría
+    logging.info(f"Archivos recibidos en individual_charts: {individual_charts}")
     ai_interpretations = {}
-    for categoria in categorias:
-        if categoria in promedios:
-            interpretation = get_chatgpt_interpretation(
-                categoria,
-                promedios[categoria],
-                dimensiones[categoria],
-                dimension_scores[categoria]
-            )
-            ai_interpretations[categoria] = interpretation or "Interpretación no disponible"
+    # for categoria in categorias:
+    #     if categoria in promedios and categoria in dimension_scores:
+    #       interpretation = get_chatgpt_interpretation(
+    #         categoria,
+    #         promedios[categoria],
+    #         dimensiones[categoria],
+    #         dimension_scores[categoria]
+    #      )
+    #       ai_interpretations[categoria] = interpretation or "Interpretación no disponible"
+    #     else:
+    #      logging.warning(f"No hay datos completos para la categoría {categoria}")
+    #      ai_interpretations[categoria] = "Datos no disponibles para esta categoría"
 
     # Datos de interpretación para los tooltips
     interpretaciones = {
@@ -4817,6 +5033,17 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
 
     file_path = os.path.abspath("dashboard_bienestar.html")
     webbrowser.open_new_tab(f"file://{file_path}")
+
+@app.get("/descargar-dashboard/{usuario_id}")
+def descargar_dashboard(usuario_id: str):
+    file_path = os.path.abspath("dashboard_bienestar.html")
+    if not os.path.exists(file_path):
+        return {"error": "El dashboard no existe, primero ejecútalo."}
+    return FileResponse(
+        path=file_path,
+        filename=f"dashboard_bienestar_{usuario_id}.html",
+        media_type="text/html"
+    )
 
 def generar_graficos_por_categoria_Premium(valores_respuestas):
         matplotlib.use('Agg') 
@@ -5687,7 +5914,7 @@ def generar_pdf_con_analisis_Premium(usuario_id):
     nombre_completo = f"{nombre_completo_global[0]} {nombre_completo_global[1]}"  # Concatena nombre y apellido
 
     c = canvas.Canvas(pdf_path, pagesize=letter)
-    width, height = letterb
+    width, height = letter
     background_path = "statics/BKVITAL.PNG"
     background_path_pie = "statics/pie.PNG"
     c = canvas.Canvas(pdf_path, pagesize=letter)
