@@ -37,6 +37,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 
+
 # # Acceder a la respuesta
 # print(response.choices[0].message.content)
 
@@ -402,109 +403,9 @@ def login(username: str = Form(...), password: str = Form(...)):
             "<h3>Credenciales incorrectas. <a href='/login'>Volver</a></h3>", 
             status_code=401
         )
-
+     
 @app.get("/mostrar_pagina", response_class=HTMLResponse)
-def mostrar_pagina(request: Request):
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Ingreso</title>
-    </head>
-    <body>
-        <h2>Verificación de Usuario</h2>
-        <form action="/verificar_usuario" method="post">
-            <label for="tipo_documento">Tipo de Documento:</label>
-            <select id="tipo_documento" name="tipo_documento" required>
-                <option value="CC">Cédula de Ciudadanía</option>
-                <option value="TI">Tarjeta de Identidad</option>
-                <option value="CE">Cédula de Extranjería</option>
-            </select><br><br>
-            <label for="numero_identificacion">Número de Identificación:</label>
-            <input type="text" id="numero_identificacion" name="numero_identificacion" required><br><br>
-            <button type="submit">Continuar</button>
-        </form>
-    </body>
-    </html>
-    """
-@app.post("/verificar_usuario", response_class=HTMLResponse)
-def verificar_usuario(
-    request: Request,
-    tipo_documento: str = Form(...),
-    numero_identificacion: str = Form(...)
-):
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    
-    cursor.execute("""
-        SELECT * FROM usuarios 
-        WHERE tipo_documento = %s AND numero_identificacion = %s
-    """, (tipo_documento, numero_identificacion))
-    
-    usuario = cursor.fetchone()
-    conn.close()
-    
-    if usuario:
-        user_type = request.cookies.get("user_type", "invitado")
-
-        if user_type == "Corevital":
-            version_options = """
-            <!-- Chat Interactivo -->
-            <button onclick="window.location.href='/chat'" style="padding: 15px 20px; border: none; border-radius: 10px; background: #E8F5E9; color: #2E7D32; font-size: 16px; text-align: left; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer;">
-                <div>
-                    <strong>💬 Chat Interactivo</strong><br>
-                    <span style="font-size: 14px; color: #388E3C;">¿Listo para iniciar tu proceso de transformación? Hablemos.</span>
-                </div>
-            </button>
-            """
-
-        elif user_type == "AdvanceVital":
-            version_options = """
-            <!-- Chat Interactivo -->
-            <button onclick="window.location.href='/chat'" style="padding: 15px 20px; border: none; border-radius: 10px; background: #E8F5E9; color: #2E7D32; font-size: 16px; text-align: left; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer;">
-                <div>
-                    <strong>💬 Chat Interactivo</strong><br>
-                    <span style="font-size: 14px; color: #388E3C;">¿Listo para iniciar tu proceso de transformación? Hablemos.</span>
-                </div>
-            </button>
-            """
-
-        elif user_type == "premiumVital":
-            version_options = """
-            <!-- Chat Interactivo -->
-            <button onclick="window.location.href='/chat'" style="padding: 15px 20px; border: none; border-radius: 10px; background: #E8F5E9; color: #2E7D32; font-size: 16px; text-align: left; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer;">
-                <div>
-                    <strong>💬 Chat Interactivo</strong><br>
-                    <span style="font-size: 14px; color: #388E3C;">¿Listo para iniciar tu proceso de transformación? Hablemos.</span>
-                </div>
-            </button>
-            """
-
-        else:
-            version_options = "<p>No tienes acceso a versiones especiales.</p>"
-
-        # 👇 return siempre dentro del if usuario
-        return f"""
-        <!DOCTYPE html>
-        <html>
-        <head><title>Bienvenido</title></head>
-        <body>
-            <h2>Bienvenido {usuario['nombre']} {usuario['apellidos']}</h2>
-            <p>Correo: {usuario['correo']}</p>
-            <p>Ciudad: {usuario['ciudad']}</p>
-            <h3>Selecciona tu versión:</h3>
-            {version_options}
-        </body>
-        </html>
-        """
-
-    # Si no existe en la base de datos
-    return RedirectResponse(
-        url="/mostrar_pagina1",
-        status_code=302
-    )
-@app.get("/mostrar_pagina1", response_class=HTMLResponse)
-def mostrar_pagina1(request: Request):  # Añadir el parámetro request
+def mostrar_pagina(request: Request):  # Añadir el parámetro request
     user_type = request.cookies.get("user_type", "invitado")
     
     # Determinar qué opciones mostrar según el tipo de usuario
@@ -4156,7 +4057,6 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
 
     # Configuración de OpenAI (reemplaza con tu API key)
     
-   
     def get_chatgpt_interpretation(category, score, dimensions, dimension_scores):
         """Obtiene interpretación de ChatGPT para una categoría usando la API v1.0.0+"""
         try:
