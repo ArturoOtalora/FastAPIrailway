@@ -6697,7 +6697,7 @@ async def guardar_respuestas_Premium(request: Request, usuario_id: int = Form(..
             else:
                 ruta_descarga = f"/descargar_pdf?usuario_id={usuario_id}"
             contenido_html = f"""
-            <html>
+             <html>
             <head>
                 <title>¡Buen trabajo!</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -6705,49 +6705,64 @@ async def guardar_respuestas_Premium(request: Request, usuario_id: int = Form(..
                 <style>
                     body {{
                         font-family: 'Roboto', sans-serif;
-                        text-align: center;
-                        padding: 50px;
-                        background-color: #f4f4f4;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        min-height: 100vh;
+                        margin: 0;
+                        background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
                     }}
                     .container {{
                         background: white;
-                        padding: 30px;
-                        border-radius: 12px;
-                        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
-                        display: inline-block;
+                        padding: 40px 30px;
+                        border-radius: 16px;
+                        box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.15);
                         max-width: 500px;
+                        width: 90%;
+                        text-align: center;
+                        animation: fadeIn 0.8s ease-in-out;
                     }}
                     h1 {{
-                        color: #333;
+                        color: #222;
+                        margin-bottom: 15px;
+                        font-size: 28px;
                     }}
                     p {{
                         font-size: 18px;
-                        color: #666;
+                        color: #555;
+                        margin-bottom: 25px;
                     }}
                     button {{
                         background-color: #007bff;
                         color: white;
                         border: none;
-                        padding: 15px 25px;
-                        font-size: 18px;
-                        border-radius: 8px;
+                        padding: 14px 28px;
+                        font-size: 17px;
+                        border-radius: 10px;
                         cursor: pointer;
-                        margin-top: 20px;
-                        transition: background 0.3s ease-in-out;
+                        margin: 10px 5px;
+                        transition: transform 0.2s, background 0.3s;
                     }}
                     button:hover {{
                         background-color: #0056b3;
+                        transform: translateY(-2px);
+                    }}
+                    button:active {{
+                        transform: scale(0.97);
+                    }}
+                    @keyframes fadeIn {{
+                        from {{ opacity: 0; transform: translateY(-20px); }}
+                        to {{ opacity: 1; transform: translateY(0); }}
                     }}
                 </style>
             </head>
             <body>
-                 <div class="container">
+                <div class="container">
                     <h1>¡Gracias por tu tiempo!</h1>
-                    <p>Haz clic en el botón para generar y descargar tu análisis de respuestas:</p>
-                        <button onclick="window.location.href='{ruta_descarga}'">Generar y Descargar Análisis</button>
+                    <p>Haz clic en el botón para continuar:</p>
+                    <button onclick="window.location.href='{ruta_descarga}'">📥 Generar Reporte Interactivo y Descargar Análisis</button>
+                    <button onclick="window.location.href='/chat'">💬 Ingresar a Chat</button>
                 </div>
-                </div>
-               
             </body>
             </html>
             """
