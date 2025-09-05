@@ -4249,7 +4249,7 @@ def generar_graficos_interactivos(valores_respuestas,usuario_id):
     # Generar dashboard pasando las rutas correctas
     dashboard_path = generate_dashboard(individual_charts, consolidated_chart_path, usuario_id)
      
-    return individual_charts + [consolidated_chart_path]
+    return individual_charts + [consolidated_chart_path, dashboard_path]
 def obtener_imagen_categoria(categoria):
     """Devuelve URL de imagen representativa para cada categoría"""
     imagenes = {
@@ -4917,7 +4917,7 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     <div class="dashboard-grid">
       <div class="summary-card">
         <div class="chart-container consolidated">
-          <iframe src="{consolidated_chart}" width="100%" height="100%"></iframe>
+          <iframe src="/{consolidated_chart}" width="100%" height="100%"></iframe>
         </div>
         <h2>Resumen General</h2>
         <div class="progress-container">
@@ -4994,7 +4994,7 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     
     function showModal(category) {{
       // Actualizar el contenido del modal según la categoría seleccionada
-      document.getElementById('modalChart').src = "/statics/user_{usuario_id}/radar_" + category.toLowerCase() + ".html"
+      document.getElementById('modalChart').src = "/statics/user_{usuario_id}/radar_" + category.toLowerCase() + ".html";
       document.getElementById('modalTitle').textContent = category.toUpperCase();
       document.getElementById('modalEvaluation').textContent = {json.dumps(promedios)}[category].toFixed(1);
       document.getElementById('modalDescription').textContent = {json.dumps(interpretaciones)}[category];
@@ -5003,7 +5003,6 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
       const interpretation = aiInterpretations[category] || "Interpretación no disponible en este momento.";
       document.getElementById('modalInterpretation').textContent = interpretation;
       
-      document.getElementById('modalChart').src = "radar_" + category.toLowerCase() + ".html";
       
       // Recomendaciones basadas en el puntaje
       const score = {json.dumps(promedios)}[category];
@@ -5043,22 +5042,57 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     """
     dashboard_filename = "dashboard_bienestar.html"
     dashboard_path = os.path.join("statics", f"user_{usuario_id}", dashboard_filename)
-    with open("dashboard_bienestar.html", "w", encoding="utf-8") as f:
-        f.write(html_template)
+    with open(dashboard_path, "w", encoding="utf-8") as f:
+      f.write(html_template)
 
-    file_path = os.path.abspath("dashboard_bienestar.html")
-    webbrowser.open_new_tab(f"file://{file_path}")
+    return f"statics/user_{usuario_id}/{dashboard_filename}"
 
-@app.get("/descargar-dashboard/{usuario_id}")
-def descargar_dashboard(usuario_id: str):
-    file_path = os.path.abspath("dashboard_bienestar.html")
-    if not os.path.exists(file_path):
-        return {"error": "El dashboard no existe, primero ejecútalo."}
-    return FileResponse(
-        path=file_path,
-        filename=f"dashboard_bienestar_{usuario_id}.html",
-        media_type="text/html"
-    )
+@app.get("/dashboard-content/{usuario_id}", response_class=HTMLResponse)
+async def get_dashboard_content(usuario_id: str):
+    dashboard_path = f"statics/user_{usuario_id}/dashboard_bienestar.html"
+    
+    if not os.path.exists(dashboard_path):
+        raise HTTPException(status_code=404, detail="Dashboard no encontrado")
+    
+    with open(dashboard_path, "r", encoding="utf-8") as f:
+        content = f.read()
+    
+    return HTMLResponse(content=content)
+
+@app.post("/generar-informe/{usuario_id}")
+async def generar_informe(usuario_id: str, respuestas: List[int]):
+    # Generar gráficos y dashboard
+    rutas_archivos = generar_graficos_interactivos(respuestas, usuario_id)
+    
+    # La última ruta es el dashboard
+    dashboard_path = rutas_archivos[-1]
+    
+    # Retornar URL para acceder al dashboard
+    return {
+        "dashboard_url": f"/dashboard/{usuario_id}",
+        "archivos_generados": rutas_archivos
+    }
+
+@app.get("/dashboard/{usuario_id}")
+async def get_dashboard(usuario_id: str):
+    dashboard_path = f"statics/user_{usuario_id}/dashboard_bienestar.html"
+    
+    if not os.path.exists(dashboard_path):
+        raise HTTPException(status_code=404, detail="Dashboard no encontrado")
+    
+    return FileResponse(dashboard_path)
+
+@app.get("/dashboard-content/{usuario_id}", response_class=HTMLResponse)
+async def get_dashboard_content(usuario_id: str):
+    dashboard_path = f"statics/user_{usuario_id}/dashboard_bienestar.html"
+    
+    if not os.path.exists(dashboard_path):
+        raise HTTPException(status_code=404, detail="Dashboard no encontrado")
+    
+    with open(dashboard_path, "r", encoding="utf-8") as f:
+        content = f.read()
+    
+    return HTMLResponse(content=content)
 
 def generar_graficos_por_categoria_Premium(valores_respuestas):
         matplotlib.use('Agg') 
