@@ -4372,7 +4372,6 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     
     ai_interpretations = {}
     for categoria in categorias:
-        if categoria in promedios and categoria in dimension_scores:
           interpretation = get_chatgpt_interpretation(
             categoria,
             promedios[categoria],
