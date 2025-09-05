@@ -4327,7 +4327,7 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     dimension_scores = {}
     
     for categoria in categorias:
-        chart_file = f"radar_{categoria.lower()}.html"
+        chart_file = f"statics/user_{usuario_id}/radar_{categoria.lower()}.html"
         if chart_file in individual_charts:
             with open(chart_file, 'r', encoding='utf-8') as f:
                 content = f.read()
@@ -4355,18 +4355,18 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     # Obtener interpretaciones de ChatGPT para cada categoría
     logging.info(f"Archivos recibidos en individual_charts: {individual_charts}")
     ai_interpretations = {}
-    # for categoria in categorias:
-    #     if categoria in promedios and categoria in dimension_scores:
-    #       interpretation = get_chatgpt_interpretation(
-    #         categoria,
-    #         promedios[categoria],
-    #         dimensiones[categoria],
-    #         dimension_scores[categoria]
-    #      )
-    #       ai_interpretations[categoria] = interpretation or "Interpretación no disponible"
-    #     else:
-    #      logging.warning(f"No hay datos completos para la categoría {categoria}")
-    #      ai_interpretations[categoria] = "Datos no disponibles para esta categoría"
+    for categoria in categorias:
+        if categoria in promedios and categoria in dimension_scores:
+          interpretation = get_chatgpt_interpretation(
+            categoria,
+            promedios[categoria],
+            dimensiones[categoria],
+            dimension_scores[categoria]
+         )
+          ai_interpretations[categoria] = interpretation or "Interpretación no disponible"
+        else:
+         logging.warning(f"No hay datos completos para la categoría {categoria}")
+         ai_interpretations[categoria] = "Datos no disponibles para esta categoría"
 
     # Datos de interpretación para los tooltips
     interpretaciones = {
