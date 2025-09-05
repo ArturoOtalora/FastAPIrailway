@@ -36,7 +36,7 @@ import tiktoken
 from dotenv import load_dotenv
 from openai import OpenAI
 import logging
-
+from flask import current_app
 
 # Configurar la conexión a MySQL desde Railway
 DB_HOST = "shuttle.proxy.rlwy.net"
@@ -4003,6 +4003,7 @@ def generar_graficos_por_categoria(valores_respuestas):
     plt.close()
 
 def generar_graficos_interactivos(valores_respuestas,usuario_id):
+   
     categorias = ["Ambiental", "Vital", "Emocional", "Mental", "Existencial", "Financiera"]
     dimensiones = {
         "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
@@ -4066,6 +4067,10 @@ def generar_graficos_interactivos(valores_respuestas,usuario_id):
     text_color = '#333333'
     bg_color = 'rgba(245, 248, 250, 0.8)'
     
+    static_path = "statics"
+    user_static_path = os.path.join(static_path, f'user_{usuario_id}')
+    os.makedirs(user_static_path, exist_ok=True)
+
     # Generate individual radar charts for each category
     individual_charts = []
     inicio = 0
@@ -4152,9 +4157,12 @@ def generar_graficos_interactivos(valores_respuestas,usuario_id):
         )
         
         # Save as HTML
-        filename = f"radar_{categoria.lower()}.html"
-        fig.write_html(filename, full_html=False, include_plotlyjs='cdn')
-        individual_charts.append(filename)
+        chart_filename = f"radar_{categoria.lower()}.html"
+        chart_filepath = os.path.join(user_static_path, chart_filename)
+        fig.write_html(chart_filepath, full_html=False, include_plotlyjs='cdn')
+        
+        # Guardar la ruta para usar en el dashboard
+        individual_charts.append(f'statics/user_{usuario_id}/{chart_filename}')
     
     # Generate consolidated radar chart with smaller size
     promedios_categorias = []
@@ -4232,12 +4240,16 @@ def generar_graficos_interactivos(valores_respuestas,usuario_id):
      
     # Save consolidated chart
     consolidated_filename = "radar_general.html"
-    fig_consolidado.write_html(consolidated_filename, full_html=False, include_plotlyjs='cdn')
+    consolidated_filepath = os.path.join(user_static_path, consolidated_filename)
+    fig_consolidado.write_html(consolidated_filepath, full_html=False, include_plotlyjs='cdn')
     
-    # Generate dashboard (assuming this function exists)
-    generate_dashboard(individual_charts, consolidated_filename,usuario_id)
+    consolidated_chart_path = f'statics/user_{usuario_id}/{consolidated_filename}'
+
     
-    return individual_charts + [consolidated_filename]
+    # Generar dashboard pasando las rutas correctas
+    dashboard_path = generate_dashboard(individual_charts, consolidated_chart_path, usuario_id)
+     
+    return individual_charts + [consolidated_chart_path]
 def obtener_imagen_categoria(categoria):
     """Devuelve URL de imagen representativa para cada categoría"""
     imagenes = {
@@ -4982,6 +4994,7 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     
     function showModal(category) {{
       // Actualizar el contenido del modal según la categoría seleccionada
+      document.getElementById('modalChart').src = "/statics/user_{usuario_id}/radar_" + category.toLowerCase() + ".html"
       document.getElementById('modalTitle').textContent = category.toUpperCase();
       document.getElementById('modalEvaluation').textContent = {json.dumps(promedios)}[category].toFixed(1);
       document.getElementById('modalDescription').textContent = {json.dumps(interpretaciones)}[category];
@@ -5028,6 +5041,8 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
 </body>
 </html>
     """
+    dashboard_filename = "dashboard_bienestar.html"
+    dashboard_path = os.path.join("statics", f"user_{usuario_id}", dashboard_filename)
     with open("dashboard_bienestar.html", "w", encoding="utf-8") as f:
         f.write(html_template)
 
