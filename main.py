@@ -4379,9 +4379,6 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
             dimension_scores[categoria]
          )
           ai_interpretations[categoria] = interpretation or "Interpretación no disponible"
-        else:
-         logging.warning(f"No hay datos completos para la categoría {categoria}")
-         ai_interpretations[categoria] = "Datos no disponibles para esta categoría"
 
     # Datos de interpretación para los tooltips
     interpretaciones = {
