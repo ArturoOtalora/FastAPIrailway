@@ -4277,10 +4277,23 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
             raise ValueError("OPENAI_API_KEY no está en .env")
-        return OpenAI(api_key=api_key)
+        return {
+            "api_key": api_key,
+            "model_name": "gpt-3.5-turbo",
+            "context_tokens": 4096,
+            "response_tokens": 500
+        }
 
-    # Crear cliente de OpenAI
-    client = configure_openai()    
+    # Inicialización del cliente
+    try:
+        config = configure_openai()
+        client = OpenAI(api_key=config["api_key"])
+        print("✅ OpenAI listo para dashboard")
+    except Exception as e:
+        print(f"❌ Error configurando OpenAI para dashboard: {str(e)}")
+        client = None
+      
+
     def get_chatgpt_interpretation(category, score, dimensions, dimension_scores):
         """Obtiene interpretación de ChatGPT para una categoría usando la API v1.0.0+"""
         try:
