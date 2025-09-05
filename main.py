@@ -4297,6 +4297,9 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     def get_chatgpt_interpretation(category, score, dimensions, dimension_scores):
         """Obtiene interpretación de ChatGPT para una categoría usando la API v1.0.0+"""
         try:
+            if not client:
+               logging.warning("Cliente de OpenAI no inicializado")
+               return "Servicio de interpretación no disponible"
             prompt = f"""Como experto en bienestar, analiza estos resultados:
 
             Categoría: {category}
@@ -4366,7 +4369,7 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
                     
                     dimension_scores[categoria] = dim_values[:5]
     # Obtener interpretaciones de ChatGPT para cada categoría
-    logging.info(f"Archivos recibidos en individual_charts: {individual_charts}")
+    
     ai_interpretations = {}
     for categoria in categorias:
         if categoria in promedios and categoria in dimension_scores:
