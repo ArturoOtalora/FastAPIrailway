@@ -5062,6 +5062,7 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
       f.write(html_template)
 
     dashboard_url = f"https://web-production-7053.up.railway.app/dashboard-content/{usuario_id}"
+    print(dashboard_url)
     webbrowser.open_new_tab(dashboard_url)
     return f"statics/user_{usuario_id}/{dashboard_filename}"
 
