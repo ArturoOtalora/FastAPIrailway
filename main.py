@@ -838,12 +838,6 @@ def mostrar_pagina(request: Request):  # Añadir el parámetro request
                 <span style="font-size: 14px; color: #388E3C;">¿listo para iniciar tu proceso de transformación? Hablemos.</span>
             </div>
         </button>
-          
-          <button onclick="visualizarReporte()" style="background: #FFF3E0; color: #EF6C00;">
-            <strong>📊 Visualizar Reporte Interactivo</strong>
-            <span style="color: #E65100;">Accede a análisis detallados y métricas personalizadas de tu progreso.</span>
-        </button>
-        </div>
 
         """
     elif user_type == "premiumVital":
