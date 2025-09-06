@@ -6882,9 +6882,16 @@ async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagi
                     button:active {{
                         transform: scale(0.97);
                     }}
+                    #visualizacionBtn {{
+                        display: none;
+                        background-color: #28a745;
+                    }}
+                    #visualizacionBtn:hover {{
+                        background-color: #218838;
+                    }}
                     @keyframes fadeIn {{
-                        from {{ opacity: 0; transform: translateY(-20px); }}
-                        to {{ opacity: 1; transform: translateY(0); }}
+                        from {{ opacity: 0; transform: translateY(-20px);}}
+                        to {{  opacity: 1; transform: translateY(0);}}
                     }}
                 </style>
             </head>
@@ -6892,9 +6899,22 @@ async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagi
                 <div class="container">
                     <h1>¡Gracias por tu tiempo!</h1>
                     <p>Haz clic en el botón para continuar:</p>
-                    <button onclick="window.location.href='{ruta_descarga}'">📥 Generar Reporte Interactivo y Descargar Análisis</button>
+                    <button onclick="descargarAnalisis()">📥Descargar Análisis</button>
+                    <button id="visualizacionBtn" onclick="window.location.href='/dashboard-content/{usuario_id}'">📊 Visualización</button>
                     <button onclick="window.location.href='/chat'">💬 Ingresar a Chat</button>
                 </div>
+
+                <script>
+                    function descargarAnalisis() {{
+                        // Redirigir para descargar el análisis
+                        window.location.href = '{ruta_descarga}';
+                        
+                        // Mostrar el botón de visualización después de un breve retraso
+                        setTimeout(function() {{
+                            document.getElementById('visualizacionBtn').style.display = 'inline-block';
+                        }}, 1500); // Retraso para simular el tiempo de descarga
+                    }}
+                </script>
             </body>
             </html>
             """
