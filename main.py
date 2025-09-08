@@ -1025,6 +1025,8 @@ def mostrar_pagina(request: Request):  # Añadir el parámetro request
                         <select id="grado_escolaridad" name="grado_escolaridad" required>
                             <option value="Basica Primaria">Básica Primaria</option>
                             <option value="Bachiller">Bachiller</option>
+                            <option value="Bachiller">Tecnico</option>
+                            <option value="Bachiller">Tecnologo</option>
                             <option value="Pregado">Pregrado</option>
                             <option value="Posgrado">Posgrado</option>
                             <option value="Doctorado">Doctorado</option>
@@ -1055,6 +1057,7 @@ def mostrar_pagina(request: Request):  # Añadir el parámetro request
                             <option value="AZISTIA">AZISTIA</option>
                             <option value="HOTEL SONATA 44">HOTEL SONATA 44</option>
                             <option value="PTC-ASSISTAN">PTC-AZISTIA</option>
+                            <option value="PTC-ASSISTAN">ENVIGADO</option>
                             <option value="Otra Empresa">Otra Empresa</option>
                         </select>
                     </div>
@@ -6883,6 +6886,12 @@ async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagi
                     #visualizacionBtn:hover {{
                         background-color: #218838;
                     }}
+                    .libro-btn {{
+                        background-color: #ff6b35;
+                    }}
+                    .libro-btn:hover {{
+                        background-color: #e25a2c;
+                    }}
                     @keyframes fadeIn {{
                         from {{ opacity: 0; transform: translateY(-20px);}}
                         to {{  opacity: 1; transform: translateY(0);}}
@@ -6894,6 +6903,7 @@ async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagi
                     <h1>¡Gracias por tu tiempo!</h1>
                     <p>Haz clic en el botón para continuar:</p>
                     <button onclick="descargarAnalisis()">📥Descargar Análisis</button>
+                    <button class="libro-btn" onclick="descargarLibro()">📚 Descargar Libro</button>
                     <button id="visualizacionBtn" onclick="window.location.href='/dashboard-content/{usuario_id}'">📊 Visualización</button>
                     <button onclick="window.location.href='/chat'">💬 Ingresar a Chat</button>
                 </div>
@@ -6907,6 +6917,11 @@ async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagi
                         setTimeout(function() {{
                             document.getElementById('visualizacionBtn').style.display = 'inline-block';
                         }}, 1500); // Retraso para simular el tiempo de descarga
+                    }}
+                    
+                    function descargarLibro() {{
+                        // Redirigir para descargar el libro desde la carpeta static
+                        window.location.href = '/statics/libros/mi_libro.pdf';
                     }}
                 </script>
             </body>
