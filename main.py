@@ -4652,85 +4652,64 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     dimension_scores = {}
     ai_interpretations = {}
 
-    # DEBUG: Verificar archivos disponibles
-    print(f"Archivos individuales recibidos: {list(individual_charts.keys())}")
-
-    for categoria in categorias:
-        chart_file = f"statics/user_{usuario_id}/radar_{categoria.lower()}.html"
-        print(f"Buscando archivo: {chart_file}")
-        
-        if chart_file in individual_charts:
-            print(f"✅ Archivo encontrado: {chart_file}")
-            try:
-                with open(chart_file, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                    
-                    # Extraer el promedio - método más robusto
-                    promedio_match = re.search(r'Promedio:\s*([\d.]+)%', content)
-                    if promedio_match:
-                        promedio = float(promedio_match.group(1))
-                        promedios[categoria] = promedio / 10
-                        print(f"Promedio para {categoria}: {promedios[categoria]}")
+    # OBTENER DATOS DEL GRÁFICO CONSOLIDADO COMO FALLBACK
+    try:
+        with open(consolidated_chart, 'r', encoding='utf-8') as f:
+            consolidated_content = f.read()
+            
+            # Extraer datos de todas las categorías del gráfico consolidado
+            for categoria in categorias:
+                # Buscar datos de cada categoría en el contenido consolidado
+                pattern = rf'name:\s*[\'"]{categoria}[\'"].*?data:\s*\[([\d\.,\s]+)\]'
+                match = re.search(pattern, consolidated_content, re.DOTALL)
+                
+                if match:
+                    data_str = match.group(1)
+                    scores = [float(x.strip()) for x in data_str.split(',') if x.strip()]
+                    if scores:
+                        promedios[categoria] = sum(scores) / len(scores)
+                        dimension_scores[categoria] = scores
+                        print(f"✅ Datos de {categoria} obtenidos del gráfico consolidado")
                     else:
-                        print(f"❌ No se encontró promedio en {chart_file}")
-                        promedios[categoria] = 0
+                        # Valores por defecto si no se encuentran datos
+                        promedios[categoria] = 5.0
+                        dimension_scores[categoria] = [5.0, 5.0, 5.0, 5.0, 5.0]
+                        print(f"⚠️  Usando valores por defecto para {categoria}")
+                else:
+                    # Valores por defecto si no se encuentra la categoría
+                    promedios[categoria] = 5.0
+                    dimension_scores[categoria] = [5.0, 5.0, 5.0, 5.0, 5.0]
+                    print(f"⚠️  Categoría {categoria} no encontrada, usando valores por defecto")
                     
-                    # Extraer valores de dimensiones - método más robusto
-                    data_match = re.search(r'customdata":\s*\[([\d\.,\s]+)\]', content)
-                    if data_match:
-                        dim_values_str = data_match.group(1)
-                        dim_values = []
-                        for val in dim_values_str.split(','):
-                            try:
-                                clean_val = val.strip().strip('"\'[]')
-                                if clean_val:
-                                    dim_values.append(float(clean_val))
-                            except ValueError as ve:
-                                print(f"Error convirtiendo valor: {val}, error: {ve}")
-                                continue
-                        
-                        if len(dim_values) >= 5:
-                            dimension_scores[categoria] = dim_values[:5]
-                            print(f"Dimension scores para {categoria}: {dimension_scores[categoria]}")
-                        else:
-                            print(f"❌ No hay suficientes valores de dimensión en {chart_file}")
-                            dimension_scores[categoria] = [0, 0, 0, 0, 0]
-                    else:
-                        print(f"❌ No se encontraron datos de dimensiones en {chart_file}")
-                        dimension_scores[categoria] = [0, 0, 0, 0, 0]
-                        
-            except Exception as e:
-                print(f"❌ Error leyendo archivo {chart_file}: {str(e)}")
-                promedios[categoria] = 0
-                dimension_scores[categoria] = [0, 0, 0, 0, 0]
-        else:
-            print(f"❌ Archivo no encontrado en individual_charts: {chart_file}")
-            promedios[categoria] = 0
-            dimension_scores[categoria] = [0, 0, 0, 0, 0]
+    except Exception as e:
+        print(f"❌ Error leyendo gráfico consolidado: {str(e)}")
+        # Si falla todo, usar valores por defecto para todas las categorías
+        for categoria in categorias:
+            promedios[categoria] = 5.0
+            dimension_scores[categoria] = [5.0, 5.0, 5.0, 5.0, 5.0]
+            print(f"⚠️  Error general, usando valores por defecto para {categoria}")
 
     # Obtener interpretaciones de ChatGPT para cada categoría
     for categoria in categorias:
-        print(f"\nProcesando interpretación para: {categoria}")
-        print(f"Promedio disponible: {categoria in promedios}")
-        print(f"Dimension scores disponibles: {categoria in dimension_scores}")
+        print(f"\n📊 Procesando interpretación para: {categoria}")
+        print(f"   Puntuación: {promedios[categoria]:.1f}/10")
+        print(f"   Dimensiones: {dimension_scores[categoria]}")
         
-        if categoria in promedios and categoria in dimension_scores:
-            if promedios[categoria] > 0 and any(score > 0 for score in dimension_scores[categoria]):
-                print(f"✅ Obteniendo interpretación GPT para {categoria}...")
-                interpretation = get_chatgpt_interpretation(
-                    categoria,
-                    promedios[categoria],
-                    dimensiones[categoria],
-                    dimension_scores[categoria]
-                )
-                ai_interpretations[categoria] = interpretation
-                print(f"Interpretación obtenida: {interpretation[:100]}...")
-            else:
-                print(f"⚠️  Datos insuficientes o cero para {categoria}")
-                ai_interpretations[categoria] = "Datos insuficientes para generar interpretación"
-        else:
-            print(f"❌ Datos faltantes completamente para {categoria}")
-            ai_interpretations[categoria] = "Datos no disponibles para esta categoría"
+        try:
+            print(f"   ✅ Obteniendo interpretación GPT para {categoria}...")
+            interpretation = get_chatgpt_interpretation(
+                categoria,
+                promedios[categoria],
+                dimensiones[categoria],
+                dimension_scores[categoria]
+            )
+            ai_interpretations[categoria] = interpretation
+            print(f"   📝 Interpretación obtenida exitosamente")
+            
+        except Exception as e:
+            error_msg = f"Error al obtener interpretación para {categoria}: {str(e)}"
+            print(f"   ❌ {error_msg}")
+            ai_interpretations[categoria] = f"Interpretación no disponible - {error_msg}"
 
     # Datos de interpretación para los tooltips
     interpretaciones = {
