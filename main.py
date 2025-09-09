@@ -5274,7 +5274,7 @@ def generate_dashboard(individual_charts, consolidated_chart, usuario_id, promed
                 f'''
                 <div class="metric-card {categoria_estilos[categoria]['color']}" onclick="showModal('{categoria}')">
                     <span class="metric-title">{categoria}</span>
-                    <span class="metric-value">{int(promedios.get(categoria, 0) * 10)}</span>
+                    <span class="metric-value">{promedios.get(categoria, 0) * 10:.1f}</span>
                     <img src="{obtener_imagen_categoria(categoria)}" alt="{categoria}" class="category-image">
                 </div>
                 '''
@@ -5321,7 +5321,7 @@ def generate_dashboard(individual_charts, consolidated_chart, usuario_id, promed
       // Actualizar el contenido del modal según la categoría seleccionada
       document.getElementById('modalChart').src = "/statics/user_{usuario_id}/radar_" + category.toLowerCase() + ".html";
       document.getElementById('modalTitle').textContent = category.toUpperCase();
-      document.getElementById('modalEvaluation').textContent = {json.dumps(promedios)}[category].toFixed(1);
+      document.getElementById('modalEvaluation').textContent = ({json.dumps(promedios)}[category] * 10).toFixed(1);
       document.getElementById('modalDescription').textContent = {json.dumps(interpretaciones)}[category];
       
       // Mostrar interpretación de IA si está disponible
@@ -5330,7 +5330,7 @@ def generate_dashboard(individual_charts, consolidated_chart, usuario_id, promed
       
       
       // Recomendaciones basadas en el puntaje
-      const score = {json.dumps(promedios)}[category];
+      const score = {json.dumps(promedios)}[category] * 10;
       let recommendations = "";
       
       if(score < 4) {{
