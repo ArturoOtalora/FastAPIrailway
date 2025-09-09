@@ -4678,10 +4678,6 @@ def generate_dashboard(individual_charts, consolidated_chart, usuario_id, promed
     ai_interpretations = {}
     for categoria in categorias:
         if categoria in promedios and categoria in dimension_scores:
-            print(f"✅ Obteniendo interpretación GPT para {categoria}...")
-            print(f"   Puntuación: {promedios[categoria] * 10:.1f}/10")
-            print(f"   Dimensiones: {dimension_scores[categoria]}")
-            
             interpretation = get_chatgpt_interpretation(
                 categoria,
                 promedios[categoria] * 10,  # Convertir a escala 0-10
