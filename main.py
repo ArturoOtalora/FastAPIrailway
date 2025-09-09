@@ -5274,7 +5274,7 @@ def generate_dashboard(individual_charts, consolidated_chart, usuario_id, promed
                 f'''
                 <div class="metric-card {categoria_estilos[categoria]['color']}" onclick="showModal('{categoria}')">
                     <span class="metric-title">{categoria}</span>
-                    <span class="metric-value">{promedios.get(categoria, 0):.1f}</span>
+                    <span class="metric-value">{int(promedios.get(categoria, 0) * 10)}</span>
                     <img src="{obtener_imagen_categoria(categoria)}" alt="{categoria}" class="category-image">
                 </div>
                 '''
