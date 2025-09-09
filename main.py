@@ -4382,18 +4382,25 @@ def generar_graficos_interactivos(valores_respuestas,usuario_id):
     user_static_path = os.path.join(static_path, f'user_{usuario_id}')
     os.makedirs(user_static_path, exist_ok=True)
 
-    # Generate individual radar charts for each category
+    # CALCULAR DATOS PARA INTERPRETACIÓN PRIMERO
+    promedios_interpretacion = {}
+    dimension_scores_interpretacion = {}
     individual_charts = []
     inicio = 0
     
+    # Un solo bucle para calcular todo
     for categoria in categorias:
         dim = dimensiones[categoria]
         respuestas_categoria = valores_respuestas[inicio:inicio + len(dim)]
         inicio += len(dim)
         
-        # Normalize values
+        # Calcular valores normalizados (0-1) para gráficos
         valores = np.interp(respuestas_categoria, (1, 10), (0, 1))
         promedio = np.mean(valores)
+        
+        # Guardar datos para interpretación
+        promedios_interpretacion[categoria] = promedio
+        dimension_scores_interpretacion[categoria] = respuestas_categoria.tolist() if hasattr(respuestas_categoria, 'tolist') else list(respuestas_categoria)
         
         # Crear textos tooltip personalizados
         tooltips = [
@@ -4454,13 +4461,13 @@ def generar_graficos_interactivos(valores_respuestas,usuario_id):
                 font=dict(size=16, color=text_color)
             ),
             showlegend=False,
-            height=400,  # Reduced from 600
-            width=500,   # Reduced from 700
-            margin=dict(t=80, b=40, l=40, r=40),  # Reduced margins
+            height=400,
+            width=500,
+            margin=dict(t=80, b=40, l=40, r=40),
             template='plotly_white',
             font=dict(
                 family="Arial, sans-serif",
-                size=11,  # Slightly smaller font
+                size=11,
                 color=text_color
             ),
             paper_bgcolor='white',
@@ -4522,14 +4529,14 @@ def generar_graficos_interactivos(valores_respuestas,usuario_id):
                 ticktext=["0%", "20%", "40%", "60%", "80%", "100%"],
                 gridcolor=grid_color,
                 linewidth=1.5,
-                tickfont=dict(size=10)  # Smaller font
+                tickfont=dict(size=10)
             ),
             angularaxis=dict(
                 direction="clockwise",
                 rotation=90,
                 linecolor='gray',
                 gridcolor=grid_color,
-                tickfont=dict(size=11)  # Smaller font
+                tickfont=dict(size=11)
             ),
             bgcolor=bg_color
         ),
@@ -4538,14 +4545,14 @@ def generar_graficos_interactivos(valores_respuestas,usuario_id):
             x=0.5,
             y=0.95,
             xanchor='center',
-            font=dict(size=18, color=text_color)  # Smaller title
+            font=dict(size=18, color=text_color)
         ),
         showlegend=False,
-        height=500,  # Reduced from 700
-        width=600,   # Reduced from 800
-        margin=dict(t=100, b=150, l=60, r=60),  # Reduced margins
+        height=500,
+        width=600,
+        margin=dict(t=100, b=150, l=60, r=60),
         template='plotly_white',
-        font=dict(family="Arial", size=11, color=text_color),  # Smaller font
+        font=dict(family="Arial", size=11, color=text_color),
         paper_bgcolor='white'
     )
      
@@ -4556,9 +4563,14 @@ def generar_graficos_interactivos(valores_respuestas,usuario_id):
     
     consolidated_chart_path = f'statics/user_{usuario_id}/{consolidated_filename}'
 
-    
-    # Generar dashboard pasando las rutas correctas
-    dashboard_path = generate_dashboard(individual_charts, consolidated_chart_path, usuario_id)
+    # Generar dashboard pasando los datos calculados
+    dashboard_path = generate_dashboard(
+        individual_charts, 
+        consolidated_chart_path, 
+        usuario_id,
+        promedios_interpretacion,
+        dimension_scores_interpretacion
+    )
      
     return individual_charts + [consolidated_chart_path, dashboard_path]
 def obtener_imagen_categoria(categoria):
@@ -4573,7 +4585,7 @@ def obtener_imagen_categoria(categoria):
     }
     return imagenes.get(categoria, "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40")
 
-def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
+def generate_dashboard(individual_charts, consolidated_chart, usuario_id, promedios_interpretacion=None, dimension_scores_interpretacion=None):
     import os
     import webbrowser
     import json
@@ -4583,7 +4595,7 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     # Configuración de OpenAI (reemplaza con tu API key)
     load_dotenv()
  
-    # Configuración de OpenAI
+# Configuración inicial
     def configure_openai():
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
@@ -4603,14 +4615,14 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
     except Exception as e:
         print(f"❌ Error configurando OpenAI para dashboard: {str(e)}")
         client = None
+      
 
     def get_chatgpt_interpretation(category, score, dimensions, dimension_scores):
-        """Obtiene interpretación de ChatGPT para una categoría"""
+        """Obtiene interpretación de ChatGPT para una categoría usando la API v1.0.0+"""
         try:
             if not client:
-                logging.warning("Cliente de OpenAI no inicializado")
-                return "Servicio de interpretación no disponible"
-            
+               logging.warning("Cliente de OpenAI no inicializado")
+               return "Servicio de interpretación no disponible"
             prompt = f"""Como experto en bienestar, analiza estos resultados:
 
             Categoría: {category}
@@ -4618,27 +4630,28 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
             Dimensiones: {', '.join(f'{d}:{s}' for d,s in zip(dimensions, dimension_scores))}
 
             Proporciona:
-            1. Interpretación breve (1-2 frases)
+            1. Interpretación breve (1 frases) y en la respuesta no aparezca Interpretación breve
             2. 1 Fortaleza y áreas a mejorar
             Usa un tono profesional y constructivo en español."""
 
             response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "Eres un coach de bienestar experto."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.7,
-                max_tokens=350
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "Eres un coach de bienestar experto."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=350
             )
-            return response.choices[0].message.content.strip()
+            return response.choices[0].message.content
         except Exception as e:
             print(f"Error al obtener interpretación de ChatGPT: {e}")
-            return f"Interpretación no disponible - Error: {str(e)}"
+            return None
 
     # Leer los datos de los gráficos generados
     categorias = ["Ambiental", "Vital", "Emocional", "Mental", "Existencial", "Financiera"]
     
+    # Dimensiones para cada categoría
     dimensiones = {
         "Ambiental": ["Autocuidado", "Armonía ambiental", "Accesibilidad Ambiental", "Atención preventiva", "Conciencia ambiental"],
         "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
@@ -4648,68 +4661,37 @@ def generate_dashboard(individual_charts, consolidated_chart,usuario_id):
         "Financiera": ["Ahorro", "Deuda", "Ingresos", "Inversión", "Presupuesto"]
     }
 
-    promedios = {}
-    dimension_scores = {}
-    ai_interpretations = {}
-
-    # OBTENER DATOS DEL GRÁFICO CONSOLIDADO COMO FALLBACK
-    try:
-        with open(consolidated_chart, 'r', encoding='utf-8') as f:
-            consolidated_content = f.read()
-            
-            # Extraer datos de todas las categorías del gráfico consolidado
-            for categoria in categorias:
-                # Buscar datos de cada categoría en el contenido consolidado
-                pattern = rf'name:\s*[\'"]{categoria}[\'"].*?data:\s*\[([\d\.,\s]+)\]'
-                match = re.search(pattern, consolidated_content, re.DOTALL)
-                
-                if match:
-                    data_str = match.group(1)
-                    scores = [float(x.strip()) for x in data_str.split(',') if x.strip()]
-                    if scores:
-                        promedios[categoria] = sum(scores) / len(scores)
-                        dimension_scores[categoria] = scores
-                        print(f"✅ Datos de {categoria} obtenidos del gráfico consolidado")
-                    else:
-                        # Valores por defecto si no se encuentran datos
-                        promedios[categoria] = 5.0
-                        dimension_scores[categoria] = [5.0, 5.0, 5.0, 5.0, 5.0]
-                        print(f"⚠️  Usando valores por defecto para {categoria}")
-                else:
-                    # Valores por defecto si no se encuentra la categoría
-                    promedios[categoria] = 5.0
-                    dimension_scores[categoria] = [5.0, 5.0, 5.0, 5.0, 5.0]
-                    print(f"⚠️  Categoría {categoria} no encontrada, usando valores por defecto")
-                    
-    except Exception as e:
-        print(f"❌ Error leyendo gráfico consolidado: {str(e)}")
-        # Si falla todo, usar valores por defecto para todas las categorías
+    categorias = list(dimensiones.keys())
+    
+    # USAR DIRECTAMENTE LOS DATOS RECIBIDOS (NO LEER ARCHIVOS)
+    promedios = promedios_interpretacion or {}
+    dimension_scores = dimension_scores_interpretacion or {}
+    
+    # Si no se recibieron datos, usar valores por defecto
+    if not promedios or not dimension_scores:
+        print("⚠️  No se recibieron datos de interpretación, usando valores por defecto")
         for categoria in categorias:
-            promedios[categoria] = 5.0
-            dimension_scores[categoria] = [5.0, 5.0, 5.0, 5.0, 5.0]
-            print(f"⚠️  Error general, usando valores por defecto para {categoria}")
-
+            promedios[categoria] = 0.5  # Valor medio normalizado (0-1)
+            dimension_scores[categoria] = [5, 5, 5, 5, 5]  # Valores medios (1-10)
+    
     # Obtener interpretaciones de ChatGPT para cada categoría
+    ai_interpretations = {}
     for categoria in categorias:
-        print(f"\n📊 Procesando interpretación para: {categoria}")
-        print(f"   Puntuación: {promedios[categoria]:.1f}/10")
-        print(f"   Dimensiones: {dimension_scores[categoria]}")
-        
-        try:
-            print(f"   ✅ Obteniendo interpretación GPT para {categoria}...")
+        if categoria in promedios and categoria in dimension_scores:
+            print(f"✅ Obteniendo interpretación GPT para {categoria}...")
+            print(f"   Puntuación: {promedios[categoria] * 10:.1f}/10")
+            print(f"   Dimensiones: {dimension_scores[categoria]}")
+            
             interpretation = get_chatgpt_interpretation(
                 categoria,
-                promedios[categoria],
+                promedios[categoria] * 10,  # Convertir a escala 0-10
                 dimensiones[categoria],
-                dimension_scores[categoria]
+                dimension_scores[categoria]  # Ya están en escala 1-10
             )
-            ai_interpretations[categoria] = interpretation
-            print(f"   📝 Interpretación obtenida exitosamente")
-            
-        except Exception as e:
-            error_msg = f"Error al obtener interpretación para {categoria}: {str(e)}"
-            print(f"   ❌ {error_msg}")
-            ai_interpretations[categoria] = f"Interpretación no disponible - {error_msg}"
+            ai_interpretations[categoria] = interpretation or "Interpretación no disponible"
+        else:
+            print(f"❌ No hay datos completos para {categoria}")
+            ai_interpretations[categoria] = "Datos no disponibles para esta categoría"
 
     # Datos de interpretación para los tooltips
     interpretaciones = {
@@ -7205,12 +7187,12 @@ async def descargar_pdf_Premium(usuario_id: int):
 
     try:
         await aiosmtplib.send(
-            #  message,
-            #  hostname="smtp.gmail.com",
-            #  port=587,
-            #  start_tls=True,
-            #  username="correopruebavital@gmail.com",
-            #  password="cxvi hyne temx xmgt"
+             message,
+             hostname="smtp.gmail.com",
+             port=587,
+             start_tls=True,
+             username="correopruebavital@gmail.com",
+             password="cxvi hyne temx xmgt"
         )
     except Exception as e:
         print(f"Error al enviar el correo: {e}")
@@ -7238,12 +7220,12 @@ async def descargar_pdf(usuario_id: int):
 
     try:
         await aiosmtplib.send(
-            #  message,
-            #  hostname="smtp.gmail.com",
-            #  port=587,
-            #  start_tls=True,
-            #  username="correopruebavital@gmail.com",
-            #  password="cxvi hyne temx xmgt"
+             message,
+             hostname="smtp.gmail.com",
+             port=587,
+             start_tls=True,
+             username="correopruebavital@gmail.com",
+             password="cxvi hyne temx xmgt"
         )
     except Exception as e:
         print(f"Error al enviar el correo: {e}")
@@ -7272,12 +7254,12 @@ async def enviar_pdf_email(usuario_id: int = Form(...), correo_destino: str = Fo
     # Envía el correo
     try:
         await aiosmtplib.send(
-        #    message,
-        #    hostname="smtp.gmail.com",
-        #     port=587,
-        #    start_tls=True,
-        #     username="correopruebavital@gmail.com",
-        #    password="cxvi hyne temx xmgt"
+           message,
+           hostname="smtp.gmail.com",
+            port=587,
+           start_tls=True,
+            username="correopruebavital@gmail.com",
+           password="cxvi hyne temx xmgt"
         )
         return {"mensaje": f"PDF enviado a {correo_destino} correctamente."}
     except Exception as e:
