@@ -1690,7 +1690,7 @@ async def chat_interactivo():
             <div class="video-box">
                 <div id="remoteVideoContainer">
                     <div class="avatar-container" id="avatarContainer">
-                        <img src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png" alt="Avatar de CimaBot" class="avatar-image" id="cimaBotAvatar">
+                        <img src="statics/Mariposa.png" alt="Avatar de CimaBot" class="avatar-image" id="cimaBotAvatar">
                     </div>
                     <video id="remoteVideo" autoplay playsinline class="hidden"></video>
                     <h6>CimaBot</h6>
@@ -5368,6 +5368,1286 @@ def generate_dashboard(individual_charts, consolidated_chart, usuario_id, promed
      
     return f"statics/user_{usuario_id}/{dashboard_filename}"
 
+def generar_graficos_interactivos_Premium(valores_respuestas,usuario_id):
+   
+    categorias = ["Vital", "Emocional", "Mental", "Existencial", "Financiera","Ambiental","Creatividad","Mentalidad digital","Bienestar social","Bienestar profesional","Manejo del agotamiento","Conexion interior"]
+    dimensiones = {
+        "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
+        "Emocional": ["Autoconocimiento", "Autoregulación", "Cuidado Personal", "Motivación", "Resiliencia"],
+        "Mental": ["Disfruta De La Realidad", "Manejo Del Stress", "Relaciones Saludables", "Conexión Con Otros", "Seguridad Y Confianza"],
+        "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Por Qué Estoy Aquí?", "Propósito De Vida", "Quién Soy"],
+        "Financiera": ["Ahorro", "Deuda", "Ingresos", "Inversión", "Presupuesto"],
+        "Ambiental": ["Autocuidado", "Armonía ambiental", "Accesibilidad Ambiental", "Atención preventiva", "Conciencia ambiental"],
+        "Creatividad": ["Apertura al cambio", "Aprendizaje continuo", "creatividad aplicada", "Solución de problemas", "Innovación creativa"],
+        "Mentalidad digital": ["Higiene Digital", "Autogestión Emocional", "Gestión del Tiempo Digital", "Seguridad Digital", "Bienestar Digital Creativo"],
+        "Bienestar social": ["Participación", "Sentimiento de pertenencia", "Altruismo y colaboración", "Diversidad", "Red de apoyo"],
+        "Bienestar profesional": ["Desarrollo de habilidades", "Satisfacción", "Claridad laboral", "Conciliación", "Compromiso laboral"],
+        "Manejo del agotamiento": ["Cansancio emocional", "Despersonalización", "Pérdida de motivación", "Sensación de ineficacia", "Estrategias de autocuidado"],
+        "Conexion interior": ["Paz Interior ", "Capacidad de Perdonar", "Alegría Vital y Gratitud", "Armonía Relacional", "Conexión y Sentido"]
+    }
+    
+    textos_personalizados = {
+        "Vital": {
+            "Alimentación": "Balance nutricional: Evalúa la calidad y variedad de tu dieta diaria",
+            "Descanso": "Sueño reparador: Considera tanto cantidad como calidad de tus horas de descanso",
+            "Ejercicio": "Actividad física: Frecuencia e intensidad adecuadas a tu condición",
+            "Hábitos Saludables": "Rutinas positivas: Hidratación, postura, pausas activas, etc.",
+            "Salud Vital Corporal": "Bienestar físico general: Energía, vitalidad, ausencia de molestias"
+        },
+        "Emocional": {
+            "Autoconocimiento": "Reconocimiento honesto de tus emociones y patrones emocionales",
+            "Autoregulación": "Capacidad para manejar emociones intensas de forma constructiva",
+            "Cuidado Personal": "Tiempo dedicado a actividades que nutren tu bienestar emocional",
+            "Motivación": "Impulso interno para perseguir objetivos a pesar de obstáculos",
+            "Resiliencia": "Habilidad para recuperarte de adversidades y aprender de ellas"
+        },
+        "Mental": {
+            "Disfruta De La Realidad": "Capacidad para encontrar satisfacción en tu vida cotidiana",
+            "Manejo Del Stress": "Habilidad para gestionar situaciones estresantes de manera efectiva",
+            "Relaciones Saludables": "Calidad de tus interacciones con los demás",
+            "Conexión Con Otros": "Sentimiento de pertenencia y apoyo social",
+            "Seguridad Y Confianza": "Sentimiento de seguridad en ti mismo y en tu entorno"
+        },
+        "Existencial": {
+            "Autenticidad Conmigo Mismo": "Coherencia entre tus valores y acciones",
+            "Lo Que Piensas Te Motiva": "Tus pensamientos te impulsan o te limitan",
+            "Por Qué Estoy Aquí?": "Comprensión de tu lugar en el mundo",
+            "Propósito De Vida": "Sentido de dirección y significado en tu vida",
+            "Quién Soy": "Conocimiento y aceptación de tu identidad"
+        },
+        "Financiera": {
+            "Ahorro": "Hábitos de ahorro y planificación financiera",
+            "Deuda": "Gestión y control de deudas",
+            "Ingresos": "Estabilidad y suficiencia de tus ingresos",
+            "Inversión": "Planificación para el futuro financiero",
+            "Presupuesto": "Control y planificación de gastos"
+        },
+        "Ambiental": {
+            "Autocuidado": "Atención a tus necesidades personales en tu entorno",
+            "Armonía ambiental": "Equilibrio con tu entorno inmediato",
+            "Accesibilidad Ambiental": "Adaptación de tu entorno a tus necesidades",
+            "Atención preventiva": "Medidas para mantener un entorno saludable",
+            "Conciencia ambiental": "Relación con el medio ambiente y la naturaleza"
+        },
+        "Creatividad": {
+            "Apertura al cambio": "Capacidad de adaptarse y aceptar nuevas ideas o enfoques",
+            "Aprendizaje continuo": "Búsqueda constante de conocimiento y mejora personal",
+            "Creatividad aplicada": "Uso práctico de ideas originales en la vida diaria o el trabajo",
+            "Solución de problemas": "Habilidad para encontrar respuestas innovadoras a desafíos",
+            "Innovación creativa": "Generación de propuestas originales que aporten valor"
+            },
+
+        "Mentalidad digital": {
+            "Higiene Digital": "Uso responsable y equilibrado de la tecnología",
+            "Autogestión Emocional": "Manejo consciente de emociones frente al mundo digital",
+            "Gestión del Tiempo Digital": "Organización eficiente del tiempo en entornos tecnológicos",
+            "Seguridad Digital": "Protección de datos y cuidado en el uso de herramientas digitales",
+            "Bienestar Digital Creativo": "Uso positivo de la tecnología para fomentar el bienestar y la innovación"
+        },
+
+        "Bienestar social": {
+            "Participación": "Involucrarse activamente en actividades y comunidades",
+            "Sentimiento de pertenencia": "Reconocimiento de ser parte valiosa de un grupo",
+            "Altruismo y colaboración": "Apoyo a otros y trabajo conjunto por objetivos comunes",
+            "Diversidad": "Respeto y apertura hacia diferentes culturas, ideas y personas",
+            "Red de apoyo": "Contar con vínculos que brinden acompañamiento y ayuda"
+        },
+
+        "Bienestar profesional": {
+            "Desarrollo de habilidades": "Mejora continua de capacidades para crecer laboralmente",
+            "Satisfacción": "Sentimiento positivo hacia el propio trabajo",
+            "Claridad laboral": "Comprensión del rol y objetivos dentro de la labor",
+            "Conciliación": "Equilibrio entre vida personal y profesional",
+            "Compromiso laboral": "Motivación y responsabilidad hacia las metas del trabajo"
+        },
+
+        "Manejo del agotamiento": {
+            "Cansancio emocional": "Sensación de desgaste por sobrecarga afectiva o laboral",
+            "Despersonalización": "Distanciamiento o indiferencia hacia las propias tareas o personas",
+            "Pérdida de motivación": "Disminución del interés y energía en las actividades",
+            "Sensación de ineficacia": "Percepción de falta de logros o efectividad",
+            "Estrategias de autocuidado": "Acciones conscientes para prevenir o reducir el agotamiento"
+        },
+
+        "Conexion interior": {
+            "Paz Interior": "Estado de calma y equilibrio consigo mismo",
+            "Capacidad de Perdonar": "Habilidad de soltar resentimientos y liberar cargas emocionales",
+            "Alegría Vital y Gratitud": "Apreciación positiva de la vida y sus experiencias",
+            "Armonía Relacional": "Relaciones saludables y constructivas con los demás",
+            "Conexión y Sentido": "Encuentro de propósito y coherencia en la vida personal"
+        }
+
+    }
+    
+    # Blue color palette
+    primary_color = '#1f77b4'
+    secondary_color = '#4a90e2'
+    fill_color = 'rgba(74, 144, 226, 0.3)'
+    grid_color = 'rgba(200, 200, 200, 0.5)'
+    text_color = '#333333'
+    bg_color = 'rgba(245, 248, 250, 0.8)'
+    
+    static_path = "statics"
+    user_static_path = os.path.join(static_path, f'user_{usuario_id}')
+    os.makedirs(user_static_path, exist_ok=True)
+
+    # CALCULAR DATOS PARA INTERPRETACIÓN PRIMERO
+    promedios_interpretacion = {}
+    dimension_scores_interpretacion = {}
+    individual_charts = []
+    inicio = 0
+    
+    # Un solo bucle para calcular todo
+    for categoria in categorias:
+        dim = dimensiones[categoria]
+        respuestas_categoria = valores_respuestas[inicio:inicio + len(dim)]
+        inicio += len(dim)
+        
+        # Calcular valores normalizados (0-1) para gráficos
+        valores = np.interp(respuestas_categoria, (1, 10), (0, 1))
+        promedio = np.mean(valores)
+        
+        # Guardar datos para interpretación
+        promedios_interpretacion[categoria] = promedio
+        dimension_scores_interpretacion[categoria] = respuestas_categoria.tolist() if hasattr(respuestas_categoria, 'tolist') else list(respuestas_categoria)
+        
+        # Crear textos tooltip personalizados
+        tooltips = [
+            textos_personalizados.get(categoria, {}).get(d, f"{d}: {valores[i]*100:.1f}%") 
+            for i, d in enumerate(dim)
+        ]
+        
+        # Create radar chart with modern blue theme and smaller size
+        fig = go.Figure()
+        
+        # Add trace for the data
+        fig.add_trace(go.Scatterpolar(
+            r=np.append(valores, valores[0]),
+            theta=np.append(dim, dim[0]),
+            fill='toself',
+            name=categoria,
+            line=dict(color=primary_color, width=2),
+            fillcolor=fill_color,
+            customdata=np.append(respuestas_categoria, respuestas_categoria[0]),
+            hovertemplate="<b>%{theta}</b><br>%{text}<br>Valor original: %{customdata}<extra></extra>",
+            text=np.append(tooltips, tooltips[0])
+        ))
+        
+        # Add a circle at 50% for reference
+        fig.add_trace(go.Scatterpolar(
+            r=[0.5]*len(dim),
+            theta=dim,
+            mode='lines',
+            line=dict(color='gray', width=1, dash='dot'),
+            showlegend=False,
+            hoverinfo='none'
+        ))
+        
+        fig.update_layout(
+            polar=dict(
+                radialaxis=dict(
+                    visible=True,
+                    range=[0, 1],
+                    tickvals=[0, 0.2, 0.4, 0.6, 0.8, 1],
+                    ticktext=["0%", "20%", "40%", "60%", "80%", "100%"],
+                    gridcolor=grid_color,
+                    linewidth=1.5,
+                    tickfont=dict(size=9)
+                ),
+                angularaxis=dict(
+                    direction="clockwise",
+                    rotation=90,
+                    linecolor='gray',
+                    gridcolor=grid_color,
+                    tickfont=dict(size=10)
+                ),
+                bgcolor=bg_color
+            ),
+            title=dict(
+                text=f'<b>{categoria}</b><br><span style="font-size:12px;color:gray">Promedio: {promedio*100:.1f}%</span>',
+                x=0.5,
+                xanchor='center',
+                font=dict(size=16, color=text_color)
+            ),
+            showlegend=False,
+            height=400,
+            width=500,
+            margin=dict(t=80, b=40, l=40, r=40),
+            template='plotly_white',
+            font=dict(
+                family="Arial, sans-serif",
+                size=11,
+                color=text_color
+            ),
+            paper_bgcolor='white',
+            plot_bgcolor='rgba(0,0,0,0)'
+        )
+        
+        # Save as HTML
+        chart_filename = f"radar_{categoria.lower()}.html"
+        chart_filepath = os.path.join(user_static_path, chart_filename)
+        fig.write_html(chart_filepath, full_html=False, include_plotlyjs='cdn')
+        
+        # Guardar la ruta para usar en el dashboard
+        individual_charts.append(f'statics/user_{usuario_id}/{chart_filename}')
+    
+    # Generate consolidated radar chart with smaller size
+    # Generate two consolidated radar charts (first 6 and last 6 categories)
+    promedios_categorias = []
+    inicio = 0
+    
+    for categoria in categorias:
+        dim = dimensiones[categoria]
+        respuestas_categoria = valores_respuestas[inicio:inicio + len(dim)]
+        inicio += len(dim)
+        valores = np.interp(respuestas_categoria, (1, 10), (0, 1))
+        promedio = np.mean(valores)
+        promedios_categorias.append(promedio)
+    
+    # Split categories into two groups
+    categorias_1 = categorias[:6]  # First 6 categories
+    categorias_2 = categorias[6:]  # Last 6 categories
+    
+    promedios_1 = promedios_categorias[:6]
+    promedios_2 = promedios_categorias[6:]
+    
+    # Create first consolidated radar chart (first 6 categories)
+    fig_consolidado_1 = go.Figure()
+    
+    # Add main trace
+    fig_consolidado_1.add_trace(go.Scatterpolar(
+        r=np.append(promedios_1, promedios_1[0]),
+        theta=np.append(categorias_1, categorias_1[0]),
+        fill='toself',
+        name='Perfil General (1-6)',
+        line=dict(color=primary_color, width=2.5),
+        fillcolor=fill_color,
+        hoverinfo='r+theta',
+        hovertemplate='<b>%{theta}</b><br>Puntuación: %{r:.0%}<extra></extra>'
+    ))
+    
+    # Add reference circles
+    for level in [0.2, 0.4, 0.6, 0.8]:
+        fig_consolidado_1.add_trace(go.Scatterpolar(
+            r=[level]*7,
+            theta=categorias_1 + [categorias_1[0]],
+            mode='lines',
+            line=dict(color='gray', width=0.5, dash='dot'),
+            showlegend=False,
+            hoverinfo='none'
+        ))
+    
+    fig_consolidado_1.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True,
+                range=[0, 1],
+                tickvals=[0, 0.2, 0.4, 0.6, 0.8, 1],
+                ticktext=["0%", "20%", "40%", "60%", "80%", "100%"],
+                gridcolor=grid_color,
+                linewidth=1.5,
+                tickfont=dict(size=10)
+            ),
+            angularaxis=dict(
+                direction="clockwise",
+                rotation=90,
+                linecolor='gray',
+                gridcolor=grid_color,
+                tickfont=dict(size=11)
+            ),
+            bgcolor=bg_color
+        ),
+        title=dict(
+            text='<b>Perfil General - Dimensiones 1-6</b>',
+            x=0.5,
+            y=0.95,
+            xanchor='center',
+            font=dict(size=16, color=text_color)
+        ),
+        showlegend=False,
+        height=500,
+        width=600,
+        margin=dict(t=100, b=150, l=60, r=60),
+        template='plotly_white',
+        font=dict(family="Arial", size=11, color=text_color),
+        paper_bgcolor='white'
+    )
+    
+    # Create second consolidated radar chart (last 6 categories)
+    fig_consolidado_2 = go.Figure()
+    
+    # Add main trace
+    fig_consolidado_2.add_trace(go.Scatterpolar(
+        r=np.append(promedios_2, promedios_2[0]),
+        theta=np.append(categorias_2, categorias_2[0]),
+        fill='toself',
+        name='Perfil General (7-12)',
+        line=dict(color=secondary_color, width=2.5),
+        fillcolor='rgba(42, 157, 143, 0.3)',  # Different color for distinction
+        hoverinfo='r+theta',
+        hovertemplate='<b>%{theta}</b><br>Puntuación: %{r:.0%}<extra></extra>'
+    ))
+    
+    # Add reference circles
+    for level in [0.2, 0.4, 0.6, 0.8]:
+        fig_consolidado_2.add_trace(go.Scatterpolar(
+            r=[level]*7,
+            theta=categorias_2 + [categorias_2[0]],
+            mode='lines',
+            line=dict(color='gray', width=0.5, dash='dot'),
+            showlegend=False,
+            hoverinfo='none'
+        ))
+    
+    fig_consolidado_2.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True,
+                range=[0, 1],
+                tickvals=[0, 0.2, 0.4, 0.6, 0.8, 1],
+                ticktext=["0%", "20%", "40%", "60%", "80%", "100%"],
+                gridcolor=grid_color,
+                linewidth=1.5,
+                tickfont=dict(size=10)
+            ),
+            angularaxis=dict(
+                direction="clockwise",
+                rotation=90,
+                linecolor='gray',
+                gridcolor=grid_color,
+                tickfont=dict(size=11)
+            ),
+            bgcolor=bg_color
+        ),
+        title=dict(
+            text='<b>Perfil General - Dimensiones 7-12</b>',
+            x=0.5,
+            y=0.95,
+            xanchor='center',
+            font=dict(size=16, color=text_color)
+        ),
+        showlegend=False,
+        height=500,
+        width=600,
+        margin=dict(t=100, b=150, l=60, r=60),
+        template='plotly_white',
+        font=dict(family="Arial", size=11, color=text_color),
+        paper_bgcolor='white'
+    )
+    
+    # Save consolidated charts
+    consolidated_filename_1 = "radar_general_1-6.html"
+    consolidated_filepath_1 = os.path.join(user_static_path, consolidated_filename_1)
+    fig_consolidado_1.write_html(consolidated_filepath_1, full_html=False, include_plotlyjs='cdn')
+    
+    consolidated_filename_2 = "radar_general_7-12.html"
+    consolidated_filepath_2 = os.path.join(user_static_path, consolidated_filename_2)
+    fig_consolidado_2.write_html(consolidated_filepath_2, full_html=False, include_plotlyjs='cdn')
+    
+    consolidated_chart_paths = [
+        f'statics/user_{usuario_id}/{consolidated_filename_1}',
+        f'statics/user_{usuario_id}/{consolidated_filename_2}'
+    ]
+
+    # Generar dashboard pasando los datos calculados
+    dashboard_path = generate_dashboard_Premium(
+        individual_charts, 
+        consolidated_chart_paths,  # Ahora pasamos una lista con dos paths
+        usuario_id,
+        promedios_interpretacion,
+        dimension_scores_interpretacion
+    )
+    
+    return individual_charts + consolidated_chart_paths + [dashboard_path]
+
+def obtener_imagen_categoria_Premium(categoria):
+    """Devuelve URL de imagen representativa para cada categoría"""
+    imagenes = {
+        "Ambiental": "https://images.unsplash.com/photo-1541332693222-7a3ac02abb0c",
+        "Vital": "https://images.unsplash.com/photo-1617465811498-69b30dbfd82e",
+        "Emocional": "https://images.unsplash.com/photo-1615361012778-56ee35ec8bc5",
+        "Mental": "https://images.unsplash.com/photo-1633174504412-830d4d745638",
+        "Existencial": "https://images.unsplash.com/photo-1700418980234-afc1c5597ff1",
+        "Financiera": "https://images.unsplash.com/photo-1683307367585-004c8522df2f",
+        "Creatividad": "https://images.unsplash.com/photo-1615361012778-56ee35ec8bc5",
+        "Mentalidad digital": "https://images.unsplash.com/photo-1501594907352-04cda38ebc29", 
+        "Bienestar social": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e", 
+        "Bienestar profesional": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee", 
+        "Manejo del agotamiento": "https://images.unsplash.com/photo-1518791841217-8f162f1e1131", 
+        "Conexion interior": "https://images.unsplash.com/photo-1633174504412-830d4d745638"
+        }
+        
+    
+    return imagenes.get(categoria, "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40")
+
+def generate_dashboard_Premium(individual_charts, consolidated_charts, usuario_id, promedios_interpretacion=None, dimension_scores_interpretacion=None):
+    import os
+    import webbrowser
+    import json
+    from openai import OpenAI 
+    import re
+
+    # Configuración de OpenAI (reemplaza con tu API key)
+    load_dotenv()
+ 
+    # Configuración inicial
+    def configure_openai():
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY no está en .env")
+        return {
+            "api_key": api_key,
+            "model_name": "gpt-3.5-turbo",
+            "context_tokens": 4096,
+            "response_tokens": 500
+        }
+
+    # Inicialización del cliente
+    try:
+        config = configure_openai()
+        client = OpenAI(api_key=config["api_key"])
+        print("✅ OpenAI listo para dashboard")
+    except Exception as e:
+        print(f"❌ Error configurando OpenAI para dashboard: {str(e)}")
+        client = None
+      
+    def get_chatgpt_interpretation(category, score, dimensions, dimension_scores):
+        """Obtiene interpretación de ChatGPT para una categoría usando la API v1.0.0+"""
+        try:
+            if not client:
+               logging.warning("Cliente de OpenAI no inicializado")
+               return "Servicio de interpretación no disponible"
+            prompt = f"""Como experto en bienestar, analiza estos resultados:
+
+            Categoría: {category}
+            Puntuación: {score}/10
+            Dimensiones: {', '.join(f'{d}:{s}' for d,s in zip(dimensions, dimension_scores))}
+
+            Proporciona:
+            1. Interpretación breve (1 frases) y en la respuesta no aparezca Interpretación breve
+            2. 1 Fortaleza y áreas a mejorar
+            Usa un tono profesional y constructivo en español."""
+
+            response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "Eres un coach de bienestar experto."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=350
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"Error al obtener interpretación de ChatGPT: {e}")
+            return None
+
+    # Leer los datos de los gráficos generados
+    categorias = ["Vital", "Emocional", "Mental", "Existencial", "Financiera","Ambiental","Creatividad","Mentalidad digital","Bienestar social","Bienestar profesional","Manejo del agotamiento","Conexion interior"]
+    
+    # Dimensiones para cada categoría
+    dimensiones = {
+         "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
+        "Emocional": ["Autoconocimiento", "Autoregulación", "Cuidado Personal", "Motivación", "Resiliencia"],
+        "Mental": ["Disfruta De La Realidad", "Manejo Del Stress", "Relaciones Saludables", "Conexión Con Otros", "Seguridad Y Confianza"],
+        "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Por Qué Estoy Aquí?", "Propósito De Vida", "Quién Soy"],
+        "Financiera": ["Ahorro", "Deuda", "Ingresos", "Inversión", "Presupuesto"],
+        "Ambiental": ["Autocuidado", "Armonía ambiental", "Accesibilidad Ambiental", "Atención preventiva", "Conciencia ambiental"],
+        "Creatividad": ["Apertura al cambio", "Aprendizaje continuo", "creatividad aplicada", "Solución de problemas", "Innovación creativa"],
+        "Mentalidad digital": ["Higiene Digital", "Autogestión Emocional", "Gestión del Tiempo Digital", "Seguridad Digital", "Bienestar Digital Creativo"],
+        "Bienestar social": ["Participación", "Sentimiento de pertenencia", "Altruismo y colaboración", "Diversidad", "Red de apoyo"],
+        "Bienestar profesional": ["Desarrollo de habilidades", "Satisfacción", "Claridad laboral", "Conciliación", "Compromiso laboral"],
+        "Manejo del agotamiento": ["Cansancio emocional", "Despersonalización", "Pérdida de motivación", "Sensación de ineficacia", "Estrategias de autocuidado"],
+        "Conexion interior": ["Paz Interior ", "Capacidad de Perdonar", "Alegría Vital y Gratitud", "Armonía Relacional", "Conexión y Sentido"]
+    }
+
+    categorias = list(dimensiones.keys())
+    
+    # USAR DIRECTAMENTE LOS DATOS RECIBIDOS (NO LEER ARCHIVOS)
+    promedios = promedios_interpretacion or {}
+    dimension_scores = dimension_scores_interpretacion or {}
+    
+    # Si no se recibieron datos, usar valores por defecto
+    if not promedios or not dimension_scores:
+        print("⚠️  No se recibieron datos de interpretación, usando valores por defecto")
+        for categoria in categorias:
+            promedios[categoria] = 0.5  # Valor medio normalizado (0-1)
+            dimension_scores[categoria] = [5, 5, 5, 5, 5]  # Valores medios (1-10)
+    
+    # Obtener interpretaciones de ChatGPT para cada categoría
+    ai_interpretations = {}
+    for categoria in categorias:
+        if categoria in promedios and categoria in dimension_scores:
+            interpretation = get_chatgpt_interpretation(
+                categoria,
+                promedios[categoria] * 10,  # Convertir a escala 0-10
+                dimensiones[categoria],
+                dimension_scores[categoria]  # Ya están en escala 1-10
+            )
+            ai_interpretations[categoria] = interpretation or "Interpretación no disponible"
+        else:
+            print(f"❌ No hay datos completos para {categoria}")
+            ai_interpretations[categoria] = "Datos no disponibles para esta categoría"
+
+    # Datos de interpretación para los tooltips
+    interpretaciones = {
+        "Ambiental": "Tu relación con la Tierra es un reflejo de tu conexión con la vida. Tus hábitos cotidianos desde el consumo hasta el manejo de recursos muestran cómo honras el ecosistema del que formas parte. Esta evaluación te ayudará a identificar acciones para transformar tu impacto, no solo como un acto ecológico, sino como un compromiso con tu propio bienestar integral",
+        "Vital": "Tu cuerpo es el lienzo donde se refleja tu autocuidado. Los hábitos que has construido desde la nutrición hasta el descanso revelan cómo dialogas con tu energía física. Este análisis no juzga, sino que ilumina oportunidades para alinear tus acciones con las necesidades únicas de tu organismo.Aquí descubrirás cómo fortalecer tu vitalidad para que cada día sea una expresión de tu vitalidad",
+        "Emocional": "Las emociones son ventanas a tu mundo interno. Tus respuestas reflejan cómo entiendes y gestionas la alegría, el estrés o la incertidumbre, y cómo estas experiencias moldean tus relaciones y decisiones. Este espacio de observación te invita a observar patrones, celebrar tus avances y reconocer dónde puedes cultivar mayor equilibrio emocional para vivir con autenticidad y serenidad",
+        "Mental": "Tu mente es un jardín: sus pensamientos y creencias dan forma a tu realidad. Este análisis explora cómo cultivas flexibilidad ante los desafíos, gratitud frente a los logros y claridad en tus decisiones. Descubrirás si tus patrones mentales te acercan a la plenitud o si hay terrenos fértiles para sembrar nuevas perspectivas",
+        "Existencial": "¿Qué huella quieres grabar en el mundo? Tus respuestas revelan cómo conectas tus acciones diarias con un propósito más profundo. En esta introspección explorarás si tu vida actual resuena con tus valores y principios y como conectas con un propósito y sentido de vida superior",
+        "Financiera": "El dinero no solo se cuenta: se gestiona con mente y corazón. Tus elecciones financieras desde el ahorro hasta la inversión hablan de tus valores y tu capacidad para equilibrar lo práctico con lo emocional. Este análisis te guiará a identificar tu coeficiente emocional financiero, así como fortalezas y áreas donde transformar preocupaciones en estrategias claras, construyendo seguridad material y paz interior",
+        "creatividad": "La creatividad es la expresión viva de tu esencia. Va más allá del arte: se manifiesta en tu forma de pensar, resolver problemas y transformar la realidad. Esta evaluación te invita a explorar cuánto espacio permites a tu imaginación, cómo canalizas tu originalidad y qué tan libre eres para crear desde lo que eres, no desde lo que se espera",
+        "mentalidad digital": "Tu relación con la tecnología revela tu capacidad de adaptación, aprendizaje continuo y participación en un mundo en constante evolución. Esta evaluación no mide solo habilidades técnicas, sino también tu apertura al cambio, pensamiento crítico y uso consciente del entorno digital para potenciar tu vida y tu propósito",
+        "bienestar social": "Somos seres profundamente sociales, y la calidad de nuestras relaciones influye directamente en nuestro bienestar. Esta dimensión te invita a reflexionar sobre tu nivel de conexión con los demás, tu capacidad de aportar a la comunidad y cómo los lazos que cultivas enriquecen tanto tu vida como la de tu entorno. ",
+        "bienestar profesional" :"Tu trabajo no es solo una fuente de ingresos, sino también un camino para expresar tus talentos, valores y contribución al mundo. Esta evaluación busca ayudarte a identificar cuán alineada está tu vida profesional con tu propósito personal, y qué tan satisfecho te sientes con el impacto que generas a través de tu vocación. ",
+        "manejo del agotamiento": "El modo en que gestionas tu energía refleja el nivel de respeto que tienes por tu salud física, emocional y mental. Esta dimensión explora tu habilidad para reconocer tus límites, priorizar el descanso y construir una vida en equilibrio, previniendo el agotamiento como acto de amor propio y sostenibilidad personal",
+        "conexion interior": "Tu conexión interior es la base de todas tus decisiones, relaciones y percepciones. Es el lugar desde donde nace tu autenticidad. Esta evaluación te guiará a descubrir qué tan en contacto estás con tu mundo interno, qué tanto espacio das a tu intuición y cómo esa conexión nutre tu paz, claridad y bienestar integral."
+    }
+
+    # Colores y emojis para cada categoría
+    categoria_estilos = {
+        "Ambiental": {
+            "color": "teal", 
+            "emoji": "🌱",
+            "bg_color": "#E6FFFA",
+            "text_color": "#234E52",
+            "border_color": "#4FD1C5"
+        },
+        "Vital": {
+            "color": "green",
+            "emoji": "💪",
+            "bg_color": "#F0FFF4",
+            "text_color": "#22543D",
+            "border_color": "#68D391"
+        },
+        "Emocional": {
+            "color": "purple",
+            "emoji": "😊",
+            "bg_color": "#FAF5FF",
+            "text_color": "#44337A",
+            "border_color": "#B794F4"
+        },
+        "Mental": {
+            "color": "blue",
+            "emoji": "🧠",
+            "bg_color": "#EBF8FF",
+            "text_color": "#2C5282",
+            "border_color": "#63B3ED"
+        },
+        "Existencial": {
+            "color": "indigo",
+            "emoji": "🔍",
+            "bg_color": "#F8FAFF",
+            "text_color": "#3C366B",
+            "border_color": "#7F9CF5"
+        },
+        "Financiera": {
+            "color": "gray",
+            "emoji": "💰",
+            "bg_color": "#F7FAFC",
+            "text_color": "#4A5568",
+            "border_color": "#A0AEC0"
+        },
+         "Creatividad": {
+        "color": "orange",
+        "emoji": "🎨",
+        "bg_color": "#FFF5EB",
+        "text_color": "#7B341E",
+        "border_color": "#F6AD55"
+        },
+        "Mentalidad digital": {
+            "color": "cyan",
+            "emoji": "💻",
+            "bg_color": "#EDFDFD",
+            "text_color": "#065666",
+            "border_color": "#76E4F7"
+        },
+        "Bienestar social": {
+            "color": "pink",
+            "emoji": "🤝",
+            "bg_color": "#FFF5F7",
+            "text_color": "#702459",
+            "border_color": "#F687B3"
+        },
+        "Bienestar profesional": {
+            "color": "yellow",
+            "emoji": "📈",
+            "bg_color": "#FFFFF0",
+            "text_color": "#744210",
+            "border_color": "#F6E05E"
+        },
+        "Manejo del agotamiento": {
+            "color": "red",
+            "emoji": "⚡",
+            "bg_color": "#FFF5F5",
+            "text_color": "#742A2A",
+            "border_color": "#FC8181"
+        },
+        "Conexion interior": {
+            "color": "indigo",
+            "emoji": "🔍",
+            "bg_color": "#F8FAFF",
+            "text_color": "#3C366B",
+            "border_color": "#7F9CF5"
+        }
+    }
+
+    # Calcular el promedio general
+    promedio_general = sum(promedios.values()) / len(promedios) if promedios else 0
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT nombre, apellidos  FROM usuarios WHERE numero_identificacion = %s", (usuario_id,))
+    nombre_completo_global = cursor.fetchone()
+    nombre_completo = f"{nombre_completo_global[0]} {nombre_completo_global[1]}" 
+
+    # Generar el HTML del dashboard
+    html_template = f"""
+    <!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard de Bienestar Integral</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {{
+      --color-primary: #6366F1;
+      --color-success: #10B981;
+      --color-warning: #F59E0B;
+      --color-danger: #EF4444;
+      --color-info: #3B82F6;
+      --color-purple: #8B5CF6;
+      --color-gray-100: #F3F4F6;
+      --color-gray-200: #E5E7EB;
+      --color-gray-300: #D1D5DB;
+      --color-gray-700: #374151;
+      --color-gray-900: #111827;
+      
+      /* Nueva paleta emocional */
+      --color-teal: #4FD1C5;
+      --color-green: #68D391;
+      --color-purple: #B794F4;
+      --color-blue: #63B3ED;
+      --color-indigo: #7F9CF5;
+      --color-gray: #A0AEC0;
+      
+      --color-teal-light: #E6FFFA;
+      --color-green-light: #F0FFF4;
+      --color-purple-light: #FAF5FF;
+      --color-blue-light: #EBF8FF;
+      --color-indigo-light: #F8FAFF;
+      --color-gray-light: #F7FAFC;
+      
+      --color-teal-dark: #234E52;
+      --color-green-dark: #22543D;
+      --color-purple-dark: #44337A;
+      --color-blue-dark: #2C5282;
+      --color-indigo-dark: #3C366B;
+      --color-gray-dark: #4A5568;
+      
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.05);
+      --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+      --shadow-xl: 0 20px 25px rgba(0,0,0,0.15);
+      
+      --border-radius: 12px;
+      --border-radius-lg: 16px;
+    }}
+    
+    * {{
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }}
+    
+    body {{
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+      margin: 0;
+      padding: 2rem;
+      color: var(--color-gray-900);
+      line-height: 1.6;
+      min-height: 100vh;
+    }}
+
+    .container {{
+      max-width: 1400px;
+      margin: 0 auto;
+    }}
+
+    .header {{
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-md);
+    }}
+
+    .header-content h1 {{
+      font-family: 'Playfair Display', serif;
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--color-gray-900);
+      line-height: 1.2;
+    }}
+
+    .header-content h2 {{
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: var(--color-gray-700);
+      margin-bottom: 0;
+    }}
+
+    .dashboard-grid {{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }}
+
+    @media (max-width: 1024px) {{
+      .dashboard-grid {{
+        grid-template-columns: 1fr;
+      }}
+    }}
+
+    .card {{
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-md);
+      transition: all 0.3s ease;
+    }}
+
+    .card:hover {{
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+    }}
+
+    .card-header {{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }}
+
+    .card-title {{
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--color-gray-900);
+    }}
+
+    .chart-container {{
+      width: 100%;
+      height: 400px;
+      border: none;
+      margin-bottom: 1rem;
+    }}
+
+    .chart-container iframe {{
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 8px;
+    }}
+
+    .metrics-grid {{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }}
+
+    .metric-card {{
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-md);
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 220px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      position: relative;
+      overflow: hidden;
+    }}
+
+    .metric-card:hover {{
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-lg);
+    }}
+
+    /* Estilos específicos por categoría */
+    .metric-card.teal {{
+      background: var(--color-teal-light);
+      border-color: var(--color-teal);
+      color: var(--color-teal-dark);
+    }}
+    
+    .metric-card.green {{
+      background: var(--color-green-light);
+      border-color: var(--color-green);
+      color: var(--color-green-dark);
+    }}
+    
+    .metric-card.purple {{
+      background: var(--color-purple-light);
+      border-color: var(--color-purple);
+      color: var(--color-purple-dark);
+    }}
+    
+    .metric-card.blue {{
+      background: var(--color-blue-light);
+      border-color: var(--color-blue);
+      color: var(--color-blue-dark);
+    }}
+    
+    .metric-card.indigo {{
+      background: var(--color-indigo-light);
+      border-color: var(--color-indigo);
+      color: var(--color-indigo-dark);
+    }}
+    
+    .metric-card.gray {{
+      background: var(--color-gray-light);
+      border-color: var(--color-gray);
+      color: var(--color-gray-dark);
+    }}
+
+    .metric-card.orange {{
+      background: #FFF7ED;
+      border-color: #F97316;
+      color: #7C2D12;
+    }}
+
+    .metric-card.pink {{
+      background: #FFF0F6;
+      border-color: #EC4899;
+      color: #9D174D;
+    }}
+
+    .metric-card.red {{
+      background: #FEF2F2;
+      border-color: #EF4444;
+      color: #7F1D1D;
+    }}
+
+    .metric-card.yellow {{
+      background: #FEFCE8;
+      border-color: #FACC15;
+      color: #713F12;
+    }}
+
+    .metric-card.cyan {{
+      background: #ECFEFF;
+      border-color: #06B6D4;
+      color: #164E63;
+    }}
+
+    .metric-title {{
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }}
+
+    .metric-value {{
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin: 0.75rem 0;
+      text-align: center;
+      font-feature-settings: 'tnum';
+      font-variant-numeric: tabular-nums;
+    }}
+    
+    .category-image {{
+      width: 100%;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-top: auto;
+      border: 1px solid rgba(0,0,0,0.1);
+    }}
+
+    .summary-section {{
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-md);
+      margin-bottom: 2rem;
+    }}
+
+    .progress-container {{
+      margin-top: 1.5rem;
+    }}
+
+    .progress-bar {{
+      height: 8px;
+      background: var(--color-gray-200);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 1rem;
+    }}
+
+    .progress-fill {{
+      height: 100%;
+      background: linear-gradient(90deg, var(--color-teal), var(--color-indigo));
+      border-radius: 4px;
+      transition: width 1s ease-in-out;
+    }}
+
+    .level-indicator {{
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--color-gray-700);
+      margin-top: 0.75rem;
+    }}
+
+    .level-indicator span.active {{
+      color: var(--color-indigo);
+      font-weight: 600;
+    }}
+
+    .description {{
+      font-size: 1rem;
+      color: var(--color-gray-700);
+      margin-top: 1.5rem;
+      line-height: 1.6;
+    }}
+    
+    .highlight {{
+      font-weight: 600;
+      color: var(--color-indigo-dark);
+    }}
+
+    .emoji {{
+      font-size: 1.5rem;
+      margin-right: 0.5rem;
+    }}
+
+    .intro-text {{
+      font-size: 1.05rem;
+      text-align: justify;
+      margin-bottom: 1.5rem;
+      color: var(--color-gray-700);
+      line-height: 1.8;
+      background: white;
+      padding: 1.5rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-md);
+    }}
+
+    /* Modal Styles */
+    .modal {{
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(5px);
+    }}
+
+    .modal-content {{
+      background: white;
+      border-radius: var(--border-radius-lg);
+      width: 90%;
+      max-width: 800px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 2.5rem;
+      box-shadow: var(--shadow-xl);
+      position: relative;
+    }}
+
+    .close-modal {{
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      font-size: 1.75rem;
+      cursor: pointer;
+      color: var(--color-gray-700);
+      background: var(--color-gray-100);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      transition: all 0.3s ease;
+    }}
+
+    .close-modal:hover {{
+      background: var(--color-gray-200);
+      transform: rotate(90deg);
+    }}
+
+    .modal-header {{
+      text-align: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 2px solid var(--color-gray-200);
+    }}
+
+    .modal-header h2 {{
+      font-size: 1.75rem;
+      color: var(--color-gray-900);
+      margin-bottom: 0.75rem;
+      font-family: 'Playfair Display', serif;
+    }}
+
+    .modal-header .evaluation {{
+      font-size: 3rem;
+      font-weight: 700;
+      margin: 1.5rem 0;
+      color: var(--color-indigo-dark);
+    }}
+
+    .modal-section {{
+      margin-bottom: 2rem;
+    }}
+
+    .modal-section h3 {{
+      font-size: 1.25rem;
+      color: var(--color-gray-900);
+      margin-bottom: 1rem;
+      border-bottom: 2px solid var(--color-gray-200);
+      padding-bottom: 0.75rem;
+      font-weight: 600;
+    }}
+
+    .modal-section p {{
+      font-size: 1rem;
+      color: var(--color-gray-700);
+      line-height: 1.8;
+      text-align: justify;
+    }}
+
+    .attention-section {{
+      background: var(--color-gray-100);
+      padding: 1.5rem;
+      border-radius: var(--border-radius);
+      margin-top: 2rem;
+      border-left: 4px solid var(--color-danger);
+    }}
+
+    .attention-section h3 {{
+      color: var(--color-danger);
+      margin-bottom: 1rem;
+    }}
+    
+    .grid-2-col {{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }}
+    
+    @media (max-width: 768px) {{
+      .grid-2-col {{
+        grid-template-columns: 1fr;
+      }}
+      
+      body {{
+        padding: 1rem;
+      }}
+      
+      .header {{
+        flex-direction: column;
+        text-align: center;
+      }}
+      
+      .header-content h1 {{
+        font-size: 2rem;
+      }}
+    }}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-content">
+        <h1>Dashboard de Bienestar Integral</h1>
+        <h2>{f"Resumen para {nombre_completo}" if nombre_completo else "Resumen de tus métricas clave"}</h2>
+      </div>
+    </div>
+
+    <div class="intro-text">
+      Este informe ofrece una visión personal de tu bienestar integral, destacando tus fortalezas y áreas de mejora. 
+      Sirve como una herramienta de autoconocimiento que invita a la reflexión y acción, resaltando tu nivel de energía 
+      y disposición para enfrentar desafíos. Reconoce que el bienestar es un proceso dinámico, en el que celebrar tus 
+      logros y trabajar en tu desarrollo te acerca a una vida más plena y auténtica.
+    </div>
+
+    <div class="grid-2-col">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Perfil General - Dimensiones 1-6</h3>
+        </div>
+        <div class="chart-container">
+          <iframe src="/{consolidated_charts[0]}" width="100%" height="100%"></iframe>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Perfil General - Dimensiones 7-12</h3>
+        </div>
+        <div class="chart-container">
+          <iframe src="/{consolidated_charts[1]}" width="100%" height="100%"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-section">
+      <h3 class="card-title">Resumen General</h3>
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: {promedio_general * 10}%"></div>
+        </div>
+        <div class="level-indicator">
+          <span class="{'active' if promedio_general < 4.0 else ''}">Bajo</span>
+          <span class="{'active' if 4.0 <= promedio_general < 7.0 else ''}">Medio</span>
+          <span class="{'active' if promedio_general >= 7.0 else ''}">Alto</span>
+        </div>
+      </div>
+      <div class="description">
+        Tu bienestar general se encuentra en un nivel {'bajo' if promedio_general < 4.0 else 'medio' if promedio_general < 7.0 else 'alto'}. 
+        Revisa las métricas detalladas para identificar áreas de mejora.
+      </div>
+    </div>
+
+    <div class="metrics-grid">
+      {''.join([
+          f'''
+          <div class="metric-card {categoria_estilos[categoria]['color']}" onclick="showModal('{categoria}')">
+              <span class="metric-title">{categoria}</span>
+              <span class="metric-value">{promedios.get(categoria, 0) * 10:.1f}</span>
+              <img src="{obtener_imagen_categoria_Premium(categoria)}" alt="{categoria}" class="category-image">
+          </div>
+          '''
+          for categoria in categorias
+      ])}
+    </div>
+  </div>
+
+  <div id="detailModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal()">&times;</span>
+      <div class="modal-header">
+        <h2 id="modalTitle">DETALLES</h2>
+        <div class="evaluation" id="modalEvaluation">0.0</div>
+        <p id="modalDescription" style="text-align: justify;">Descripción de la categoría seleccionada.</p>
+      </div>
+
+      <div class="modal-section">
+        <h3>INTERPRETACIÓN</h3>
+        <div id="modalInterpretation" style="white-space: pre-line; text-align: justify;">Interpretación generada automáticamente...</div>
+      </div>
+
+      <div class="modal-section">
+        <h3>GRÁFICO</h3>
+        <div class="chart-container" style="height: 400px;">
+          <iframe id="modalChart" src="" width="100%" height="100%"></iframe>
+        </div>
+      </div>
+
+      <div class="attention-section modal-section" id="modalAttention">
+        <h3>RECOMENDACIONES</h3>
+        <p id="modalRecommendations">Recomendaciones específicas para mejorar en esta área.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Datos de interpretaciones de IA
+    const aiInterpretations = {json.dumps(ai_interpretations)};
+    
+    function showModal(category) {{
+      // Actualizar el contenido del modal según la categoría seleccionada
+      document.getElementById('modalChart').src = "/statics/user_{usuario_id}/radar_" + category.toLowerCase() + ".html";
+      document.getElementById('modalTitle').textContent = category.toUpperCase();
+      document.getElementById('modalEvaluation').textContent = ({json.dumps(promedios)}[category] * 10).toFixed(1);
+      document.getElementById('modalDescription').textContent = {json.dumps(interpretaciones)}[category];
+      
+      // Mostrar interpretación de IA si está disponible
+      const interpretation = aiInterpretations[category] || "Interpretación no disponible en este momento.";
+      document.getElementById('modalInterpretation').textContent = interpretation;
+      
+      // Recomendaciones basadas en el puntaje
+      const score = {json.dumps(promedios)}[category] * 10;
+      let recommendations = "";
+      
+      if(score < 4) {{
+        recommendations = "Esta área necesita atención inmediata. Considera implementar cambios significativos y buscar apoyo profesional si es necesario.";
+        document.getElementById('modalAttention').style.display = 'block';
+      }} else if(score < 7) {{
+        recommendations = "Hay espacio para mejorar en esta área. Pequeños ajustes en tus hábitos podrían marcar una gran diferencia.";
+        document.getElementById('modalAttention').style.display = 'block';
+      }} else {{
+        recommendations = "¡Buen trabajo en esta área! Sigue manteniendo estos buenos hábitos y considera compartir tus estrategias con otros.";
+        document.getElementById('modalAttention').style.display = 'none';
+      }}
+      
+      document.getElementById('modalRecommendations').textContent = recommendations;
+
+      // Mostrar el modal
+      document.getElementById('detailModal').style.display = 'flex';
+    }}
+
+    function closeModal() {{
+      document.getElementById('detailModal').style.display = 'none';
+    }}
+
+    // Cerrar modal al hacer clic fuera del contenido
+    window.onclick = function(event) {{
+      const modal = document.getElementById('detailModal');
+      if (event.target === modal) {{
+        closeModal();
+      }}
+    }}
+    
+    // Animación de carga de barras de progreso
+    document.addEventListener('DOMContentLoaded', function() {{
+      const progressBars = document.querySelectorAll('.progress-fill');
+      progressBars.forEach(bar => {{
+        const width = bar.style.width;
+        bar.style.width = '0';
+        setTimeout(() => {{
+          bar.style.width = width;
+        }}, 100);
+      }});
+    }});
+  </script>
+</body>
+</html>
+    """
+    
+    dashboard_filename = "dashboard_bienestar.html"
+    dashboard_path = os.path.join("statics", f"user_{usuario_id}", dashboard_filename)
+    with open(dashboard_path, "w", encoding="utf-8") as f:
+      f.write(html_template)  
+     
+    return f"statics/user_{usuario_id}/{dashboard_filename}"
+
 @app.get("/dashboard-content/{usuario_id}")
 async def get_dashboard_content(usuario_id: str):
     dashboard_path = f"statics/user_{usuario_id}/dashboard_bienestar.html"
@@ -6338,6 +7618,7 @@ def generar_pdf_con_analisis_Premium(usuario_id):
     # Convertir respuestas a valores numéricos
     valores_respuestas = np.array([int(respuesta) for _, respuesta in respuestas])
     generar_graficos_por_categoria_Premium(valores_respuestas)
+    generar_graficos_interactivos_Premium(valores_respuestas,usuario_id)
     # Análisis básico
     promedio = np.mean(valores_respuestas)
     min_valor = np.min(valores_respuestas)
@@ -7084,7 +8365,7 @@ async def guardar_respuestas_Premium(request: Request, usuario_id: int = Form(..
             else:
                 ruta_descarga = f"/descargar_pdf?usuario_id={usuario_id}"
             contenido_html = f"""
-             <html>
+               <html>
             <head>
                 <title>¡Buen trabajo!</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7137,9 +8418,22 @@ async def guardar_respuestas_Premium(request: Request, usuario_id: int = Form(..
                     button:active {{
                         transform: scale(0.97);
                     }}
+                    #visualizacionBtn {{
+                        display: none;
+                        background-color: #28a745;
+                    }}
+                    #visualizacionBtn:hover {{
+                        background-color: #218838;
+                    }}
+                    .libro-btn {{
+                        background-color: #ff6b35;
+                    }}
+                    .libro-btn:hover {{
+                        background-color: #e25a2c;
+                    }}
                     @keyframes fadeIn {{
-                        from {{ opacity: 0; transform: translateY(-20px); }}
-                        to {{ opacity: 1; transform: translateY(0); }}
+                        from {{ opacity: 0; transform: translateY(-20px);}}
+                        to {{  opacity: 1; transform: translateY(0);}}
                     }}
                 </style>
             </head>
@@ -7147,9 +8441,28 @@ async def guardar_respuestas_Premium(request: Request, usuario_id: int = Form(..
                 <div class="container">
                     <h1>¡Gracias por tu tiempo!</h1>
                     <p>Haz clic en el botón para continuar:</p>
-                    <button onclick="window.location.href='{ruta_descarga}'">📥 Generar Reporte Interactivo y Descargar Análisis</button>
+                    <button onclick="descargarAnalisis()">📥Descargar Análisis</button>
+                    <button class="libro-btn" onclick="descargarLibro()">📚 Descargar Libro</button>
+                    <button id="visualizacionBtn" onclick="window.location.href='/dashboard-content/{usuario_id}'">📊 Visualización</button>
                     <button onclick="window.location.href='/chat'">💬 Ingresar a Chat</button>
                 </div>
+
+                <script>
+                    function descargarAnalisis() {{
+                        // Redirigir para descargar el análisis
+                        window.location.href = '{ruta_descarga}';
+                        
+                        // Mostrar el botón de visualización después de un breve retraso
+                        setTimeout(function() {{
+                            document.getElementById('visualizacionBtn').style.display = 'inline-block';
+                        }}, 1500); // Retraso para simular el tiempo de descarga
+                    }}
+                    
+                    function descargarLibro() {{
+                        // Redirigir para descargar el libro desde la carpeta static
+                        window.location.href = '/statics/libros/mi_libro.pdf';
+                    }}
+                </script>
             </body>
             </html>
             """
