@@ -6965,7 +6965,6 @@ def generar_recomendaciones_gpt(respuestas_usuario, nombre_usuario):
     
 def generar_pdf_con_analisis(usuario_id):
     """Genera un PDF con un análisis de las respuestas del usuario."""
-    generar_graficos_interactivos(valores_respuestas,usuario_id)
     pdf_path = f"statics/analisis_usuario_{usuario_id}.pdf"
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -7537,6 +7536,7 @@ def generar_pdf_con_analisis(usuario_id):
 
 
     c.save()
+    generar_graficos_interactivos(valores_respuestas,usuario_id)
     return pdf_path
 
 def generar_pdf_con_analisis_Premium(usuario_id):
