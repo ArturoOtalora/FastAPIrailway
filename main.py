@@ -7042,7 +7042,7 @@ def generar_pdf_con_analisis(usuario_id):
     # Convertir respuestas a valores numéricos
     valores_respuestas = np.array([int(respuesta) for _, respuesta in respuestas])
     generar_graficos_por_categoria(valores_respuestas)
-    generar_graficos_interactivos(valores_respuestas,usuario_id)
+    #generar_graficos_interactivos(valores_respuestas,usuario_id)
     
     # Análisis básico
     promedio = np.mean(valores_respuestas)
@@ -7618,7 +7618,7 @@ def generar_pdf_con_analisis_Premium(usuario_id):
     # Convertir respuestas a valores numéricos
     valores_respuestas = np.array([int(respuesta) for _, respuesta in respuestas])
     generar_graficos_por_categoria_Premium(valores_respuestas)
-    generar_graficos_interactivos_Premium(valores_respuestas,usuario_id)
+    #generar_graficos_interactivos_Premium(valores_respuestas,usuario_id)
     # Análisis básico
     promedio = np.mean(valores_respuestas)
     min_valor = np.min(valores_respuestas)
