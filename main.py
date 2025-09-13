@@ -6965,13 +6965,13 @@ def generar_recomendaciones_gpt(respuestas_usuario, nombre_usuario):
     
 def generar_pdf_con_analisis(usuario_id):
     """Genera un PDF con un análisis de las respuestas del usuario."""
+    generar_graficos_interactivos(valores_respuestas,usuario_id)
     pdf_path = f"statics/analisis_usuario_{usuario_id}.pdf"
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT nombre, apellidos  FROM usuarios WHERE numero_identificacion = %s", (usuario_id,))
     nombre_completo_global = cursor.fetchone()
     nombre_completo = f"{nombre_completo_global[0]} {nombre_completo_global[1]}"  # Concatena nombre y apellido
-
     c = canvas.Canvas(pdf_path, pagesize=letter)
     width, height = letter
     background_path = "statics/BKVITAL.PNG"
@@ -7042,7 +7042,7 @@ def generar_pdf_con_analisis(usuario_id):
     # Convertir respuestas a valores numéricos
     valores_respuestas = np.array([int(respuesta) for _, respuesta in respuestas])
     generar_graficos_por_categoria(valores_respuestas)
-    #generar_graficos_interactivos(valores_respuestas,usuario_id)
+    
     
     # Análisis básico
     promedio = np.mean(valores_respuestas)
