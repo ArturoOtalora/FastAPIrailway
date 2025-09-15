@@ -4148,11 +4148,11 @@ function cerrarErrorModal() {{
 def generar_graficos_por_categoria(valores_respuestas):
     categorias = ["Vital", "Emocional", "Mental", "Existencial", "Financiera","Ambiental"]
     dimensiones = {
-        "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
-        "Emocional": ["Autoconocimiento", "Autoregulación", "Cuidado Personal", "Motivación", "Resiliencia"],
-        "Mental": ["Disfruta De La Realidad", "Manejo Del Stress", "Relaciones Saludables", "Conexión Con Otros", "Seguridad Y Confianza"],
-        "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Por Qué Estoy Aquí?", "Propósito De Vida", "Quién Soy"],
-        "Financiera": ["Ahorro", "Deuda", "Ingresos", "Inversión", "Presupuesto"],
+        "Vital": ["Alimentación", "Ejercicio", "Descanso", "Respuesta medica", "Hábitos Saludables"],
+        "Emocional": ["Autoconocimiento","Motivación", "Autoregulación", "Resiliencia", "Cuidado Personal"],
+        "Mental": ["Manejo Del Stress", "Red de apoyo", "Disfruta De La Realidad", "Reflexión y cuidado", "Autoestima y reconocimiento"],
+        "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Propósito De Vida", "Coherencia contigo mismo", "Quién Soy"],
+        "Financiera": ["Ahorro", "Presupuesto", "Inversión", "Gestión deuda", "Libertad financiera"],
         "Ambiental": ["Autocuidado", "Armonía ambiental", "Accesibilidad Ambiental", "Atención preventiva", "Conciencia ambiental"]
     }
 
@@ -4317,11 +4317,11 @@ def generar_graficos_interactivos(valores_respuestas,usuario_id):
    
     categorias = ["Ambiental", "Vital", "Emocional", "Mental", "Existencial", "Financiera"]
     dimensiones = {
-        "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
-        "Emocional": ["Autoconocimiento", "Autoregulación", "Cuidado Personal", "Motivación", "Resiliencia"],
-        "Mental": ["Disfruta De La Realidad", "Manejo Del Stress", "Relaciones Saludables", "Conexión Con Otros", "Seguridad Y Confianza"],
-        "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Por Qué Estoy Aquí?", "Propósito De Vida", "Quién Soy"],
-        "Financiera": ["Ahorro", "Deuda", "Ingresos", "Inversión", "Presupuesto"],
+        "Vital": ["Alimentación", "Ejercicio", "Descanso", "Respuesta medica", "Hábitos Saludables"],
+        "Emocional": ["Autoconocimiento","Motivación", "Autoregulación", "Resiliencia", "Cuidado Personal"],
+        "Mental": ["Manejo Del Stress", "Red de apoyo", "Disfruta De La Realidad", "Reflexión y cuidado", "Autoestima y reconocimiento"],
+        "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Propósito De Vida", "Coherencia contigo mismo", "Quién Soy"],
+        "Financiera": ["Ahorro", "Presupuesto", "Inversión", "Gestión deuda", "Libertad financiera"],
         "Ambiental": ["Autocuidado", "Armonía ambiental", "Accesibilidad Ambiental", "Atención preventiva", "Conciencia ambiental"]
     }
     
@@ -4654,10 +4654,10 @@ def generate_dashboard(individual_charts, consolidated_chart, usuario_id, promed
     # Dimensiones para cada categoría
     dimensiones = {
         "Ambiental": ["Autocuidado", "Armonía ambiental", "Accesibilidad Ambiental", "Atención preventiva", "Conciencia ambiental"],
-        "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
-        "Emocional": ["Autoconocimiento", "Autoregulación", "Cuidado Personal", "Motivación", "Resiliencia"],
-        "Mental": ["Disfruta De La Realidad", "Manejo Del Stress", "Relaciones Saludables", "Conexión Con Otros", "Seguridad Y Confianza"],
-        "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Por Qué Estoy Aquí?", "Propósito De Vida", "Quién Soy"],
+        "Vital": ["Alimentación", "Ejercicio", "Descanso", "Respuesta medica", "Hábitos Saludables"],
+        "Emocional": ["Autoconocimiento","Motivación", "Autoregulación", "Resiliencia", "Cuidado Personal"],
+        "Mental": ["Manejo Del Stress", "Red de apoyo", "Disfruta De La Realidad", "Reflexión y cuidado", "Autoestima y reconocimiento"],
+        "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Propósito De Vida", "Coherencia contigo mismo", "Quién Soy"],
         "Financiera": ["Ahorro", "Deuda", "Ingresos", "Inversión", "Presupuesto"]
     }
 
@@ -5372,11 +5372,11 @@ def generar_graficos_interactivos_Premium(valores_respuestas,usuario_id):
    
     categorias = ["Vital", "Emocional", "Mental", "Existencial", "Financiera","Ambiental","Creatividad","Mentalidad digital","Bienestar social","Bienestar profesional","Manejo del agotamiento","Conexion interior"]
     dimensiones = {
-        "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
-        "Emocional": ["Autoconocimiento", "Autoregulación", "Cuidado Personal", "Motivación", "Resiliencia"],
-        "Mental": ["Disfruta De La Realidad", "Manejo Del Stress", "Relaciones Saludables", "Conexión Con Otros", "Seguridad Y Confianza"],
-        "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Por Qué Estoy Aquí?", "Propósito De Vida", "Quién Soy"],
-        "Financiera": ["Ahorro", "Deuda", "Ingresos", "Inversión", "Presupuesto"],
+        "Vital": ["Alimentación", "Ejercicio", "Descanso", "Respuesta medica", "Hábitos Saludables"],
+        "Emocional": ["Autoconocimiento","Motivación", "Autoregulación", "Resiliencia", "Cuidado Personal"],
+        "Mental": ["Manejo Del Stress", "Red de apoyo", "Disfruta De La Realidad", "Reflexión y cuidado", "Autoestima y reconocimiento"],
+        "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Propósito De Vida", "Coherencia contigo mismo", "Quién Soy"],
+        "Financiera": ["Ahorro", "Presupuesto", "Inversión", "Gestión deuda", "Libertad financiera"],
         "Ambiental": ["Autocuidado", "Armonía ambiental", "Accesibilidad Ambiental", "Atención preventiva", "Conciencia ambiental"],
         "Creatividad": ["Apertura al cambio", "Aprendizaje continuo", "creatividad aplicada", "Solución de problemas", "Innovación creativa"],
         "Mentalidad digital": ["Higiene Digital", "Autogestión Emocional", "Gestión del Tiempo Digital", "Seguridad Digital", "Bienestar Digital Creativo"],
@@ -5847,11 +5847,11 @@ def generate_dashboard_Premium(individual_charts, consolidated_charts, usuario_i
     
     # Dimensiones para cada categoría
     dimensiones = {
-         "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
-        "Emocional": ["Autoconocimiento", "Autoregulación", "Cuidado Personal", "Motivación", "Resiliencia"],
-        "Mental": ["Disfruta De La Realidad", "Manejo Del Stress", "Relaciones Saludables", "Conexión Con Otros", "Seguridad Y Confianza"],
-        "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Por Qué Estoy Aquí?", "Propósito De Vida", "Quién Soy"],
-        "Financiera": ["Ahorro", "Deuda", "Ingresos", "Inversión", "Presupuesto"],
+         "Vital": ["Alimentación", "Ejercicio", "Descanso", "Respuesta medica", "Hábitos Saludables"],
+        "Emocional": ["Autoconocimiento","Motivación", "Autoregulación", "Resiliencia", "Cuidado Personal"],
+        "Mental": ["Manejo Del Stress", "Red de apoyo", "Disfruta De La Realidad", "Reflexión y cuidado", "Autoestima y reconocimiento"],
+        "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Propósito De Vida", "Coherencia contigo mismo", "Quién Soy"],
+        "Financiera": ["Ahorro", "Presupuesto", "Inversión", "Gestión deuda", "Libertad financiera"],
         "Ambiental": ["Autocuidado", "Armonía ambiental", "Accesibilidad Ambiental", "Atención preventiva", "Conciencia ambiental"],
         "Creatividad": ["Apertura al cambio", "Aprendizaje continuo", "creatividad aplicada", "Solución de problemas", "Innovación creativa"],
         "Mentalidad digital": ["Higiene Digital", "Autogestión Emocional", "Gestión del Tiempo Digital", "Seguridad Digital", "Bienestar Digital Creativo"],
@@ -6684,11 +6684,11 @@ def generar_graficos_por_categoria_Premium(valores_respuestas):
         matplotlib.use('Agg') 
         categorias = ["Vital", "Emocional", "Mental", "Existencial", "Financiera","Ambiental","Creatividad","Mentalidad digital","Bienestar social","Bienestar profesional","Manejo del agotamiento","Conexion interior"]
         dimensiones = {
-        "Vital": ["Alimentación", "Descanso", "Ejercicio", "Hábitos Saludables", "Salud Vital Corporal"],
-        "Emocional": ["Autoconocimiento", "Autoregulación", "Cuidado Personal", "Motivación", "Resiliencia"],
-        "Mental": ["Disfruta De La Realidad", "Manejo Del Stress", "Relaciones Saludables", "Conexión Con Otros", "Seguridad Y Confianza"],
-        "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Por Qué Estoy Aquí?", "Propósito De Vida", "Quién Soy"],
-        "Financiera": ["Ahorro", "Deuda", "Ingresos", "Inversión", "Presupuesto"],
+        "Vital": ["Alimentación", "Ejercicio", "Descanso", "Respuesta medica", "Hábitos Saludables"],
+        "Emocional": ["Autoconocimiento","Motivación", "Autoregulación", "Resiliencia", "Cuidado Personal"],
+        "Mental": ["Manejo Del Stress", "Red de apoyo", "Disfruta De La Realidad", "Reflexión y cuidado", "Autoestima y reconocimiento"],
+        "Existencial": ["Autenticidad Conmigo Mismo", "Lo Que Piensas Te Motiva", "Propósito De Vida", "Coherencia contigo mismo", "Quién Soy"],
+        "Financiera": ["Ahorro", "Presupuesto", "Inversión", "Gestión deuda", "Libertad financiera"],
         "Ambiental": ["Autocuidado", "Armonía ambiental", "Accesibilidad Ambiental", "Atención preventiva", "Conciencia ambiental"],
         "Creatividad": ["Apertura al cambio", "Aprendizaje continuo", "creatividad aplicada", "Solución de problemas", "Innovación creativa"],
         "Mentalidad digital": ["Higiene Digital", "Autogestión Emocional", "Gestión del Tiempo Digital", "Seguridad Digital", "Bienestar Digital Creativo"],
@@ -7536,7 +7536,7 @@ def generar_pdf_con_analisis(usuario_id):
 
 
     c.save()
-    generar_graficos_interactivos(valores_respuestas,usuario_id)
+    # generar_graficos_interactivos(valores_respuestas,usuario_id)
     return pdf_path
 
 def generar_pdf_con_analisis_Premium(usuario_id):
