@@ -6896,7 +6896,7 @@ async def descargar_pdf(usuario_id: int):
         #     //   start_tls=True,
         #     //   username="correopruebavital@gmail.com",
         #     //   password="cxvi hyne temx xmgt"
-        # )
+         )
     except Exception as e:
         print(f"Error al enviar el correo: {e}")
 
