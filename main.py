@@ -6858,12 +6858,12 @@ async def descargar_pdf_Premium(usuario_id: int):
 
     try:
         await aiosmtplib.send(
-              message,
-              hostname="smtp.gmail.com",
-              port=587,
-              start_tls=True,
-              username="correopruebavital@gmail.com",
-              password="cxvi hyne temx xmgt"
+            # //   message,
+            # //   hostname="smtp.gmail.com",
+            # //   port=587,
+            # //   start_tls=True,
+            # //   username="correopruebavital@gmail.com",
+            # //   password="cxvi hyne temx xmgt"
         )
     except Exception as e:
         print(f"Error al enviar el correo: {e}")
@@ -6890,13 +6890,13 @@ async def descargar_pdf(usuario_id: int):
 
     try:
         await aiosmtplib.send(
-              message,
-              hostname="smtp.gmail.com",
-              port=587,
-              start_tls=True,
-              username="correopruebavital@gmail.com",
-              password="cxvi hyne temx xmgt"
-        )
+        #     //   message,
+        #     //   hostname="smtp.gmail.com",
+        #     //   port=587,
+        #     //   start_tls=True,
+        #     //   username="correopruebavital@gmail.com",
+        #     //   password="cxvi hyne temx xmgt"
+        # )
     except Exception as e:
         print(f"Error al enviar el correo: {e}")
 
@@ -6924,12 +6924,12 @@ async def enviar_pdf_email(usuario_id: int = Form(...), correo_destino: str = Fo
     # Envía el correo
     try:
         await aiosmtplib.send(
-            message,
-            hostname="smtp.gmail.com",
-             port=587,
-            start_tls=True,
-             username="correopruebavital@gmail.com",
-            password="cxvi hyne temx xmgt"
+            # // message,
+            # // hostname="smtp.gmail.com",
+            # //  port=587,
+            # // start_tls=True,
+            # //  username="correopruebavital@gmail.com",
+            # // password="cxvi hyne temx xmgt"
         )
         return {"mensaje": f"PDF enviado a {correo_destino} correctamente."}
     except Exception as e:
