@@ -6867,7 +6867,7 @@ def generar_pdf_con_analisis(usuario_id):
     # Convertir respuestas a valores numéricos
     valores_respuestas = np.array([int(respuesta) for _, respuesta in respuestas])
     generar_graficos_por_categoria(valores_respuestas)
-    generar_graficos_interactivos(valores_respuestas,usuario_id)
+    #generar_graficos_interactivos(valores_respuestas,usuario_id)
     
     
     # Análisis básico
@@ -7361,7 +7361,7 @@ def generar_pdf_con_analisis(usuario_id):
 
         y_position -= 10  # Espacio adicional entre cada punto    
 
-
+    generar_graficos_interactivos(valores_respuestas,usuario_id)
     c.save()
     
     return pdf_path
