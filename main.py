@@ -137,6 +137,22 @@ def guardar_usuario(
 
         conn = get_db_connection()
         cursor = conn.cursor() 
+        
+    
+        # cursor.execute(
+        # "DELETE FROM railway.usuarios WHERE numero_identificacion = %s",
+        # (1037620842,)
+        # )
+        # print("Filas eliminadas:", cursor.rowcount)
+        # conn.commit()
+
+        # cursor.execute(
+        # "DELETE FROM railway.respuestasForm WHERE usuario_id = %s",
+        # (1037620842,)
+        # )
+        # print("Filas eliminadas:", cursor.rowcount)
+        # conn.commit()
+
 
         # Verificar si el número de identificación ya existe
         cursor.execute("SELECT COUNT(*) FROM usuarios WHERE numero_identificacion = %s", (numero_identificacion,))
@@ -2992,356 +3008,166 @@ def mostrar_preguntas(usuario_id: int, pagina: int = Query(1, alias="pagina")):
     return f'''
   <!DOCTYPE html>
 <html>
-<head>
-    <title>Preguntas</title>
-    <style>
-        body {{
-            font-family: Arial, sans-serif;
-            background: url('/statics/VITALV.jpg') no-repeat center center fixed;
-            background-size: contain;
-            background-attachment: fixed;
-            background-color: #f4f4f4;
-            text-align: center;
-            padding: 20px;
-        }}
-        h1, h2 {{
-            color: #333;
-        }}
-        .modal {{
-            display: none; /* oculto por defecto */
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }}
-        .modal-content {{
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            max-width: 700px;
-            width: 100%;
-            text-align: justify;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            max-height: 90vh;
-            overflow-y: auto;
-            line-height: 1.6;
-            font-size: 17px;
-        }}
-        .modal-content p strong  {{
-           font-size: 18px;
-            color: #007bff;
-        }}
-         .modal-content button {{
-            display: block;
-            margin: 20px auto 0;
-            background-color: #007bff;
-            color: white;
-            font-size: 16px;
-            padding: 10px 25px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }}
-        .modal-content button:hover {{
-            background-color: #007bff;
-        }}
-        .pregunta-container {{
-              background: white;
-            padding: 20px;
-            margin: 20px auto;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            width: 90%;
-            max-width: 900px;
-            display: flex;
-            justify-content: space-between;
-            gap: 30px;
-            align-items: flex-start;
-        }}
-        .pregunta-content {{
-            flex: 1;
-            min-width: 0;
-        }}
-        .pregunta-y-estrellas {{
-               width: calc(100% - 290px);
-        }}
-        .comentario-container {{
-                width: 350px;
-                padding-left: 25px;
-                border-left: 2px solid #f0f0f0;
-        }}
-        .comentario-container textarea {{
-                       
-            width: 100%; /* Ocupa todo el ancho disponible */
-            margin-left: 0; /* Reset del margen negativo */
-            padding: 12px 15px; /* Relleno interno equilibrado */
-            border: 1px solid #e0e0e0; /* Borde más sutil */
-            border-radius: 8px;
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            box-sizing: border-box;
-        }}
-        .comentario-container textarea:focus {{
-            border-color: #007bff;
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
-        }}
-
-        .pregunta-texto {{
-            font-weight: 600;
-            margin-bottom: 20px;
-            font-size: 18px;
-            color: #333;
-            line-height: 1.5;
-        }}
-        .star-rating {{
-            display: flex;
-            flex-direction: row-reverse;
-            justify-content: center; /* Cambiado de flex-start a center */
-            align-items: center; /* Alineación vertical */
-            gap: 8px;
-            flex-wrap: wrap;
-            width: 100%;
-            margin: 15px 0;
-            padding: 0 10px; 
+    <head>
+        <title>¡Buen trabajo!</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+        <style>
+            body {{
+                font-family: 'Roboto', sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                margin: 0;
+                background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+                padding: 20px;
+            }}
+            .container {{
+                background: white;
+                padding: 40px;
+                border-radius: 16px;
+                box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.15);
+                max-width: 900px;
+                width: 95%;
+                text-align: center;
+                animation: fadeIn 0.8s ease-in-out;
+            }}
+            h1 {{
+                color: #222;
+                margin-bottom: 20px;
+                font-size: 32px;
+                line-height: 1.3;
+            }}
+            p {{
+                font-size: 18px;
+                color: #555;
+                margin-bottom: 20px;
+                line-height: 1.6;
+            }}
+            .content-grid {{
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 25px;
+                margin: 30px 0;
+            }}
+            .section {{
+                padding: 25px;
+                background-color: #f9f9f9;
+                border-radius: 12px;
+                text-align: left;
+            }}
+            .section-title {{
+                font-weight: 700;
+                color: #333;
+                margin-bottom: 15px;
+                font-size: 22px;
+            }}
+            .button-container {{
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 15px;
+                margin: 20px 0;
+            }}
+            button {{
+                background-color: #007bff;
+                color: white;
+                border: none;
+                padding: 16px 28px;
+                font-size: 18px;
+                border-radius: 10px;
+                cursor: pointer;
+                transition: transform 0.2s, background 0.3s;
+                min-width: 200px;
+            }}
+            button:hover {{
+                background-color: #0056b3;
+                transform: translateY(-2px);
+            }}
+            button:active {{
+                transform: scale(0.97);
+            }}
+            .libro-btn {{
+                background-color: #ff6b35;
+            }}
+            .libro-btn:hover {{
+                background-color: #e25a2c;
+            }}
+            .chat-btn {{
+                background-color: #17a2b8;
+            }}
+            .chat-btn:hover {{
+                background-color: #138496;
+            }}
+            .continuar-msg {{
+                margin: 25px 0;
+                font-style: italic;
+                color: #666;
+                font-size: 19px;
+                padding: 15px;
+                background-color: rgba(255, 107, 53, 0.1);
+                border-radius: 10px;
+            }}
+            @keyframes fadeIn {{
+                from {{ opacity: 0; transform: translateY(-20px); }}
+                to {{ opacity: 1; transform: translateY(0); }}
+            }}
+            @media (max-width: 768px) {{
+                .container {{
+                    padding: 25px 20px;
                 }}
-        
-        .star-rating input {{
-            display: none;
-        }}
-        .star-rating label {{
-              font-size: 28px;
-            color: #e0e0e0;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin: 0; 
-        }}
-        .star-rating label:hover,
-        .star-rating label:hover ~ label,
-        .star-rating input:checked ~ label {{
-            color: gold;
-        }}
-        .progress-bar-container {{
-              width: 90%;
-            max-width: 900px;
-            background-color: #f0f0f0;
-            border-radius: 20px;
-            margin: 30px auto;
-            height: 30px;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-        }}
-        .progress-bar {{
-            height: 100%;
-            width: {progreso}%;
-            background: linear-gradient(90deg, #007bff, #0056b3);
-            transition: width 0.5s;
-            border-radius: 15px;
-        }}
-        .progress-text {{
-            position: absolute;
-            width: 100%;
-            text-align: center;
-            font-weight: bold;
-            top: 0;
-            left: 0;
-            line-height: 25px;
-            color: #fff;
-            font-size: 14px;
-        }}
-        button {{
-            background-color: #007bff;
-            color: white;
-            font-size: 16px;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }}
-        button:hover {{
-            background-color: #218838;
-        }}
-        #contenido {{
-            display: none;
-        }}
-        .bloque-intro {{
-            background-color: #f8faff;
-            padding: 25px;
-            margin: 30px auto 20px;
-            border-left: 5px solid #007bff;
-            width: 90%;
-            max-width: 900px;
-            border-radius: 10px;
-            text-align: left;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }}
-
-        .bloque-intro h2 {{
-            color: #0056b3;
-            margin-bottom: 15px;
-            font-size: 22px;
-        }}
-
-        .bloque-intro p {{
-            font-size: 16px;
-            color: #555;
-            line-height: 1.6;
-        }}
-         .error-message {{
-            color: #dc3545;
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            padding: 10px;
-            border-radius: 5px;
-            margin: 15px auto;
-            width: 80%;
-            display: none;
-        }}
-    </style>
-</head>
-<body>
-    <h1>Bienvenidos a un lugar seguro donde tus pensamientos y emociones pueden ser escuchados y comprendidos:</h1>
-    <div class="modal" id="error-modal">
-    <div class="modal-content">
-        <p><strong>Atención</strong><br><br>
-        Por favor, responde todas las preguntas antes de continuar. Asegúrate de calificar cada una con una estrella del 1 al 10. 🌟</p>
-        <button onclick="cerrarErrorModal()">Aceptar</button>
-    </div>
-</div>
-    <div class="modal" id="modal">
-        <div class="modal-content">
-            <p><strong></strong><br><br>
-            ¡Bienvenido/a a <strong>CIMA</strong>, tu espacio para el crecimiento consciente!<br><br>
-            Al responder las preguntas que encontrarás a continuación, estarás dando el primer paso hacia un viaje de <strong>autoconocimiento profundo</strong>. Este proceso no solo te ayudará a identificar patrones, hábitos y emociones que definen tu día a día y realidad, sino que también creará una base sólida para impulsar tu <strong>transformación personal interior</strong>.<br><br>
-            ¿Por qué es importante? Porque solo cuando nos observamos con Consciencia podemos entender qué aspectos de nuestra vida necesitan atención, cuidado o cambio. Cada respuesta que compartas será como una semilla: desde aquí, nuestra plataforma te guiará con herramientas, recursos y recomendaciones adaptadas a tus necesidades únicas, para que cultives <strong>bienestar integral</strong>.<br><br>
-            Este no es un cuestionario, sino un <strong>mapa hacia la mejor versión de ti</strong>. Te invitamos a abordarlo con <strong>curiosidad, sin juicios</strong> y con la certeza de que cada reflexión es un paso hacia la libertad de reinventarte.<br><br>
-            <em>Tu viaje empieza aquí. 🌱</em>
-            </p>
-            <button onclick="cerrarModal()">Aceptar</button>
-        </div>
-    </div>
-    <div id="error-message" class="error-message">
-    Por favor, responde todas las preguntas antes de continuar.
-    </div>
-    <!-- Contenido oculto -->
-    <div id="contenido">
-        <p class="instrucciones">Selecciona el número de estrellas que mejor represente tu opinión: 1 ⭐ significa 'Muy Bajo' y 10 ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐ significa 'Muy Alto'</p>
-        <div class="progress-bar-container">
-            <div class="progress-bar"></div>
-            <div class="progress-text">{progreso:.0f}%</div>
-        </div>
-        <form id="form-preguntas" action="/guardar_respuestas_Premium" method="post">
-            <input type="hidden" name="usuario_id" value="{usuario_id}">
-            <input type="hidden" name="pagina" value="{pagina}">
-            <input type="hidden" name="version" value="Premium"> 
-            {preguntas_html}
-            <button type="button" onclick="validarFormulario()">{'Finalizar' if es_ultima_pagina else 'Siguiente'}</button>
-        </form>
-    </div>
-
-    <script>
-            function cerrarModal() {{
-                
-                document.getElementById('modal').style.display = 'none';
-                document.getElementById('contenido').style.display = 'block';
-                localStorage.setItem("modalVisto", "true");
-            }}
-
-        function validarFormulario() {{
-        const preguntas = document.querySelectorAll('.pregunta-container');
-        let todasRespondidas = true;
-        let faltaEstrella = false;
-        let faltaComentario = false;
-
-        preguntas.forEach(pregunta => {{
-            const inputs = pregunta.querySelectorAll('input[type="radio"]');
-            const textarea = pregunta.querySelector('textarea');
-            let respondida = false;
-
-            // Verificar si alguna estrella fue seleccionada
-            inputs.forEach(input => {{
-                if (input.checked) {{
-                    respondida = true;
+                .button-container {{
+                    flex-direction: column;
+                    align-items: center;
                 }}
-            }});
-
-            const comentarioValido = textarea.value.trim().length > 0;
-
-            if (!respondida || !comentarioValido) {{
-                todasRespondidas = false;
-                if (!respondida) faltaEstrella = true;
-                if (!comentarioValido) faltaComentario = true;
-
-                pregunta.style.border = "2px solid #dc3545";
-                pregunta.style.animation = "shake 0.5s";
-
-                setTimeout(() => {{
-                    pregunta.style.border = "";
-                    pregunta.style.animation = "";
-                }}, 500);
+                button {{
+                    width: 100%;
+                    min-width: auto;
+                }}
             }}
-        }});
-
-        if (todasRespondidas) {{
-            document.getElementById('form-preguntas').submit();
-        }} else {{
-            let mensaje = "<strong>Atención</strong><br><br>";
-
-            if (faltaEstrella) {{
-                mensaje += "Por favor, califica todas las preguntas con una estrella del 1 al 10. 🌟<br><br>";
-            }}
-
-            if (faltaComentario) {{
-                mensaje += "Tu opinión es valiosa, así que no olvides responder todas las preguntas dentro del cuadro Derecho. 📝 ";
-            }}
-
-            document.querySelector("#error-modal .modal-content p").innerHTML = mensaje;
-            document.getElementById('error-modal').style.display = 'flex';
-        }}
-    }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Tu viaje hacia el bienestar integral comienza aquí</h1>
             
+            <p>Has dado un paso importante al completar tu diagnóstico de bienestar. Ahora tienes diferentes formas de profundizar en tus resultados y seguir explorando cómo mejorar tu vida día a día.</p>
+            
+            <!-- Contenedor principal de botones centrados -->
+            <div class="button-container">
+                <button onclick="descargarAnalisis()">📥 Descargar Análisis</button>
+                <button class="chat-btn" onclick="window.location.href='/chat'">💬 Ingresar a Chat</button>
+            </div>
+            
+            <p class="continuar-msg">Elige por dónde continuar y sigue avanzando hacia una mejor versión de ti. 🌱✨</p>
+            
+            <div class="content-grid">
+                <div class="section">
+                    <div class="section-title">¡Gracias por darte este espacio de autoconocimiento!</div>
+                    <p>Has completado el diagnóstico de bienestar integral, un primer paso importante para reconocer cómo estás hoy y hacia dónde quieres avanzar.</p>
+                    <p>Como un regalo por tu compromiso contigo mismo, queremos obsequiarte el libro "La pausa que salva vidas", una invitación a detenerte, respirar y redescubrir el poder de las pequeñas pausas conscientes que pueden transformar tu salud, tu energía y tu vida.</p>
+                    
+                    <div class="button-container">
+                        <button class="libro-btn" onclick="descargarLibro()">📚 Descargar Libro</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-function cerrarErrorModal() {{
-    document.getElementById('error-modal').style.display = 'none';
-}}
-
-            window.onload = function() {{
-                const modal = document.getElementById('modal');
-                const contenido = document.getElementById('contenido');
-                const yaVisto = localStorage.getItem("modalVisto");
-
-                if (yaVisto === "true") {{
-                    contenido.style.display = 'block';  // Solo muestra el contenido si ya fue visto
-                }} else {{
-                    modal.style.display = 'flex';  // Muestra el modal solo la primera vez
-                }}
-                
-                // Agregar animación shake al CSS
-                const style = document.createElement('style');
-                style.innerHTML = `
-                    @keyframes shake {{
-                        0%, 100% {{ transform: translateX(0); }}
-                        20%, 60% {{ transform: translateX(-5px); }}
-                        40%, 80% {{ transform: translateX(5px); }}
-                    }}
-                `;
-                document.head.appendChild(style);
+        <script>
+            function descargarAnalisis() {{
+                // Redirigir para descargar el análisis
+                window.location.href = '{ruta_descarga}';
             }}
-            function toggleComentario(id) {{
-            const div = document.getElementById(id);
-            div.style.display = div.style.display === 'none' ? 'block' : 'none';
-        }}    
-
+            
+            function descargarLibro() {{
+                // Redirigir para descargar el libro desde la carpeta static
+                window.location.href = '/statics/libros/mi_libro.pdf';
+            }}
         </script>
     </body>
-    </html>
+</html>
 
     '''
 
@@ -8375,11 +8201,6 @@ async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagi
                 function descargarAnalisis() {{
                     // Redirigir para descargar el análisis
                     window.location.href = '{ruta_descarga}';
-                    
-                    // Mostrar el botón de visualización después de un breve retraso
-                    setTimeout(function() {{
-                        document.getElementById('visualizacionBtn').style.display = 'inline-block';
-                    }}, 1500); // Retraso para simular el tiempo de descarga
                 }}
                 
                 function descargarLibro() {{
