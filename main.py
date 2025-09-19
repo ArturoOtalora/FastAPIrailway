@@ -6930,178 +6930,321 @@ async def guardar_respuestas(request: Request, usuario_id: int = Form(...), pagi
                 ruta_descarga = f"/descargar_pdf?usuario_id={usuario_id}"
                 
             contenido_html = f"""
-            <<html>
-        <head>
-            <title>¡Buen trabajo!</title>
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
-            <style>
-                body {{
-                    font-family: 'Roboto', sans-serif;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    min-height: 100vh;
-                    margin: 0;
-                    background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
-                    padding: 20px;
-                }}
-                .container {{
-                    background: white;
-                    padding: 40px;
-                    border-radius: 16px;
-                    box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.15);
-                    max-width: 900px;
-                    width: 95%;
-                    text-align: center;
-                    animation: fadeIn 0.8s ease-in-out;
-                }}
-                h1 {{
-                    color: #222;
-                    margin-bottom: 20px;
-                    font-size: 32px;
-                    line-height: 1.3;
-                }}
-                p {{
-                    font-size: 18px;
-                    color: #555;
-                    margin-bottom: 20px;
-                    line-height: 1.6;
-                }}
-                .content-grid {{
-                    display: grid;
-                    grid-template-columns: 1fr;
-                    gap: 25px;
-                    margin: 30px 0;
-                }}
-                .section {{
-                    padding: 25px;
-                    background-color: #f9f9f9;
-                    border-radius: 12px;
-                    text-align: left;
-                }}
-                .section-title {{
-                    font-weight: 700;
-                    color: #333;
-                    margin-bottom: 15px;
-                    font-size: 22px;
-                }}
-                .button-container {{
-                    display: flex;
-                    flex-wrap: wrap;
-                    justify-content: center;
-                    gap: 15px;
-                    margin: 20px 0;
-                }}
-                button {{
-                    background-color: #007bff;
-                    color: white;
-                    border: none;
-                    padding: 16px 28px;
-                    font-size: 18px;
-                    border-radius: 10px;
-                    cursor: pointer;
-                    transition: transform 0.2s, background 0.3s;
-                    min-width: 200px;
-                }}
-                button:hover {{
-                    background-color: #0056b3;
-                    transform: translateY(-2px);
-                }}
-                button:active {{
-                    transform: scale(0.97);
-                }}
-                #visualizacionBtn {{
-                    display: none;
-                    background-color: #28a745;
-                }}
-                #visualizacionBtn:hover {{
-                    background-color: #218838;
-                }}
-                .libro-btn {{
-                    background-color: #ff6b35;
-                }}
-                .libro-btn:hover {{
-                    background-color: #e25a2c;
-                }}
-                .chat-btn {{
-                    background-color: #17a2b8;
-                }}
-                .chat-btn:hover {{
-                    background-color: #138496;
-                }}
-                .continuar-msg {{
-                    margin: 25px 0;
-                    font-style: italic;
-                    color: #666;
-                    font-size: 19px;
-                    padding: 15px;
-                    background-color: rgba(255, 107, 53, 0.1);
-                    border-radius: 10px;
-                }}
-                @keyframes fadeIn {{
-                    from {{ opacity: 0; transform: translateY(-20px); }}
-                    to {{ opacity: 1; transform: translateY(0); }}
-                }}
-                @media (max-width: 768px) {{
-                    .container {{
-                        padding: 25px 20px;
-                    }}
-                    .button-container {{
-                        flex-direction: column;
-                        align-items: center;
-                    }}
-                    button {{
-                        width: 100%;
-                        min-width: auto;
-                    }}
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>Tu viaje hacia el bienestar integral comienza aquí</h1>
+<html>
+<head>
+    <title>¡Buen trabajo!</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body {{
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+            padding: 20px;
+        }}
+        .container {{
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.15);
+            max-width: 900px;
+            width: 95%;
+            text-align: center;
+            animation: fadeIn 0.8s ease-in-out;
+        }}
+        h1 {{
+            color: #222;
+            margin-bottom: 20px;
+            font-size: 32px;
+            line-height: 1.3;
+        }}
+        p {{
+            font-size: 18px;
+            color: #555;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }}
+        .content-grid {{
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+            margin: 30px 0;
+        }}
+        .section {{
+            padding: 25px;
+            background-color: #f9f9f9;
+            border-radius: 12px;
+            text-align: left;
+        }}
+        .section-title {{
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 22px;
+        }}
+        .button-container {{
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }}
+        button {{
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 16px 28px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+            min-width: 200px;
+        }}
+        button:hover {{
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }}
+        button:active {{
+            transform: scale(0.97);
+        }}
+        #visualizacionBtn {{
+            display: none;
+            background-color: #28a745;
+        }}
+        #visualizacionBtn:hover {{
+            background-color: #218838;
+        }}
+        .libro-btn {{
+            background-color: #ff6b35;
+        }}
+        .libro-btn:hover {{
+            background-color: #e25a2c;
+        }}
+        .chat-btn {{
+            background-color: #17a2b8;
+        }}
+        .chat-btn:hover {{
+            background-color: #138496;
+        }}
+        .continuar-msg {{
+            margin: 25px 0;
+            font-style: italic;
+            color: #666;
+            font-size: 19px;
+            padding: 15px;
+            background-color: rgba(255, 107, 53, 0.1);
+            border-radius: 10px;
+        }}
+        /* Estilos para la barra de progreso */
+        .progress-container {{
+            width: 100%;
+            height: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+            display: none;
+        }}
+        .progress-bar {{
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }}
+        .progress-text {{
+            margin-top: 10px;
+            font-size: 16px;
+            color: #555;
+        }}
+        .progress-cancel {{
+            margin-top: 10px;
+            background: none;
+            border: none;
+            color: #ff5252;
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 14px;
+        }}
+        @keyframes fadeIn {{
+            from {{ opacity: 0; transform: translateY(-20px); }}
+            to {{ opacity: 1; transform: translateY(0); }}
+        }}
+        @media (max-width: 768px) {{
+            .container {{
+                padding: 25px 20px;
+            }}
+            .button-container {{
+                flex-direction: column;
+                align-items: center;
+            }}
+            button {{
+                width: 100%;
+                min-width: auto;
+            }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tu viaje hacia el bienestar integral comienza aquí</h1>
+        
+        <p>Has dado un paso importante al completar tu diagnóstico de bienestar. Ahora tienes diferentes formas de profundizar en tus resultados y seguir explorando cómo mejorar tu vida día a día.</p>
+        
+        <!-- Contenedor principal de botones centrados -->
+        <div class="button-container">
+            <button id="descargarBtn" onclick="iniciarDescarga()">📥 Descargar Análisis</button>
+            <button class="chat-btn" onclick="window.location.href='/chat'">💬 Ingresar a Chat</button>
+        </div>
+        
+        <!-- Contenedor de progreso (inicialmente oculto) -->
+        <div id="progressContainer" class="progress-container">
+            <div id="progressBar" class="progress-bar"></div>
+        </div>
+        <div id="progressText" class="progress-text">Preparando análisis... 5%</div>
+        <button id="progressCancel" class="progress-cancel" onclick="cancelarDescarga()" style="display: none;">Cancelar descarga</button>
+        
+        <p class="continuar-msg">Elige por dónde continuar y sigue avanzando hacia una mejor versión de ti. 🌱✨</p>
+        
+        <div class="content-grid">
+            <div class="section">
+                <div class="section-title">¡Gracias por darte este espacio de autoconocimiento!</div>
+                <p>Has completado el diagnóstico de bienestar integral, un primer paso importante para reconocer cómo estás hoy y hacia dónde quieres avanzar.</p>
+                <p>Como un regalo por tu compromiso contigo mismo, queremos obsequiarte el libro "La pausa que salva vidas", una invitación a detenerte, respirar y redescubrir el poder de las pequeñas pausas conscientes que pueden transformar tu salud, tu energía y tu vida.</p>
                 
-                <p>Has dado un paso importante al completar tu diagnóstico de bienestar. Ahora tienes diferentes formas de profundizar en tus resultados y seguir explorando cómo mejorar tu vida día a día.</p>
-                
-                <!-- Contenedor principal de botones centrados -->
                 <div class="button-container">
-                    <button onclick="descargarAnalisis()">📥 Descargar Análisis</button>
-                    <button class="chat-btn" onclick="window.location.href='/chat'">💬 Ingresar a Chat</button>
-                </div>
-                
-                <p class="continuar-msg">Elige por dónde continuar y sigue avanzando hacia una mejor versión de ti. 🌱✨</p>
-                
-                <div class="content-grid">
-                    <div class="section">
-                        <div class="section-title">¡Gracias por darte este espacio de autoconocimiento!</div>
-                        <p>Has completado el diagnóstico de bienestar integral, un primer paso importante para reconocer cómo estás hoy y hacia dónde quieres avanzar.</p>
-                        <p>Como un regalo por tu compromiso contigo mismo, queremos obsequiarte el libro "La pausa que salva vidas", una invitación a detenerte, respirar y redescubrir el poder de las pequeñas pausas conscientes que pueden transformar tu salud, tu energía y tu vida.</p>
-                        
-                        <div class="button-container">
-                            <button class="libro-btn" onclick="descargarLibro()">📚 Descargar Libro</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="button-container">
-                    <button id="visualizacionBtn" onclick="window.location.href='/dashboard-content/{usuario_id}'">📊 Visualización</button>
+                    <button class="libro-btn" onclick="descargarLibro()">📚 Descargar Libro</button>
                 </div>
             </div>
+        </div>
+        
+        <div class="button-container">
+            <button id="visualizacionBtn" onclick="window.location.href='/dashboard-content/{usuario_id}'">📊 Visualización</button>
+        </div>
+    </div>
 
-            <script>
-                function descargarAnalisis() {{
-                    // Redirigir para descargar el análisis
-                    window.location.href = '{ruta_descarga}';
+    <script>
+        let descargaEnProgreso = false;
+        let xhr = null;
+        
+        function iniciarDescarga() {{
+            if (descargaEnProgreso) return;
+            
+            // Ocultar botón de descarga y mostrar barra de progreso
+            document.getElementById('descargarBtn').style.display = 'none';
+            document.getElementById('progressContainer').style.display = 'block';
+            document.getElementById('progressCancel').style.display = 'block';
+            descargaEnProgreso = true;
+            
+            // Crear una solicitud XMLHttpRequest para monitorear el progreso
+            xhr = new XMLHttpRequest();
+            xhr.open('GET', '{ruta_descarga}', true);
+            xhr.responseType = 'blob';
+            
+            // Monitorear el progreso de la descarga
+            xhr.addEventListener('progress', function(e) {{
+                if (e.lengthComputable) {{
+                    const porcentaje = (e.loaded / e.total) * 100;
+                    actualizarProgreso(porcentaje);
                 }}
-                
-                function descargarLibro() {{
-                    // Redirigir para descargar el libro desde la carpeta static
-                    window.location.href = '/statics/libros/mi_libro.pdf';
+            }});
+            
+            // Cuando la descarga se complete
+            xhr.onload = function() {{
+                if (this.status === 200) {{
+                    const blob = this.response;
+                    const fileName = 'analisis_bienestar.pdf';
+                    
+                    // Crear un enlace para descargar el archivo
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    
+                    // Completar la descarga
+                    completarDescarga();
+                }} else {{
+                    // Manejar errores
+                    document.getElementById('progressText').textContent = 'Error en la descarga. Intenta nuevamente.';
+                    setTimeout(() => {{
+                        cancelarDescarga();
+                    }}, 2000);
                 }}
-            </script>
-        </body>
-        </html>
+            }};
+            
+            // Manejar errores de red
+            xhr.onerror = function() {{
+                document.getElementById('progressText').textContent = 'Error de conexión. Intenta nuevamente.';
+                setTimeout(() => {{
+                    cancelarDescarga();
+                }}, 2000);
+            }};
+            
+            // Iniciar la descarga
+            xhr.send();
+        }}
+        
+        function actualizarProgreso(porcentaje) {{
+            // Actualizar barra de progreso y texto
+            document.getElementById('progressBar').style.width = porcentaje + '%';
+            document.getElementById('progressText').textContent = 
+                `Descargando análisis... ${{Math.round(porcentaje)}}%`;
+        }}
+        
+        function completarDescarga() {{
+            document.getElementById('progressText').textContent = '¡Descarga completada!';
+            
+            // Restablecer la interfaz después de la descarga
+            setTimeout(() => {{
+                document.getElementById('progressContainer').style.display = 'none';
+                document.getElementById('progressCancel').style.display = 'none';
+                document.getElementById('descargarBtn').style.display = 'block';
+                document.getElementById('progressBar').style.width = '0%';
+                document.getElementById('progressText').textContent = 'Preparando análisis... 0%';
+                descargaEnProgreso = false;
+                xhr = null;
+            }}, 1500);
+        }}
+        
+        function cancelarDescarga() {{
+            if (!descargaEnProgreso) return;
+            
+            // Cancelar la solicitud XHR si existe
+            if (xhr) {{
+                xhr.abort();
+            }}
+            
+            descargaEnProgreso = false;
+            
+            // Restablecer la interfaz
+            document.getElementById('progressContainer').style.display = 'none';
+            document.getElementById('progressCancel').style.display = 'none';
+            document.getElementById('descargarBtn').style.display = 'block';
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('progressText').textContent = 'Preparando análisis... 0%';
+            xhr = null;
+        }}
+        
+        function descargarLibro() {{
+            // Redirigir para descargar el libro desde la carpeta static
+            window.location.href = '/statics/libros/mi_libro.pdf';
+        }}
+        
+        // Mostrar el botón de visualización si hay un usuario_id
+        if ('{usuario_id}' && '{usuario_id}' !== 'None') {{
+            document.getElementById('visualizacionBtn').style.display = 'block';
+        }}
+    </script>
+</body>
+</html>
             """
             return HTMLResponse(content=contenido_html)
     elif version == "esencial":
