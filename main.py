@@ -115,6 +115,8 @@ def guardar_usuario(
     tipo_documento: str = Form(...),
     numero_identificacion: int = Form(...),
     correo: str = Form(...),
+    telefono: str = Form(...),  # Nuevo campo
+    eps: str = Form(...),       # Nuevo campo
     sexo: str = Form(...),
     Peso: str = Form(...),
     Altura: str = Form(...),
@@ -122,6 +124,7 @@ def guardar_usuario(
     grado_escolaridad: str = Form(...),
     antiguedad: str = Form(...),
     ciudad: str = Form(...),
+    barrio: str = Form(...),    # Nuevo campo
     Profesion: str = Form(...),
     Empresa: str = Form(...),
     otraEmpresa: str = Form(None),
@@ -198,12 +201,11 @@ def guardar_usuario(
             # Insertar usuario si no existe y no seleccionó Chat
             cursor.execute(
                 """
-                INSERT INTO usuarios (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, Peso, Altura, rango_edad, grado_escolaridad, antiguedad, ciudad, Profesion, Empresa)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO usuarios (nombre, apellidos, tipo_documento, numero_identificacion, correo, telefono, eps, sexo, Peso, Altura, rango_edad, grado_escolaridad, antiguedad, ciudad, barrio, Profesion, Empresa)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
-                (nombre, apellidos, tipo_documento, numero_identificacion, correo, sexo, Peso, Altura, rango_edad, grado_escolaridad, antiguedad, ciudad, Profesion, empresa_final)
+                (nombre, apellidos, tipo_documento, numero_identificacion, correo, telefono, eps, sexo, Peso, Altura, rango_edad, grado_escolaridad, antiguedad, ciudad, barrio, Profesion, empresa_final)
             )
-            conn.commit()
 
             # Redirección según versión
             if version == "Esencial":
@@ -995,6 +997,14 @@ def mostrar_pagina(request: Request):  # Añadir el parámetro request
                         <input type="email" id="correo" name="correo" required>
                     </div>
                     <div class="form-group">
+                    <label for="telefono">Teléfono de Contacto:</label>
+                    <input type="tel" id="telefono" name="telefono" required>
+                    </div>
+                    <div class="form-group">
+                    <label for="eps">EPS:</label>
+                    <input type="text" id="eps" name="eps" required>
+                    </div>
+                    <div class="form-group">
                         <label for="sexo">Sexo:</label>
                         <select id="sexo" name="sexo" required>
                             <option value="Masculino">Masculino</option>
@@ -1024,6 +1034,8 @@ def mostrar_pagina(request: Request):  # Añadir el parámetro request
                         <select id="grado_escolaridad" name="grado_escolaridad" required>
                             <option value="Basica Primaria">Básica Primaria</option>
                             <option value="Bachiller">Bachiller</option>
+                            <option value="Bachiller">Tecnico</option>
+                            <option value="Bachiller">Tecnologo</option>
                             <option value="Pregado">Pregrado</option>
                             <option value="Posgrado">Posgrado</option>
                             <option value="Doctorado">Doctorado</option>
@@ -1042,18 +1054,25 @@ def mostrar_pagina(request: Request):  # Añadir el parámetro request
                         <label for="ciudad">Ciudad:</label>
                         <input type="text" id="ciudad" name="ciudad" required>
                     </div>
+
+                    <div class="form-group">
+                    <label for="barrio">Barrio:</label>
+                    <input type="text" id="barrio" name="barrio" required>
+                </div>
                     <div class="form-group">
                         <label for="Profesion">Profesión:</label>
                         <input type="text" id="Profesion" name="Profesion" required>
                     </div>
                    <div class="form-group">
-                        <label for="Empresa">Empresa:</label>
+                        <label for="Empresa">Institución:</label>
                         <select id="Empresa" name="Empresa" required onchange="toggleEmpresaInput(this)">
                             <option value="PARTICULAR">PARTICULAR</option>
                             <option value="SIES SALUD">SIES SALUD</option>
                             <option value="AZISTIA">AZISTIA</option>
                             <option value="HOTEL SONATA 44">HOTEL SONATA 44</option>
                             <option value="PTC-ASSISTAN">PTC-AZISTIA</option>
+                            <option value="ENVIGADO">ENVIGADO</option>
+                            <option value="CEFIT">CEFIT</option>
                             <option value="Otra Empresa">Otra Empresa</option>
                         </select>
                     </div>
