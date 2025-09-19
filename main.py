@@ -206,7 +206,7 @@ def guardar_usuario(
                 """,
                 (nombre, apellidos, tipo_documento, numero_identificacion, correo, telefono, eps, sexo, Peso, Altura, rango_edad, grado_escolaridad, antiguedad, ciudad, barrio, Profesion, empresa_final)
             )
-
+            conn.commit()
             # Redirección según versión
             if version == "Esencial":
                 return RedirectResponse(url=f"/preguntas_esencial?usuario_id={numero_identificacion}", status_code=303)
