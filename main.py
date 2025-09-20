@@ -37,6 +37,8 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import logging
 from flask import current_app
+import shutil
+from fastapi.responses import FileResponse
 
 # Configurar la conexión a MySQL desde Railway
 DB_HOST = "shuttle.proxy.rlwy.net"
@@ -48,7 +50,10 @@ DB_PORT = 17125
 
 app = FastAPI()
 
-
+@app.get("/backup-statics")
+def backup_statics():
+    shutil.make_archive("statics_backup", 'zip', "statics")
+    return FileResponse("statics_backup.zip", media_type="application/zip", filename="statics_backup.zip")
 
 app.mount("/statics", StaticFiles(directory="statics"), name="statics")
 
@@ -5321,7 +5326,7 @@ def generate_dashboard(valores_respuestas, individual_charts, consolidated_chart
       // Actualizar el contenido del modal según la categoría seleccionada
       document.getElementById('modalChart').src = "/statics/user_{usuario_id}/radar_" + category.toLowerCase() + ".html";
       document.getElementById('modalTitle').textContent = category.toUpperCase();
-      document.getElementById('modalEvaluation').textContent = {json.dumps(promedios)}[category].toFixed(1);
+      document.getElementById('modalEvaluation').textContent = ({json.dumps(promedios)}[category] * 10).toFixed(1);
       document.getElementById('modalDescription').textContent = {json.dumps(interpretaciones)}[category];
       
       // Mostrar interpretación de IA si está disponible
@@ -5330,7 +5335,7 @@ def generate_dashboard(valores_respuestas, individual_charts, consolidated_chart
       
       
       // Recomendaciones basadas en el puntaje
-      const score = {json.dumps(promedios)}[category];
+      const score = {json.dumps(promedios)}[category] * 10;
       let recommendations = "";
       
       if(score < 4) {{
