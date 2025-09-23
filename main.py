@@ -55,6 +55,7 @@ def backup_statics():
     shutil.make_archive("statics_backup", 'zip', "statics")
     return FileResponse("statics_backup.zip", media_type="application/zip", filename="statics_backup.zip")
 
+
 app.mount("/statics", StaticFiles(directory="statics"), name="statics")
 
 preguntas_lista_Premium = [
@@ -129,10 +130,12 @@ def guardar_usuario(
     grado_escolaridad: str = Form(...),
     antiguedad: str = Form(...),
     ciudad: str = Form(...),
-    barrio: str = Form(...),    # Nuevo campo
+    barrio: str = Form(...),    # Nuevo campo alineado con formulario
     Profesion: str = Form(...),
     Empresa: str = Form(...),
     otraEmpresa: str = Form(None),
+    situacion_actual: str = Form(...),
+    con_quien_vives: str = Form(...),
     version: str = Form(...) 
 ):
     # Inicializar las variables como None
@@ -145,6 +148,9 @@ def guardar_usuario(
 
         conn = get_db_connection()
         cursor = conn.cursor() 
+
+     
+
 
         # Verificar si el número de identificación ya existe
         cursor.execute("SELECT COUNT(*) FROM usuarios WHERE numero_identificacion = %s", (numero_identificacion,))
@@ -206,12 +212,13 @@ def guardar_usuario(
             # Insertar usuario si no existe y no seleccionó Chat
             cursor.execute(
                 """
-                INSERT INTO usuarios (nombre, apellidos, tipo_documento, numero_identificacion, correo, telefono, eps, sexo, Peso, Altura, rango_edad, grado_escolaridad, antiguedad, ciudad, barrio, Profesion, Empresa)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO usuarios (nombre, apellidos, tipo_documento, numero_identificacion, correo,telefono,eps, sexo, Peso, Altura, rango_edad, grado_escolaridad, antiguedad, ciudad,barrio, Profesion, Empresa, situacion_actual, con_quien_vives)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s,%s)
                 """,
-                (nombre, apellidos, tipo_documento, numero_identificacion, correo, telefono, eps, sexo, Peso, Altura, rango_edad, grado_escolaridad, antiguedad, ciudad, barrio, Profesion, empresa_final)
+                (nombre, apellidos, tipo_documento, numero_identificacion, correo, telefono, eps, sexo, Peso, Altura, rango_edad, grado_escolaridad, antiguedad, ciudad, barrio, Profesion, empresa_final, situacion_actual, con_quien_vives)
             )
             conn.commit()
+
             # Redirección según versión
             if version == "Esencial":
                 return RedirectResponse(url=f"/preguntas_esencial?usuario_id={numero_identificacion}", status_code=303)
@@ -1001,7 +1008,7 @@ def mostrar_pagina(request: Request):  # Añadir el parámetro request
                         <label for="correo">Correo Electrónico:</label>
                         <input type="email" id="correo" name="correo" required>
                     </div>
-                    <div class="form-group">
+                     <div class="form-group">
                     <label for="telefono">Teléfono de Contacto:</label>
                     <input type="tel" id="telefono" name="telefono" required>
                     </div>
@@ -1039,8 +1046,6 @@ def mostrar_pagina(request: Request):  # Añadir el parámetro request
                         <select id="grado_escolaridad" name="grado_escolaridad" required>
                             <option value="Basica Primaria">Básica Primaria</option>
                             <option value="Bachiller">Bachiller</option>
-                            <option value="Bachiller">Tecnico</option>
-                            <option value="Bachiller">Tecnologo</option>
                             <option value="Pregado">Pregrado</option>
                             <option value="Posgrado">Posgrado</option>
                             <option value="Doctorado">Doctorado</option>
@@ -1059,25 +1064,22 @@ def mostrar_pagina(request: Request):  # Añadir el parámetro request
                         <label for="ciudad">Ciudad:</label>
                         <input type="text" id="ciudad" name="ciudad" required>
                     </div>
-
-                    <div class="form-group">
+                     <div class="form-group">
                     <label for="barrio">Barrio:</label>
                     <input type="text" id="barrio" name="barrio" required>
-                </div>
+                    </div>
                     <div class="form-group">
                         <label for="Profesion">Profesión:</label>
                         <input type="text" id="Profesion" name="Profesion" required>
                     </div>
                    <div class="form-group">
-                        <label for="Empresa">Institución:</label>
+                        <label for="Empresa">Empresa:</label>
                         <select id="Empresa" name="Empresa" required onchange="toggleEmpresaInput(this)">
                             <option value="PARTICULAR">PARTICULAR</option>
                             <option value="SIES SALUD">SIES SALUD</option>
                             <option value="AZISTIA">AZISTIA</option>
                             <option value="HOTEL SONATA 44">HOTEL SONATA 44</option>
                             <option value="PTC-ASSISTAN">PTC-AZISTIA</option>
-                            <option value="ENVIGADO">ENVIGADO</option>
-                            <option value="CEFIT">CEFIT</option>
                             <option value="Otra Empresa">Otra Empresa</option>
                         </select>
                     </div>
@@ -1087,6 +1089,25 @@ def mostrar_pagina(request: Request):  # Añadir el parámetro request
                                 <input type="text" id="otraEmpresa" name="otraEmpresa" style="margin-top: 5px;">
                             </div>
                         </div>
+                    <div class="form-group">
+                        <label for="situacion_actual">Situación Actual:</label>
+                        <select id="situacion_actual" name="situacion_actual" required>
+                            <option value="Estudia">Estudia</option>
+                            <option value="Trabaja">Trabaja</option>
+                            <option value="Estudia y trabaja">Estudia y trabaja</option>
+                            <option value="No estudia ni trabaja">No Estudia ni trabaja</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="con_quien_vives">Con quién vives:</label>
+                        <select id="con_quien_vives" name="con_quien_vives" required>
+                            <option value="Familia">Familia</option>
+                            <option value="Amigos">Amigos</option>
+                            <option value="Pareja">Pareja</option>
+                            <option value="Solo/a">Solo/a</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
                 <div class="form-group" style="grid-column: 1 / -1; margin-top: 10px;">
                     <label style="font-weight: normal;">
                         <input type="checkbox" name="autorizacion_datos" required>
