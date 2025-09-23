@@ -1080,6 +1080,8 @@ def mostrar_pagina(request: Request):  # Añadir el parámetro request
                             <option value="AZISTIA">AZISTIA</option>
                             <option value="HOTEL SONATA 44">HOTEL SONATA 44</option>
                             <option value="PTC-ASSISTAN">PTC-AZISTIA</option>
+                            <option value="ENVIGADO">ENVIGADO</option>
+                            <option value="CEFIT">CEFIT</option>
                             <option value="Otra Empresa">Otra Empresa</option>
                         </select>
                     </div>
