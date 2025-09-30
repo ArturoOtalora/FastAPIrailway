@@ -148,11 +148,14 @@ def guardar_usuario(
 
         conn = get_db_connection()
         cursor = conn.cursor() 
+        
+        if version == "Resiliencia":
+          cursor.execute("SELECT COUNT(*) FROM Usuarios_Resiliencia WHERE numero_identificacion = %s", (numero_identificacion,))
+          (existe,) = cursor.fetchone()
 
-
-        # Verificar si el número de identificación ya existe
-        cursor.execute("SELECT COUNT(*) FROM usuarios WHERE numero_identificacion = %s", (numero_identificacion,))
-        (existe,) = cursor.fetchone()
+        else:
+         cursor.execute("SELECT COUNT(*) FROM usuarios WHERE numero_identificacion = %s", (numero_identificacion,))
+         (existe,) = cursor.fetchone()
         
         if existe:
             # ✅ Ya registrado
@@ -207,15 +210,25 @@ def guardar_usuario(
                 """
                 return HTMLResponse(content=html_content, status_code=400)
 
-            # Insertar usuario si no existe y no seleccionó Chat
-            cursor.execute(
-                """
-                INSERT INTO usuarios (nombre, apellidos, tipo_documento, numero_identificacion, correo,telefono,eps, sexo, Peso, Altura, rango_edad, grado_escolaridad, antiguedad, ciudad,barrio, Profesion, Empresa, situacion_actual, con_quien_vives)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s,%s)
-                """,
-                (nombre, apellidos, tipo_documento, numero_identificacion, correo, telefono, eps, sexo, Peso, Altura, rango_edad, grado_escolaridad, antiguedad, ciudad, barrio, Profesion, empresa_final, situacion_actual, con_quien_vives)
-            )
-            conn.commit()
+            if version == "Resiliencia":
+                cursor.execute(
+                    """
+                    INSERT INTO Usuarios_Resiliencia (nombre, apellidos, tipo_documento, numero_identificacion, correo, telefono, eps, sexo, Peso, Altura, rango_edad, grado_escolaridad, antiguedad, ciudad, barrio, Profesion, Empresa, situacion_actual, con_quien_vives)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """,
+                    (nombre, apellidos, tipo_documento, numero_identificacion, correo, telefono, eps, sexo, Peso, Altura, rango_edad, grado_escolaridad, antiguedad, ciudad, barrio, Profesion, empresa_final, situacion_actual, con_quien_vives)
+                )
+                conn.commit()
+            else:
+                # Insertar usuario si no existe y no seleccionó Chat
+                cursor.execute(
+                    """
+                    INSERT INTO usuarios (nombre, apellidos, tipo_documento, numero_identificacion, correo, telefono, eps, sexo, Peso, Altura, rango_edad, grado_escolaridad, antiguedad, ciudad, barrio, Profesion, Empresa, situacion_actual, con_quien_vives)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """,
+                    (nombre, apellidos, tipo_documento, numero_identificacion, correo, telefono, eps, sexo, Peso, Altura, rango_edad, grado_escolaridad, antiguedad, ciudad, barrio, Profesion, empresa_final, situacion_actual, con_quien_vives)
+                )
+                conn.commit()
 
             # Redirección según versión
             if version == "Esencial":
@@ -224,6 +237,9 @@ def guardar_usuario(
                 return RedirectResponse(url=f"/preguntas_evolutiva?usuario_id={numero_identificacion}", status_code=303)
             elif version == "Premium":
                 return RedirectResponse(url=f"/preguntas_premium?usuario_id={numero_identificacion}", status_code=303)
+
+            elif version == "Resiliencia":
+                return RedirectResponse(url=f"/cuestionario_resiliencia?usuario_id={numero_identificacion}", status_code=303)    
             else:
                 return RedirectResponse(url=f"/preguntas?usuario_id={numero_identificacion}", status_code=303)
 
@@ -1975,7 +1991,7 @@ def admin_panel():
         ) AS total_respuestas_bajas
 
     FROM railway.RespuestasResil r
-    INNER JOIN railway.usuarios u ON r.usuario_id = u.numero_identificacion;
+    INNER JOIN railway.Usuarios_Resiliencia u ON r.usuario_id = u.numero_identificacion;
     """
     
     cursor.execute(query)
@@ -2524,7 +2540,7 @@ def export_excel():
         ) AS total_respuestas_bajas
 
     FROM railway.RespuestasResil r
-    INNER JOIN railway.usuarios u ON r.usuario_id = u.numero_identificacion;
+    INNER JOIN railway.Usuarios_Resiliencia u ON r.usuario_id = u.numero_identificacion;
     """
     
     cursor.execute(query)
@@ -3246,11 +3262,10 @@ def verificar_usuario(
 
     return RedirectResponse(url="/mostrar_pagina", status_code=302)
 @app.get("/mostrar_pagina", response_class=HTMLResponse)
-def mostrar_pagina(request: Request):  # Añadir el parámetro request
+def mostrar_pagina(request: Request):
     user_type = request.cookies.get("user_type", "invitado")
     
     # Determinar qué opciones mostrar según el tipo de usuario
-       # Determinar qué opciones mostrar según el tipo de usuario
     if user_type == "Corevital":
         version_options = """
         <!-- Versión Esencial -->
@@ -3418,7 +3433,7 @@ def mostrar_pagina(request: Request):  # Añadir el parámetro request
             <h1>Registro de Usuario</h1>
         </div>
         <div class="container">
-            <form action="/guardar_usuario" method="post">
+            <form action="/guardar_usuario" method="post" id="registroForm">
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="nombre">Nombre:</label>
@@ -3557,7 +3572,7 @@ def mostrar_pagina(request: Request):  # Añadir el parámetro request
                         no continúe con el diligenciamiento de la encuesta.
                     </label>
                 </div>
-                <button type="submit" id="btnRegistrar">Registrar</button>
+                <button type="button" id="btnRegistrar">Registrar</button>
             </form>
         </div>
          <script>
@@ -3581,7 +3596,7 @@ def mostrar_pagina(request: Request):  # Añadir el parámetro request
       </div>
     </div>
     <script>
-          const form = document.querySelector("form");
+        const form = document.getElementById("registroForm");
         const modal = document.getElementById("versionModal");
         const btnRegistrar = document.getElementById("btnRegistrar");
 
@@ -3620,20 +3635,39 @@ def mostrar_pagina(request: Request):  # Añadir el parámetro request
 
             modal.style.display = "none";
             fueClickEnRegistrar = false;
-            // Si versión es Resiliencia, redirigir al cuestionario pasando usuario_id
-             if (version === 'Resiliencia') {{
-                // Primero enviar el formulario
-                form.submit();
-                // Luego redirigir después de un breve delay
-                setTimeout(() => {{
-                    const numId = document.getElementById('numero_identificacion').value;
-                    window.location.href = '/cuestionario_resiliencia?usuario_id=' + numId;
-                }}, 1000);
+            
+            // Si versión es Resiliencia, cambiar el action del formulario
+            if (version === 'Resiliencia') {{
+                // Guardar los datos primero y luego redirigir
+                enviarFormularioYRedirigir(version);
             }} else {{
                 // Para otras versiones, enviar normalmente
                 form.submit();
             }}
         }}
+
+        function enviarFormularioYRedirigir(version) {{
+            const formData = new FormData(form);
+            
+            fetch('/guardar_usuario', {{
+                method: 'POST',
+                body: formData
+            }})
+            .then(response => {{
+                if (response.ok) {{
+                    // Si el guardado fue exitoso, redirigir al cuestionario
+                    const numId = document.getElementById('numero_identificacion').value;
+                    window.location.href = '/cuestionario_resiliencia?usuario_id=' + numId;
+                }} else {{
+                    alert('Error al guardar los datos. Por favor, intenta nuevamente.');
+                }}
+            }})
+            .catch(error => {{
+                console.error('Error:', error);
+                alert('Error al guardar los datos. Por favor, intenta nuevamente.');
+            }});
+        }}
+
         function toggleEmpresaInput(select) {{
             const otraEmpresaGroup = document.getElementById("otraEmpresaGroup");
             otraEmpresaGroup.style.display = select.value === "Otra Empresa" ? "block" : "none";
