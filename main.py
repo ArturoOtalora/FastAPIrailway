@@ -4601,7 +4601,7 @@ async def chat_interactivo():
                 emotionHistoryDisplay.classList.remove('hidden');
                 
                 emotionDetectionInterval = setInterval(detectEmotions, 1000);
-                addMessageToChat('system', 'Análisis de emociones activado. Ahora puedo detectar tus expresiones faciales (solo como contexto).');
+                addMessageToChat('system', 'Análisis de emociones activado. Ahora puedo detectar tus expresiones faciales.');
             } else {
                 toggleEmotionBtn.innerHTML = `<i class="bi bi-emoji-smile"></i>`;
                 emotionDisplay.classList.add('hidden');
