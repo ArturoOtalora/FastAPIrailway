@@ -149,8 +149,6 @@ def guardar_usuario(
         conn = get_db_connection()
         cursor = conn.cursor() 
 
-     
-
 
         # Verificar si el número de identificación ya existe
         cursor.execute("SELECT COUNT(*) FROM usuarios WHERE numero_identificacion = %s", (numero_identificacion,))
@@ -246,6 +244,2425 @@ def guardar_usuario(
             cursor.close()
         if conn is not None:
             conn.close()
+
+@app.get("/cuestionario_resiliencia", response_class=HTMLResponse)
+def cuestionario_resiliencia():
+    return """
+    <!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario de Bienestar Integral</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --accent: #f72585;
+            --success: #4cc9f0;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --border-radius: 16px;
+            --box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .tagline {
+            color: var(--gray);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .introduction {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: var(--box-shadow);
+            border-left: 5px solid var(--success);
+        }
+
+        .introduction h2 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .introduction h2 i {
+            margin-right: 10px;
+            color: var(--accent);
+        }
+
+        .introduction p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .progress-container {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--box-shadow);
+            position: sticky;
+            top: 20px;
+            z-index: 10;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .progress-bar {
+            height: 12px;
+            background: var(--light-gray);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary), var(--success));
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.8s cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+
+        .question-card {
+            background: white;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+            border-left: 5px solid var(--primary);
+        }
+
+        .question-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+
+        .question-header {
+            background: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .question-number {
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .question-number i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        .question-category {
+            background: var(--light);
+            color: var(--gray);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .question-body {
+            padding: 20px;
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 20px;
+            color: var(--dark);
+            line-height: 1.5;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .option-item {
+            position: relative;
+        }
+
+        .option-input {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .option-label {
+            display: block;
+            padding: 12px 15px;
+            background: var(--light);
+            border: 2px solid var(--light-gray);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .option-input:checked ~ .option-label {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.2);
+        }
+
+        .option-input:not(:checked):hover ~ .option-label {
+            border-color: var(--primary);
+            background: rgba(67, 97, 238, 0.05);
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: rgba(67, 97, 238, 0.05);
+        }
+
+        .btn i {
+            margin-right: 8px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: white;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 600px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            transform: translateY(20px);
+            transition: var(--transition);
+        }
+
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .modal-body {
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .modal-footer {
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .question-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+
+        .floating-info {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            cursor: pointer;
+            z-index: 100;
+            transition: var(--transition);
+        }
+
+        .floating-info:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(67, 97, 238, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0); }
+        }
+
+        /* Estilos para el contador de preguntas */
+        .question-counter {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        /* Indicador visual de categoría */
+        .category-indicator {
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .category-indicator i {
+            margin-right: 10px;
+        }
+        
+        /* Estilo para preguntas requeridas */
+        .required::after {
+            content: " *";
+            color: var(--accent);
+        }
+        
+        /* Efecto de scroll suave */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Animación de entrada para las preguntas */
+        .question-card {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s forwards;
+        }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Estilo para el botón de scroll arriba */
+        .scroll-top {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            cursor: pointer;
+            z-index: 100;
+            transition: var(--transition);
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .scroll-top.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .scroll-top:hover {
+            background: var(--secondary);
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="logo">Análisis Integral de Resiliencia</div>
+            <div class="tagline">Tu evaluación integral de bienestar</div>
+        </header>
+
+        <div class="introduction">
+            <h2><i class="fas fa-info-circle"></i> Cuestionario de Evaluación de Resiliencia</h2>
+            <p>Este cuestionario está diseñado para medir tu nivel de resiliencia, es decir, tu capacidad para adaptarte y recuperarte ante situaciones adversas. La resiliencia es una habilidad que nos permite enfrentar los desafíos de la vida con fortaleza y flexibilidad.</p>
+            <p>El cuestionario evalúa diferentes dimensiones de tu bienestar que están relacionadas con tu capacidad de resiliencia. Por favor, responde cada pregunta con sinceridad, reflexionando sobre tus experiencias recientes.</p>
+            <p>No hay respuestas correctas o incorrectas, solo tu experiencia personal. Al finalizar, recibirás un análisis de tus áreas de fortaleza y oportunidades de crecimiento.</p>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-info">
+                <span>Progreso</span>
+                <span id="progress-percentage">0%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+
+        <form id="wellness-form" method="post" action="/guardar_resiliencia">
+            <input type="hidden" name="usuario_id" id="usuario_id" value="">
+            
+            <!-- Pregunta 1 -->
+            <div class="question-card" style="animation-delay: 0.1s">
+                <div class="question-header">
+                    <div class="question-number"><i class="fas fa-heartbeat"></i> Pregunta 1</div>
+                    <div class="question-category">Bienestar Físico</div>
+                </div>
+                <div class="question-body">
+                    <div class="question-text required">En la última semana, ¿con qué frecuencia realizaste actividad física al menos 30 minutos?</div>
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_1" value="0" class="option-input" required>
+                            <span class="option-label">Nunca</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_1" value="1" class="option-input">
+                            <span class="option-label">1-2 días</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_1" value="2" class="option-input">
+                            <span class="option-label">3-4 días</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_1" value="3" class="option-input">
+                            <span class="option-label">5+ días</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta 2 -->
+            <div class="question-card" style="animation-delay: 0.2s">
+                <div class="question-header">
+                    <div class="question-number"><i class="fas fa-heartbeat"></i> Pregunta 2</div>
+                    <div class="question-category">Bienestar Físico</div>
+                </div>
+                <div class="question-body">
+                    <div class="question-text required">¿Cómo calificarías tu nivel de energía física en los últimos 7 días?</div>
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_2" value="0" class="option-input" required>
+                            <span class="option-label">Muy bajo</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_2" value="1" class="option-input">
+                            <span class="option-label">Bajo</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_2" value="2" class="option-input">
+                            <span class="option-label">Medio</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_2" value="3" class="option-input">
+                            <span class="option-label">Alto</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_2" value="4" class="option-input">
+                            <span class="option-label">Muy alto</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta 3 -->
+            <div class="question-card" style="animation-delay: 0.3s">
+                <div class="question-header">
+                    <div class="question-number"><i class="fas fa-heartbeat"></i> Pregunta 3</div>
+                    <div class="question-category">Bienestar Físico</div>
+                </div>
+                <div class="question-body">
+                    <div class="question-text required">En el último mes, ¿qué tan satisfecho/a estás con tu calidad de sueño?</div>
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_3" value="0" class="option-input" required>
+                            <span class="option-label">Nada satisfecho/a</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_3" value="1" class="option-input">
+                            <span class="option-label">Poco satisfecho/a</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_3" value="2" class="option-input">
+                            <span class="option-label">Neutral</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_3" value="3" class="option-input">
+                            <span class="option-label">Satisfecho/a</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_3" value="4" class="option-input">
+                            <span class="option-label">Muy satisfecho/a</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta 4 -->
+            <div class="question-card" style="animation-delay: 0.4s">
+                <div class="question-header">
+                    <div class="question-number"><i class="fas fa-smile"></i> Pregunta 4</div>
+                    <div class="question-category">Bienestar Emocional</div>
+                </div>
+                <div class="question-body">
+                    <div class="question-text required">En general, me siento satisfecho/a con mi vida.</div>
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_4" value="0" class="option-input" required>
+                            <span class="option-label">Totalmente en desacuerdo</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_4" value="1" class="option-input">
+                            <span class="option-label">En desacuerdo</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_4" value="2" class="option-input">
+                            <span class="option-label">Neutral</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_4" value="3" class="option-input">
+                            <span class="option-label">De acuerdo</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_4" value="4" class="option-input">
+                            <span class="option-label">Muy de acuerdo</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta 5 -->
+            <div class="question-card" style="animation-delay: 0.5s">
+                <div class="question-header">
+                    <div class="question-number"><i class="fas fa-smile"></i> Pregunta 5</div>
+                    <div class="question-category">Bienestar Emocional</div>
+                </div>
+                <div class="question-body">
+                    <div class="question-text required">He sentido alegría y entusiasmo en mi día a día.</div>
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_5" value="0" class="option-input" required>
+                            <span class="option-label">Nunca</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_5" value="1" class="option-input">
+                            <span class="option-label">Pocas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_5" value="2" class="option-input">
+                            <span class="option-label">Algunas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_5" value="3" class="option-input">
+                            <span class="option-label">Muchas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_5" value="4" class="option-input">
+                            <span class="option-label">Siempre</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta 6 -->
+            <div class="question-card" style="animation-delay: 0.6s">
+                <div class="question-header">
+                    <div class="question-number"><i class="fas fa-smile"></i> Pregunta 6</div>
+                    <div class="question-category">Bienestar Emocional</div>
+                </div>
+                <div class="question-body">
+                    <div class="question-text required">He sentido estrés o preocupación excesiva.</div>
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_6" value="0" class="option-input" required>
+                            <span class="option-label">Nunca</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_6" value="1" class="option-input">
+                            <span class="option-label">Pocas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_6" value="2" class="option-input">
+                            <span class="option-label">Algunas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_6" value="3" class="option-input">
+                            <span class="option-label">Muchas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_6" value="4" class="option-input">
+                            <span class="option-label">Siempre</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta 7 -->
+            <div class="question-card" style="animation-delay: 0.7s">
+                <div class="question-header">
+                    <div class="question-number"><i class="fas fa-brain"></i> Pregunta 7</div>
+                    <div class="question-category">Bienestar Mental</div>
+                </div>
+                <div class="question-body">
+                    <div class="question-text required">En los últimos 14 días, me he sentido útil y capaz de enfrentar dificultades.</div>
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_7" value="0" class="option-input" required>
+                            <span class="option-label">Nunca</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_7" value="1" class="option-input">
+                            <span class="option-label">Pocas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_7" value="2" class="option-input">
+                            <span class="option-label">Algunas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_7" value="3" class="option-input">
+                            <span class="option-label">Muchas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_7" value="4" class="option-input">
+                            <span class="option-label">Siempre</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta 8 -->
+            <div class="question-card" style="animation-delay: 0.8s">
+                <div class="question-header">
+                    <div class="question-number"><i class="fas fa-brain"></i> Pregunta 8</div>
+                    <div class="question-category">Bienestar Mental</div>
+                </div>
+                <div class="question-body">
+                    <div class="question-text required">En los últimos 14 días, me he sentido triste o deprimido/a.</div>
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_8" value="0" class="option-input" required>
+                            <span class="option-label">Nunca</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_8" value="1" class="option-input">
+                            <span class="option-label">Pocas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_8" value="2" class="option-input">
+                            <span class="option-label">Algunas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_8" value="3" class="option-input">
+                            <span class="option-label">Muchas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_8" value="4" class="option-input">
+                            <span class="option-label">Siempre</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta 9 -->
+            <div class="question-card" style="animation-delay: 0.9s">
+                <div class="question-header">
+                    <div class="question-number"><i class="fas fa-brain"></i> Pregunta 9</div>
+                    <div class="question-category">Bienestar Mental</div>
+                </div>
+                <div class="question-body">
+                    <div class="question-text required">En los últimos 14 días, me he sentido nervioso/a o con ansiedad.</div>
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_9" value="0" class="option-input" required>
+                            <span class="option-label">Nunca</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_9" value="1" class="option-input">
+                            <span class="option-label">Pocas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_9" value="2" class="option-input">
+                            <span class="option-label">Algunas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_9" value="3" class="option-input">
+                            <span class="option-label">Muchas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_9" value="4" class="option-input">
+                            <span class="option-label">Siempre</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta 10 -->
+            <div class="question-card" style="animation-delay: 1.0s">
+                <div class="question-header">
+                    <div class="question-number"><i class="fas fa-search"></i> Pregunta 10</div>
+                    <div class="question-category">Bienestar Existencial</div>
+                </div>
+                <div class="question-body">
+                    <div class="question-text required">Siento que mi vida tiene un propósito claro.</div>
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_10" value="0" class="option-input" required>
+                            <span class="option-label">Totalmente en desacuerdo</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_10" value="1" class="option-input">
+                            <span class="option-label">En desacuerdo</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_10" value="2" class="option-input">
+                            <span class="option-label">Neutral</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_10" value="3" class="option-input">
+                            <span class="option-label">De acuerdo</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_10" value="4" class="option-input">
+                            <span class="option-label">Muy de acuerdo</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta 11 -->
+            <div class="question-card" style="animation-delay: 1.1s">
+                <div class="question-header">
+                    <div class="question-number"><i class="fas fa-search"></i> Pregunta 11</div>
+                    <div class="question-category">Bienestar Existencial</div>
+                </div>
+                <div class="question-body">
+                    <div class="question-text required">Tengo metas que le dan sentido a lo que hago cada día.</div>
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_11" value="0" class="option-input" required>
+                            <span class="option-label">Nada de acuerdo</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_11" value="1" class="option-input">
+                            <span class="option-label">Poco de acuerdo</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_11" value="2" class="option-input">
+                            <span class="option-label">Neutral</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_11" value="3" class="option-input">
+                            <span class="option-label">De acuerdo</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_11" value="4" class="option-input">
+                            <span class="option-label">Muy de acuerdo</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta 12 -->
+            <div class="question-card" style="animation-delay: 1.2s">
+                <div class="question-header">
+                    <div class="question-number"><i class="fas fa-search"></i> Pregunta 12</div>
+                    <div class="question-category">Bienestar Existencial</div>
+                </div>
+                <div class="question-body">
+                    <div class="question-text required">A veces siento que mi vida carece de dirección.</div>
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_12" value="0" class="option-input" required>
+                            <span class="option-label">Muy de acuerdo</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_12" value="1" class="option-input">
+                            <span class="option-label">De acuerdo</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_12" value="2" class="option-input">
+                            <span class="option-label">Neutral</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_12" value="3" class="option-input">
+                            <span class="option-label">En desacuerdo</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_12" value="4" class="option-input">
+                            <span class="option-label">Muy en desacuerdo</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta 13 -->
+            <div class="question-card" style="animation-delay: 1.3s">
+                <div class="question-header">
+                    <div class="question-number"><i class="fas fa-dollar-sign"></i> Pregunta 13</div>
+                    <div class="question-category">Bienestar Financiero</div>
+                </div>
+                <div class="question-body">
+                    <div class="question-text required">En el último mes, ¿con qué frecuencia te preocupaste por no tener suficiente dinero para cubrir tus gastos básicos?</div>
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_13" value="0" class="option-input" required>
+                            <span class="option-label">Nunca</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_13" value="1" class="option-input">
+                            <span class="option-label">Pocas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_13" value="2" class="option-input">
+                            <span class="option-label">Algunas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_13" value="3" class="option-input">
+                            <span class="option-label">Muchas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_13" value="4" class="option-input">
+                            <span class="option-label">Siempre</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta 14 -->
+            <div class="question-card" style="animation-delay: 1.4s">
+                <div class="question-header">
+                    <div class="question-number"><i class="fas fa-dollar-sign"></i> Pregunta 14</div>
+                    <div class="question-category">Bienestar Financiero</div>
+                </div>
+                <div class="question-body">
+                    <div class="question-text required">Actualmente, ¿sientes que puedes manejar bien tu dinero?</div>
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_14" value="0" class="option-input" required>
+                            <span class="option-label">Nada</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_14" value="1" class="option-input">
+                            <span class="option-label">Poco</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_14" value="2" class="option-input">
+                            <span class="option-label">Regular</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_14" value="3" class="option-input">
+                            <span class="option-label">Bien</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_14" value="4" class="option-input">
+                            <span class="option-label">Muy bien</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta 15 -->
+            <div class="question-card" style="animation-delay: 1.5s">
+                <div class="question-header">
+                    <div class="question-number"><i class="fas fa-dollar-sign"></i> Pregunta 15</div>
+                    <div class="question-category">Bienestar Financiero</div>
+                </div>
+                <div class="question-body">
+                    <div class="question-text required">Si surgiera una emergencia, ¿podrías contar con recursos para afrontarla?</div>
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_15" value="0" class="option-input" required>
+                            <span class="option-label">No podría en absoluto</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_15" value="1" class="option-input">
+                            <span class="option-label">Difícilmente</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_15" value="2" class="option-input">
+                            <span class="option-label">Posiblemente</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_15" value="3" class="option-input">
+                            <span class="option-label">Sí</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_15" value="4" class="option-input">
+                            <span class="option-label">Totalmente sí</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta 16 -->
+            <div class="question-card" style="animation-delay: 1.6s">
+                <div class="question-header">
+                    <div class="question-number"><i class="fas fa-leaf"></i> Pregunta 16</div>
+                    <div class="question-category">Bienestar Ambiental</div>
+                </div>
+                <div class="question-body">
+                    <div class="question-text required">Mi barrio o comunidad es un lugar limpio y saludable.</div>
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_16" value="0" class="option-input" required>
+                            <span class="option-label">Muy en desacuerdo</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_16" value="1" class="option-input">
+                            <span class="option-label">En desacuerdo</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_16" value="2" class="option-input">
+                            <span class="option-label">Neutral</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_16" value="3" class="option-input">
+                            <span class="option-label">De acuerdo</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_16" value="4" class="option-input">
+                            <span class="option-label">Muy de acuerdo</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta 17 -->
+            <div class="question-card" style="animation-delay: 1.7s">
+                <div class="question-header">
+                    <div class="question-number"><i class="fas fa-leaf"></i> Pregunta 17</div>
+                    <div class="question-category">Bienestar Ambiental</div>
+                </div>
+                <div class="question-body">
+                    <div class="question-text required">Tengo acceso a parques o espacios verdes donde puedo relajarme.</div>
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_17" value="0" class="option-input" required>
+                            <span class="option-label">Nunca</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_17" value="1" class="option-input">
+                            <span class="option-label">Pocas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_17" value="2" class="option-input">
+                            <span class="option-label">Algunas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_17" value="3" class="option-input">
+                            <span class="option-label">Muchas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_17" value="4" class="option-input">
+                            <span class="option-label">Siempre</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta 18 -->
+            <div class="question-card" style="animation-delay: 1.8s">
+                <div class="question-header">
+                    <div class="question-number"><i class="fas fa-leaf"></i> Pregunta 18</div>
+                    <div class="question-category">Bienestar Ambiental</div>
+                </div>
+                <div class="question-body">
+                    <div class="question-text required">Me siento seguro/a en el lugar donde vivo.</div>
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_18" value="0" class="option-input" required>
+                            <span class="option-label">Nada seguro/a</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_18" value="1" class="option-input">
+                            <span class="option-label">Poco seguro/a</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_18" value="2" class="option-input">
+                            <span class="option-label">Neutral</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_18" value="3" class="option-input">
+                            <span class="option-label">Seguro/a</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_18" value="4" class="option-input">
+                            <span class="option-label">Muy seguro/a</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta 19 -->
+            <div class="question-card" style="animation-delay: 1.9s">
+                <div class="question-header">
+                    <div class="question-number"><i class="fas fa-users"></i> Pregunta 19</div>
+                    <div class="question-category">Bienestar Social</div>
+                </div>
+                <div class="question-body">
+                    <div class="question-text required">Puedo contar con mi familia cuando necesito apoyo.</div>
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_19" value="0" class="option-input" required>
+                            <span class="option-label">Nunca</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_19" value="1" class="option-input">
+                            <span class="option-label">Pocas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_19" value="2" class="option-input">
+                            <span class="option-label">Algunas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_19" value="3" class="option-input">
+                            <span class="option-label">Muchas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_19" value="4" class="option-input">
+                            <span class="option-label">Siempre</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta 20 -->
+            <div class="question-card" style="animation-delay: 2.0s">
+                <div class="question-header">
+                    <div class="question-number"><i class="fas fa-users"></i> Pregunta 20</div>
+                    <div class="question-category">Bienestar Social</div>
+                </div>
+                <div class="question-body">
+                    <div class="question-text required">Tengo amistades o personas cercanas en quienes confío.</div>
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_20" value="0" class="option-input" required>
+                            <span class="option-label">Nunca</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_20" value="1" class="option-input">
+                            <span class="option-label">Pocas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_20" value="2" class="option-input">
+                            <span class="option-label">Algunas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_20" value="3" class="option-input">
+                            <span class="option-label">Muchas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_20" value="4" class="option-input">
+                            <span class="option-label">Siempre</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta 21 -->
+            <div class="question-card" style="animation-delay: 2.1s">
+                <div class="question-header">
+                    <div class="question-number"><i class="fas fa-users"></i> Pregunta 21</div>
+                    <div class="question-category">Bienestar Social</div>
+                </div>
+                <div class="question-body">
+                    <div class="question-text required">Participo en actividades comunitarias, culturales o deportivas.</div>
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_21" value="0" class="option-input" required>
+                            <span class="option-label">Nunca</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_21" value="1" class="option-input">
+                            <span class="option-label">Pocas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_21" value="2" class="option-input">
+                            <span class="option-label">Algunas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_21" value="3" class="option-input">
+                            <span class="option-label">Muchas veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_21" value="4" class="option-input">
+                            <span class="option-label">Siempre</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta 22 -->
+            <div class="question-card" style="animation-delay: 2.2s">
+                <div class="question-header">
+                    <div class="question-number"><i class="fas fa-exclamation-triangle"></i> Pregunta 22</div>
+                    <div class="question-category">Factores de Riesgo</div>
+                </div>
+                <div class="question-body">
+                    <div class="question-text required">¿Has consumido alcohol en el último mes?</div>
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_22" value="0" class="option-input" required>
+                            <span class="option-label">Nunca</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_22" value="1" class="option-input">
+                            <span class="option-label">1-2 veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_22" value="2" class="option-input">
+                            <span class="option-label">3-4 veces</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_22" value="3" class="option-input">
+                            <span class="option-label">5+ veces</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta 23 -->
+            <div class="question-card" style="animation-delay: 2.3s">
+                <div class="question-header">
+                    <div class="question-number"><i class="fas fa-exclamation-triangle"></i> Pregunta 23</div>
+                    <div class="question-category">Factores de Riesgo</div>
+                </div>
+                <div class="question-body">
+                    <div class="question-text required">¿Has consumido alguna otra Sustancias psicoactivas (marihuana, cocaína, etc.) en el último mes?</div>
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_23" value="0" class="option-input" required>
+                            <span class="option-label">Sí</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_23" value="1" class="option-input">
+                            <span class="option-label">No</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pregunta 24 -->
+            <div class="question-card" style="animation-delay: 2.4s">
+                <div class="question-header">
+                    <div class="question-number"><i class="fas fa-exclamation-triangle"></i> Pregunta 24</div>
+                    <div class="question-category">Factores de Riesgo</div>
+                </div>
+                <div class="question-body">
+                    <div class="question-text required">¿En el último año has estado expuesto/a a situaciones de violencia (familiar, comunitaria, de pareja)?</div>
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_24" value="0" class="option-input" required>
+                            <span class="option-label">Sí</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="radio" name="pregunta_24" value="1" class="option-input">
+                            <span class="option-label">No</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="navigation">
+                <button type="button" class="btn btn-outline" id="scroll-top-btn">
+                    <i class="fas fa-arrow-up"></i> Volver arriba
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    Finalizar <i class="fas fa-check"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="floating-info pulse" onclick="openModal()">
+        <i class="fas fa-info" style="color: var(--primary);"></i>
+    </div>
+
+    <div class="scroll-top" id="scroll-top">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Análisis Integral de Resiliencia</div>
+            </div>
+            <div class="modal-body">
+                <p>Este cuestionario está diseñado para evaluar diferentes aspectos de tu bienestar. Tus respuestas nos ayudarán a comprender mejor tus necesidades y a proporcionarte recomendaciones personalizadas.</p>
+                <p>Por favor, responde cada pregunta con sinceridad. No hay respuestas correctas o incorrectas, solo tu experiencia personal.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeModal()">Comenzar evaluación</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Funcionalidad para el modal
+        function openModal() {
+            document.getElementById('modal-overlay').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.remove('active');
+        }
+
+        // Actualizar progreso
+        function updateProgress() {
+            const totalQuestions = 24; // Número total de preguntas
+            const answeredQuestions = document.querySelectorAll('.option-input:checked').length;
+            const progressPercentage = Math.round((answeredQuestions / totalQuestions) * 100);
+            
+            document.getElementById('progress-percentage').textContent = `${progressPercentage}%`;
+            document.getElementById('progress-fill').style.width = `${progressPercentage}%`;
+        }
+
+        // Añadir event listeners a todas las opciones
+        document.querySelectorAll('.option-input').forEach(input => {
+            input.addEventListener('change', updateProgress);
+        });
+
+        // Mostrar modal al cargar la página
+        window.addEventListener('load', () => {
+            openModal();
+            // Set usuario_id desde querystring si existe ?usuario_id=123
+            const params = new URLSearchParams(window.location.search);
+            const uid = params.get('usuario_id');
+            if (uid) {
+                document.getElementById('usuario_id').value = uid;
+            }
+            
+            // Inicializar el progreso
+            updateProgress();
+        });
+
+        // Botón de scroll hacia arriba
+        const scrollTopBtn = document.getElementById('scroll-top');
+        
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollTopBtn.classList.add('active');
+            } else {
+                scrollTopBtn.classList.remove('active');
+            }
+        });
+        
+        scrollTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // Botón "Volver arriba" en el footer
+        document.getElementById('scroll-top-btn').addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // Validación del formulario antes de enviar
+        document.getElementById('wellness-form').addEventListener('submit', function(e) {
+            const totalQuestions = 24;
+            const answeredQuestions = document.querySelectorAll('.option-input:checked').length;
+            
+            if (answeredQuestions < totalQuestions) {
+                e.preventDefault();
+                alert(`Por favor, responde todas las preguntas. Te faltan ${totalQuestions - answeredQuestions} preguntas por responder.`);
+                // Desplazar a la primera pregunta sin respuesta
+                const unansweredQuestions = document.querySelectorAll('.option-input:not(:checked)');
+                if (unansweredQuestions.length > 0) {
+                    const firstUnanswered = unansweredQuestions[0].closest('.question-card');
+                    firstUnanswered.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Resaltar la pregunta
+                    firstUnanswered.style.boxShadow = '0 0 0 3px var(--accent)';
+                    setTimeout(() => {
+                        firstUnanswered.style.boxShadow = '';
+                    }, 2000);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+    """
+
+@app.post("/guardar_resiliencia")
+def guardar_resiliencia(
+    usuario_id: int = Form(...),
+    pregunta_1: int = Form(...),
+    pregunta_2: int = Form(...),
+    pregunta_3: int = Form(...),
+    pregunta_4: int = Form(...),
+    pregunta_5: int = Form(...),
+    pregunta_6: int = Form(...),
+    pregunta_7: int = Form(...),
+    pregunta_8: int = Form(...),
+    pregunta_9: int = Form(...),
+    pregunta_10: int = Form(...),
+    pregunta_11: int = Form(...),
+    pregunta_12: int = Form(...),
+    pregunta_13: int = Form(...),
+    pregunta_14: int = Form(...),
+    pregunta_15: int = Form(...),
+    pregunta_16: int = Form(...),
+    pregunta_17: int = Form(...),
+    pregunta_18: int = Form(...),
+    pregunta_19: int = Form(...),
+    pregunta_20: int = Form(...),
+    pregunta_21: int = Form(...),
+    pregunta_22: int = Form(...),
+    pregunta_23: int = Form(...),
+    pregunta_24: int = Form(...),
+):
+    conn = None
+    cursor = None
+    try:
+        # Normalización a escala Likert 1..5
+        def clamp(value, min_v, max_v):
+            v = int(value)
+            if v < min_v:
+                return min_v
+            if v > max_v:
+                return max_v
+            return v
+
+        # P1: 0..3 (Nunca, 1-2, 3-4, 5+ días) → 1..4
+        p1 = clamp(pregunta_1, 0, 3) + 1
+        # Likert estándar 0..4 → 1..5
+        p2 = clamp(pregunta_2, 0, 4) + 1
+        p3 = clamp(pregunta_3, 0, 4) + 1
+
+        e1 = clamp(pregunta_4, 0, 4) + 1
+        e2 = clamp(pregunta_5, 0, 4) + 1
+        e3 = clamp(pregunta_6, 0, 4) + 1
+
+        m1 = clamp(pregunta_7, 0, 4) + 1
+        m2 = clamp(pregunta_8, 0, 4) + 1
+        m3 = clamp(pregunta_9, 0, 4) + 1
+
+        ex1 = clamp(pregunta_10, 0, 4) + 1
+        ex2 = clamp(pregunta_11, 0, 4) + 1
+        ex3 = clamp(pregunta_12, 0, 4) + 1
+
+        f1 = clamp(pregunta_13, 0, 4) + 1
+        f2 = clamp(pregunta_14, 0, 4) + 1
+        f3 = clamp(pregunta_15, 0, 4) + 1
+
+        env1 = clamp(pregunta_16, 0, 4) + 1
+        env2 = clamp(pregunta_17, 0, 4) + 1
+        env3 = clamp(pregunta_18, 0, 4) + 1
+
+        s1 = clamp(pregunta_19, 0, 4) + 1
+        s2 = clamp(pregunta_20, 0, 4) + 1
+        s3 = clamp(pregunta_21, 0, 4) + 1
+
+        # FR1 (frecuencia 0..3) → 1..4; FR2/FR3: sí/no 0..1
+        fr1 = clamp(pregunta_22, 0, 3) + 1
+        fr2 = clamp(pregunta_23, 0, 1)
+        fr3 = clamp(pregunta_24, 0, 1)
+
+        # Invertir EX3 y dejarlo en 1..5 para cumplir CHECK (1..5)
+        # Si EX3 está en 1..5, entonces 6 - EX3 produce 1..5
+        ex3_invertido = 6 - ex3
+
+        # Escalamiento y puntajes como promedios 1..5
+        def scale_1_4_to_1_5(v):
+            return round(1 + (float(v) - 1) * (4.0 / 3.0), 2)
+
+        # P1 para puntaje en 1..5
+        p1_for_score = scale_1_4_to_1_5(p1)
+
+        # FR para almacenar en 1..5 (cumplir CHECKs)
+        fr1_scaled = scale_1_4_to_1_5(fr1)
+        fr2_scaled = 5 if fr2 == 1 else 1
+        fr3_scaled = 5 if fr3 == 1 else 1
+
+        def avg3(a, b, c):
+            return round((float(a) + float(b) + float(c)) / 3.0, 2)
+
+        score_physical = avg3(p1_for_score, p2, p3)
+        score_emotional = avg3(e1, e2, e3)
+        score_mental = avg3(m1, m2, m3)
+        score_existential = avg3(ex1, ex2, ex3_invertido)
+        score_financial = avg3(f1, f2, f3)
+        score_environmental = avg3(env1, env2, env3)
+        score_social = avg3(s1, s2, s3)
+
+        composite_score = round((
+            score_physical + score_emotional + score_mental +
+            score_existential + score_financial + score_environmental +
+            score_social
+        ) / 7.0, 2)
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            INSERT INTO RespuestasResil (
+                usuario_id, P1_ActividadFisica, P2_Energia, P3_Suenio, 
+                E1_SatisfaccionVida, E2_AlegriaEntusiasmo, E3_EstresPreocupacion,
+                M1_Utilidad_Afrontar, M2_Tristeza, M3_Ansiedad,
+                EX1_Proposito, EX2_MetasSentido, EX3_Direccion_Invertido,
+                F1_PreocupacionGastos, F2_ManejoDinero, F3_AhorrosEmergencia,
+                ENV1_BarrioSaludable, ENV2_AccesoVerde, ENV3_Seguridad,
+                S1_ApoyoFamilia, S2_AmistadesConfianza, S3_ParticipacionComunitaria,
+                FR1, FR2, FR3,
+                Score_Physical_pct, Score_Emotional_pct, Score_Mental_pct,
+                Score_Existential_pct, Score_Financial_pct, Score_Environmental_pct,
+                Score_Social_pct, Composite_Score_pct
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
+                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
+                    %s, %s, %s)
+            ON DUPLICATE KEY UPDATE 
+                P1_ActividadFisica = VALUES(P1_ActividadFisica),
+                P2_Energia = VALUES(P2_Energia),
+                P3_Suenio = VALUES(P3_Suenio),
+                E1_SatisfaccionVida = VALUES(E1_SatisfaccionVida),
+                E2_AlegriaEntusiasmo = VALUES(E2_AlegriaEntusiasmo),
+                E3_EstresPreocupacion = VALUES(E3_EstresPreocupacion),
+                M1_Utilidad_Afrontar = VALUES(M1_Utilidad_Afrontar),
+                M2_Tristeza = VALUES(M2_Tristeza),
+                M3_Ansiedad = VALUES(M3_Ansiedad),
+                EX1_Proposito = VALUES(EX1_Proposito),
+                EX2_MetasSentido = VALUES(EX2_MetasSentido),
+                EX3_Direccion_Invertido = VALUES(EX3_Direccion_Invertido),
+                F1_PreocupacionGastos = VALUES(F1_PreocupacionGastos),
+                F2_ManejoDinero = VALUES(F2_ManejoDinero),
+                F3_AhorrosEmergencia = VALUES(F3_AhorrosEmergencia),
+                ENV1_BarrioSaludable = VALUES(ENV1_BarrioSaludable),
+                ENV2_AccesoVerde = VALUES(ENV2_AccesoVerde),
+                ENV3_Seguridad = VALUES(ENV3_Seguridad),
+                S1_ApoyoFamilia = VALUES(S1_ApoyoFamilia),
+                S2_AmistadesConfianza = VALUES(S2_AmistadesConfianza),
+                S3_ParticipacionComunitaria = VALUES(S3_ParticipacionComunitaria),
+                FR1 = VALUES(FR1),
+                FR2 = VALUES(FR2),
+                FR3 = VALUES(FR3),
+                Score_Physical_pct = VALUES(Score_Physical_pct),
+                Score_Emotional_pct = VALUES(Score_Emotional_pct),
+                Score_Mental_pct = VALUES(Score_Mental_pct),
+                Score_Existential_pct = VALUES(Score_Existential_pct),
+                Score_Financial_pct = VALUES(Score_Financial_pct),
+                Score_Environmental_pct = VALUES(Score_Environmental_pct),
+                Score_Social_pct = VALUES(Score_Social_pct),
+                Composite_Score_pct = VALUES(Composite_Score_pct),
+                fecha_actualizacion = CURRENT_TIMESTAMP
+            """,
+            (
+                usuario_id, p1, p2, p3, e1, e2, e3, m1, m2, m3, ex1, ex2, ex3_invertido,
+                f1, f2, f3, env1, env2, env3, s1, s2, s3, fr1_scaled, fr2_scaled, fr3_scaled,
+                score_physical, score_emotional, score_mental, score_existential,
+                score_financial, score_environmental, score_social, composite_score
+            )
+        )
+
+        conn.commit()
+        return HTMLResponse(
+    content=f"""
+    <html>
+        <head>
+            <title>Gracias</title>
+            <style>
+                body {{
+                    font-family: Arial, sans-serif;
+                    background: #f4f6f9;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100vh;
+                }}
+                .container {{
+                    background: white;
+                    padding: 40px;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                    text-align: center;
+                    max-width: 500px;
+                }}
+                h1 {{
+                    color: #2d6a4f;
+                    margin-bottom: 20px;
+                }}
+                p {{
+                    font-size: 18px;
+                    color: #555;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>¡Gracias por responder el cuestionario!</h1>
+                <p>Tu información ha sido guardada exitosamente. Pronto recibirás un análisis detallado.</p>
+            </div>
+        </body>
+    </html>
+    """,
+    status_code=200
+)
+
+    except mysql.connector.Error as err:
+        if conn:
+            conn.rollback()
+        print(f"Error al guardar resiliencia: {err}")
+        return HTMLResponse(
+            content=f"<h2>Error en BD</h2><p>{err}</p>",
+            status_code=500
+        )
+    except Exception as err:
+        if conn:
+            conn.rollback()
+        print(f"Error inesperado en guardar_resiliencia: {err}")
+        return HTMLResponse(
+            content=f"<h2>Error</h2><p>{err}</p>",
+            status_code=500
+        )
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+@app.get("/admin", response_class=HTMLResponse)
+def admin_panel():
+    import os
+    import glob
+    from datetime import datetime
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Ejecutar el query para obtener datos de resiliencia
+    query = """
+    SELECT 
+        u.numero_identificacion,
+        u.rango_edad,
+        u.Sexo,
+        u.barrio,
+        u.grado_escolaridad,
+        u.Situacion_Actual,
+        u.Con_quien_vives,
+        r.*,
+        CASE 
+            WHEN r.Composite_Score_pct <= 2.5 
+                 OR r.P3_Suenio < 2.5
+                 OR r.E2_AlegriaEntusiasmo < 2.5
+                 OR r.E3_EstresPreocupacion < 2.5
+                 OR r.M1_Utilidad_Afrontar < 2.5
+                 OR r.M2_Tristeza < 2.5
+                 OR r.M3_Ansiedad < 2.5
+                 OR r.EX1_Proposito < 2.5
+                 OR r.F3_AhorrosEmergencia < 2.5
+                 OR r.ENV3_Seguridad < 2.5
+                 OR r.S1_ApoyoFamilia < 2.5
+            THEN 'Alto riesgo'
+
+            WHEN (
+                    (r.P1_ActividadFisica <= 2.5) + 
+                    (r.P2_Energia <= 2.5) + 
+                    (r.P3_Suenio <= 2.5) +
+                    (r.E1_SatisfaccionVida <= 2.5) + 
+                    (r.E2_AlegriaEntusiasmo <= 2.5) + 
+                    (r.E3_EstresPreocupacion <= 2.5) +
+                    (r.M1_Utilidad_Afrontar <= 2.5) + 
+                    (r.M2_Tristeza <= 2.5) + 
+                    (r.M3_Ansiedad <= 2.5) +
+                    (r.EX1_Proposito <= 2.5) + 
+                    (r.EX2_MetasSentido <= 2.5) + 
+                    (r.EX3_Direccion_Invertido <= 2.5) +
+                    (r.F1_PreocupacionGastos <= 2.5) + 
+                    (r.F2_ManejoDinero <= 2.5) + 
+                    (r.F3_AhorrosEmergencia <= 2.5) +
+                    (r.ENV1_BarrioSaludable <= 2.5) + 
+                    (r.ENV2_AccesoVerde <= 2.5) + 
+                    (r.ENV3_Seguridad <= 2.5) +
+                    (r.S1_ApoyoFamilia <= 2.5) + 
+                    (r.S2_AmistadesConfianza <= 2.5) + 
+                    (r.S3_ParticipacionComunitaria <= 2.5) +
+                    (r.FR1 <= 2.5) + 
+                    (r.FR2 <= 2.5) + 
+                    (r.FR3 <= 2.5)
+                 ) >= 3
+            THEN 'Medio riesgo'
+            
+            WHEN r.Composite_Score_pct = 4
+            THEN 'Bajo riesgo'
+            
+            ELSE 'Riesgo normal'
+        END AS nivel_riesgo,
+
+        (
+            (r.P3_Suenio < 2.5) +
+            (r.E2_AlegriaEntusiasmo < 2.5) +
+            (r.E3_EstresPreocupacion < 2.5) +
+            (r.M1_Utilidad_Afrontar < 2.5) +
+            (r.M2_Tristeza < 2.5) +
+            (r.M3_Ansiedad < 2.5) +
+            (r.EX1_Proposito < 2.5) +
+            (r.F3_AhorrosEmergencia < 2.5) +
+            (r.ENV3_Seguridad < 2.5) +
+            (r.S1_ApoyoFamilia < 2.5)
+        ) AS respuestas_criticas_bajas,
+        (
+            (r.P1_ActividadFisica <= 2.5) + 
+            (r.P2_Energia <= 2.5) + 
+            (r.P3_Suenio <= 2.5) +
+            (r.E1_SatisfaccionVida <= 2.5) + 
+            (r.E2_AlegriaEntusiasmo <= 2.5) + 
+            (r.E3_EstresPreocupacion <= 2.5) +
+            (r.M1_Utilidad_Afrontar <= 2.5) + 
+            (r.M2_Tristeza <= 2.5) + 
+            (r.M3_Ansiedad <= 2.5) +
+            (r.EX1_Proposito <= 2.5) + 
+            (r.EX2_MetasSentido <= 2.5) + 
+            (r.EX3_Direccion_Invertido <= 2.5) +
+            (r.F1_PreocupacionGastos <= 2.5) + 
+            (r.F2_ManejoDinero <= 2.5) + 
+            (r.F3_AhorrosEmergencia <= 2.5) +
+            (r.ENV1_BarrioSaludable <= 2.5) + 
+            (r.ENV2_AccesoVerde <= 2.5) + 
+            (r.ENV3_Seguridad <= 2.5) +
+            (r.S1_ApoyoFamilia <= 2.5) + 
+            (r.S2_AmistadesConfianza <= 2.5) + 
+            (r.S3_ParticipacionComunitaria <= 2.5) +
+            (r.FR1 <= 2.5) + 
+            (r.FR2 <= 2.5) + 
+            (r.FR3 <= 2.5)
+        ) AS total_respuestas_bajas
+
+    FROM railway.RespuestasResil r
+    INNER JOIN railway.usuarios u ON r.usuario_id = u.numero_identificacion;
+    """
+    
+    cursor.execute(query)
+    resultados = cursor.fetchall()
+    
+    # Obtener nombres de columnas
+    column_names = [desc[0] for desc in cursor.description]
+    
+    # Crear DataFrame
+    df = pd.DataFrame(resultados, columns=column_names)
+    
+    # Estadísticas adicionales desde la base de datos
+    total_usuarios_db = len(df)
+    alto_riesgo = len(df[df['nivel_riesgo'] == 'Alto riesgo'])
+    medio_riesgo = len(df[df['nivel_riesgo'] == 'Medio riesgo'])
+    bajo_riesgo = len(df[df['nivel_riesgo'] == 'Bajo riesgo'])
+    riesgo_normal = len(df[df['nivel_riesgo'] == 'Riesgo normal'])
+    
+    # Calcular porcentajes
+    porcentaje_alto = (alto_riesgo / total_usuarios_db * 100) if total_usuarios_db > 0 else 0
+    porcentaje_medio = (medio_riesgo / total_usuarios_db * 100) if total_usuarios_db > 0 else 0
+    porcentaje_bajo = (bajo_riesgo / total_usuarios_db * 100) if total_usuarios_db > 0 else 0
+    
+    conn.close()
+    
+    # Código existente para archivos
+    statics_path = "statics"
+    pdf_files = glob.glob(f"{statics_path}/analisis_usuario_*.pdf")
+    user_folders = [d for d in os.listdir(statics_path) if os.path.isdir(os.path.join(statics_path, d)) and d.startswith("user_")]
+    
+    total_pdfs = len(pdf_files)
+    total_users = len(user_folders)
+    total_files = len(os.listdir(statics_path))
+    
+    # Archivos recientes (últimos 15)
+    recent_files = []
+    for pdf in pdf_files[:15]:
+        try:
+            stat = os.stat(pdf)
+            recent_files.append({
+                'name': os.path.basename(pdf),
+                'modified': datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d %H:%M'),
+                'user_id': os.path.basename(pdf).replace('analisis_usuario_', '').replace('.pdf', ''),
+                'size': f"{stat.st_size / 1024:.1f} KB"
+            })
+        except:
+            continue
+    
+    recent_files.sort(key=lambda x: x['modified'], reverse=True)
+    
+    return f"""
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Panel de Administración - Sistema de Resiliencia</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <style>
+            :root {{
+                --primary: #3498db;
+                --secondary: #2c3e50;
+                --success: #27ae60;
+                --warning: #f39c12;
+                --danger: #e74c3c;
+                --light: #ecf0f1;
+                --dark: #34495e;
+                --gray: #95a5a6;
+            }}
+            
+            * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+            body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; color: #333; }}
+            .container {{ max-width: 1400px; margin: 0 auto; }}
+            
+            /* Header */
+            .header {{ background: white; border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--primary); }}
+            .title {{ font-size: 1.8rem; font-weight: 700; color: var(--secondary); display: flex; align-items: center; gap: 15px; }}
+            .title i {{ color: var(--primary); }}
+            .header-actions {{ display: flex; gap: 15px; align-items: center; }}
+            .search {{ display: flex; gap: 10px; }}
+            .search-input {{ padding: 12px 15px; border: 2px solid var(--light); border-radius: 8px; width: 300px; font-size: 0.9rem; transition: all 0.3s; }}
+            .search-input:focus {{ outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1); }}
+            .btn {{ padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; transition: all 0.3s; font-size: 0.9rem; }}
+            .btn-primary {{ background: var(--primary); color: white; }}
+            .btn-primary:hover {{ background: #2980b9; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3); }}
+            .btn-success {{ background: var(--success); color: white; }}
+            .btn-success:hover {{ background: #219653; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3); }}
+            .btn-danger {{ background: var(--danger); color: white; }}
+            .btn-danger:hover {{ background: #c0392b; transform: translateY(-2px); }}
+            
+            /* Stats Grid */
+            .stats-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px; }}
+            .stat-card {{ background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); transition: transform 0.3s; border-top: 4px solid; }}
+            .stat-card:hover {{ transform: translateY(-5px); }}
+            .stat-card.files {{ border-top-color: var(--primary); }}
+            .stat-card.users {{ border-top-color: var(--success); }}
+            .stat-card.folders {{ border-top-color: var(--warning); }}
+            .stat-card.database {{ border-top-color: var(--danger); }}
+            .stat-header {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }}
+            .stat-icon {{ font-size: 2.2rem; opacity: 0.8; }}
+            .stat-content {{ text-align: center; }}
+            .stat-number {{ font-size: 2.5rem; font-weight: 800; margin-bottom: 5px; }}
+            .stat-label {{ font-size: 0.9rem; color: var(--gray); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }}
+            .stat-subtext {{ font-size: 0.8rem; color: var(--gray); margin-top: 8px; }}
+            
+            /* Risk Stats */
+            .risk-stats {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 15px; }}
+            .risk-item {{ padding: 8px; border-radius: 6px; color: white; font-size: 0.8rem; font-weight: 600; display: flex; justify-content: space-between; }}
+            .risk-high {{ background: var(--danger); }}
+            .risk-medium {{ background: var(--warning); }}
+            .risk-low {{ background: var(--success); }}
+            .risk-normal {{ background: var(--primary); }}
+            
+            /* Content Layout */
+            .content {{ display: grid; grid-template-columns: 2fr 1fr; gap: 25px; }}
+            .panel {{ background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); height: fit-content; }}
+            .panel-title {{ font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--light); display: flex; align-items: center; gap: 10px; color: var(--secondary); }}
+            .panel-title i {{ color: var(--primary); }}
+            
+            /* File List */
+            .file-list {{ max-height: 500px; overflow-y: auto; }}
+            .file-item {{ display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid var(--light); transition: background 0.2s; }}
+            .file-item:hover {{ background: #f8f9fa; }}
+            .file-item:last-child {{ border-bottom: none; }}
+            .file-info {{ display: flex; align-items: center; gap: 12px; flex: 1; }}
+            .file-icon {{ color: var(--danger); font-size: 1.3rem; }}
+            .file-details {{ flex: 1; }}
+            .file-name {{ font-weight: 600; margin-bottom: 4px; }}
+            .file-meta {{ font-size: 0.8rem; color: var(--gray); display: flex; gap: 15px; }}
+            .file-actions {{ display: flex; gap: 8px; }}
+            .action-btn {{ background: var(--light); color: var(--dark); border: none; width: 36px; height: 36px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }}
+            .action-btn:hover {{ background: var(--primary); color: white; transform: scale(1.05); }}
+            
+            /* Folder List */
+            .folder-item {{ display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 1px solid var(--light); border-radius: 8px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }}
+            .folder-item:hover {{ border-color: var(--primary); background: #f8f9fa; }}
+            .folder-icon {{ color: var(--warning); font-size: 1.5rem; }}
+            .folder-count {{ background: var(--primary); color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }}
+            
+            /* Quick Actions */
+            .quick-actions {{ display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }}
+            .quick-action {{ background: var(--light); border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; transition: all 0.2s; }}
+            .quick-action:hover {{ background: var(--primary); color: white; }}
+            .quick-action i {{ font-size: 1.5rem; margin-bottom: 8px; }}
+            
+            /* Modal */
+            .modal {{ display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; backdrop-filter: blur(5px); }}
+            .modal-content {{ position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 12px; padding: 25px; width: 90%; max-width: 1000px; max-height: 90%; display: flex; flex-direction: column; }}
+            .modal-header {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--light); }}
+            .modal-title {{ font-size: 1.3rem; font-weight: 700; }}
+            .close-btn {{ background: var(--danger); color: white; border: none; width: 36px; height: 36px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }}
+            .pdf-viewer {{ width: 100%; height: 600px; border: 1px solid var(--light); border-radius: 8px; flex: 1; }}
+            
+            /* Responsive */
+            @media (max-width: 1200px) {{
+                .content {{ grid-template-columns: 1fr; }}
+            }}
+            @media (max-width: 768px) {{
+                .header {{ flex-direction: column; gap: 15px; align-items: flex-start; }}
+                .header-actions {{ width: 100%; }}
+                .search {{ flex: 1; }}
+                .search-input {{ width: 100%; }}
+                .stats-grid {{ grid-template-columns: 1fr 1fr; }}
+            }}
+            @media (max-width: 576px) {{
+                .stats-grid {{ grid-template-columns: 1fr; }}
+                .quick-actions {{ grid-template-columns: 1fr; }}
+            }}
+            
+            /* Scrollbar */
+            ::-webkit-scrollbar {{ width: 6px; }}
+            ::-webkit-scrollbar-track {{ background: #f1f1f1; border-radius: 10px; }}
+            ::-webkit-scrollbar-thumb {{ background: var(--primary); border-radius: 10px; }}
+            ::-webkit-scrollbar-thumb:hover {{ background: #2980b9; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <!-- Header -->
+            <div class="header">
+                <div class="title">
+                    <i class="fas fa-shield-alt"></i>
+                    <div>
+                        <div>Panel de Administración</div>
+                        <div style="font-size: 0.9rem; color: var(--gray); font-weight: normal;">Sistema de Evaluación de Resiliencia</div>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <div class="search">
+                        <input type="text" id="searchInput" class="search-input" placeholder="Buscar reportes, usuarios...">
+                        <button class="btn btn-primary" onclick="searchFiles()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card files">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">{total_pdfs}</div>
+                        <div class="stat-label">Reportes PDF</div>
+                        <div class="stat-subtext">{len(recent_files)} nuevos</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card users">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">{total_users}</div>
+                        <div class="stat-label">Usuarios Activos</div>
+                        <div class="stat-subtext">{len(user_folders)} carpetas</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card folders">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-folder"></i>
+                        </div>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">{total_files}</div>
+                        <div class="stat-label">Archivos Totales</div>
+                        <div class="stat-subtext">En sistema de archivos</div>
+                    </div>
+                </div>
+                
+               <div class="stat-card database">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <!-- AGREGAR ESTE BOTÓN AQUÍ -->
+                    <a href="/admin/export-excel" class="btn btn-success" style="padding: 8px 12px; font-size: 0.8rem;">
+                        <i class="fas fa-file-excel"></i> Excel
+                    </a>
+                </div>
+                <div class="stat-content">
+                        <div class="stat-number">{total_usuarios_db}</div>
+                        <div class="stat-label">Reporte Resiliencia</div>
+                        <div class="risk-stats">
+                            <div class="risk-item risk-high">{alto_riesgo} <span>{porcentaje_alto:.1f}%</span></div>
+                            <div class="risk-item risk-medium">{medio_riesgo} <span>{porcentaje_medio:.1f}%</span></div>
+                            <div class="risk-item risk-low">{bajo_riesgo} <span>{porcentaje_bajo:.1f}%</span></div>
+                            <div class="risk-item risk-normal">{riesgo_normal} <span>{(100 - porcentaje_alto - porcentaje_medio - porcentaje_bajo):.1f}%</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="content">
+                <!-- Left Column -->
+                <div>
+                    <!-- Recent Reports -->
+                    <div class="panel">
+                        <div class="panel-title">
+                            <i class="fas fa-file-pdf"></i> Reportes Recientes
+                            <span style="margin-left: auto; font-size: 0.9rem; color: var(--gray); font-weight: normal;">{len(recent_files)} archivos</span>
+                        </div>
+                        <div class="file-list" id="recentFiles">
+                            {"".join([f'''
+                            <div class="file-item">
+                                <div class="file-info">
+                                    <i class="fas fa-file-pdf file-icon"></i>
+                                    <div class="file-details">
+                                        <div class="file-name">{file['name']}</div>
+                                        <div class="file-meta">
+                                            <span><i class="fas fa-user"></i> {file['user_id']}</span>
+                                            <span><i class="fas fa-calendar"></i> {file['modified']}</span>
+                                            <span><i class="fas fa-hdd"></i> {file['size']}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="file-actions">
+                                    <button class="action-btn" onclick="viewPDF('{file['name']}')" title="Ver PDF">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="action-btn" onclick="downloadPDF('{file['name']}')" title="Descargar">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            ''' for file in recent_files])}
+                            {"<div style='text-align: center; padding: 20px; color: var(--gray);'><i class='fas fa-inbox'></i> No hay reportes recientes</div>" if not recent_files else ""}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div>
+                    <!-- User Folders -->
+                    <div class="panel">
+                        <div class="panel-title">
+                            <i class="fas fa-folder"></i> Carpetas de Usuarios
+                            <span style="margin-left: auto; font-size: 0.9rem; color: var(--gray); font-weight: normal;">{len(user_folders)} carpetas</span>
+                        </div>
+                        <div class="file-list" id="userFolders">
+                            {"".join([f'''
+                            <div class="folder-item" onclick="openFolder('{folder}')">
+                                <div class="file-info">
+                                    <i class="fas fa-folder folder-icon"></i>
+                                    <div class="file-details">
+                                        <div class="file-name">{folder}</div>
+                                        <div class="file-meta">
+                                            ID: {folder.replace('user_', '')}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="folder-count">
+                                    {len(os.listdir(os.path.join(statics_path, folder))) if os.path.exists(os.path.join(statics_path, folder)) else 0}
+                                </div>
+                            </div>
+                            ''' for folder in sorted(user_folders)[:10]])}
+                            {"<div style='text-align: center; padding: 20px; color: var(--gray);'><i class='fas fa-folder-open'></i> No hay carpetas de usuarios</div>" if not user_folders else ""}
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="panel">
+                        <div class="panel-title">
+                            <i class="fas fa-bolt"></i> Acciones Rápidas
+                        </div>
+                        <div class="quick-actions">
+                            <div class="quick-action" onclick="location.href='/admin/export-excel'">
+                                <i class="fas fa-file-excel"></i>
+                                <div>Exportar Datos</div>
+                            </div>
+                            <div class="quick-action" onclick="refreshData()">
+                                <i class="fas fa-sync-alt"></i>
+                                <div>Actualizar</div>
+                            </div>
+                            <div class="quick-action" onclick="showAllReports()">
+                                <i class="fas fa-list"></i>
+                                <div>Ver Todos</div>
+                            </div>
+                            <div class="quick-action" onclick="clearSearch()">
+                                <i class="fas fa-eraser"></i>
+                                <div>Limpiar</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PDF Modal -->
+        <div id="pdfModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="modalTitle">Visualizar PDF</h3>
+                    <button class="close-btn" onclick="closeModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <iframe id="pdfViewer" class="pdf-viewer" src=""></iframe>
+            </div>
+        </div>
+
+        <script>
+            function searchFiles() {{
+                const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                const fileItems = document.querySelectorAll('.file-item');
+                const folderItems = document.querySelectorAll('.folder-item');
+                
+                fileItems.forEach(item => {{
+                    const text = item.textContent.toLowerCase();
+                    item.style.display = text.includes(searchTerm) ? 'flex' : 'none';
+                }});
+                
+                folderItems.forEach(item => {{
+                    const text = item.textContent.toLowerCase();
+                    item.style.display = text.includes(searchTerm) ? 'flex' : 'none';
+                }});
+            }}
+
+            function viewPDF(filename) {{
+                document.getElementById('modalTitle').textContent = `Visualizar: ${{filename}}`;
+                document.getElementById('pdfViewer').src = `/statics/${{filename}}`;
+                document.getElementById('pdfModal').style.display = 'block';
+            }}
+
+            function downloadPDF(filename) {{
+                const link = document.createElement('a');
+                link.href = `/statics/${{filename}}`;
+                link.download = filename;
+                link.click();
+            }}
+
+            function openFolder(folderName) {{
+                window.location.href = `/admin/folder/${{folderName}}`;
+            }}
+
+            function refreshData() {{
+                window.location.reload();
+            }}
+
+            function showAllReports() {{
+                window.location.href = '/admin/reports';
+            }}
+
+            function clearSearch() {{
+                document.getElementById('searchInput').value = '';
+                searchFiles();
+            }}
+
+            function closeModal() {{
+                document.getElementById('pdfModal').style.display = 'none';
+                document.getElementById('pdfViewer').src = '';
+            }}
+
+            // Event listeners
+            window.onclick = function(event) {{
+                const modal = document.getElementById('pdfModal');
+                if (event.target === modal) closeModal();
+            }}
+
+            document.getElementById('searchInput').addEventListener('input', searchFiles);
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {{
+                if (e.key === 'Enter') searchFiles();
+            }});
+
+            // Mostrar notificación de carga
+            window.addEventListener('load', function() {{
+                console.log('Panel de administración cargado correctamente');
+            }});
+        </script>
+    </body>
+    </html>
+    """
+@app.get("/admin/export-excel")
+def export_excel():
+    import io
+    from datetime import datetime
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Ejecutar el mismo query para obtener datos
+    query = """
+    SELECT 
+        u.numero_identificacion,
+        u.rango_edad,
+        u.Sexo,
+        u.barrio,
+        u.grado_escolaridad,
+        u.Situacion_Actual,
+        u.Con_quien_vives,
+        r.*,
+        CASE 
+            WHEN r.Composite_Score_pct <= 2.5 
+                 OR r.P3_Suenio < 2.5
+                 OR r.E2_AlegriaEntusiasmo < 2.5
+                 OR r.E3_EstresPreocupacion < 2.5
+                 OR r.M1_Utilidad_Afrontar < 2.5
+                 OR r.M2_Tristeza < 2.5
+                 OR r.M3_Ansiedad < 2.5
+                 OR r.EX1_Proposito < 2.5
+                 OR r.F3_AhorrosEmergencia < 2.5
+                 OR r.ENV3_Seguridad < 2.5
+                 OR r.S1_ApoyoFamilia < 2.5
+            THEN 'Alto riesgo'
+
+            WHEN (
+                    (r.P1_ActividadFisica <= 2.5) + 
+                    (r.P2_Energia <= 2.5) + 
+                    (r.P3_Suenio <= 2.5) +
+                    (r.E1_SatisfaccionVida <= 2.5) + 
+                    (r.E2_AlegriaEntusiasmo <= 2.5) + 
+                    (r.E3_EstresPreocupacion <= 2.5) +
+                    (r.M1_Utilidad_Afrontar <= 2.5) + 
+                    (r.M2_Tristeza <= 2.5) + 
+                    (r.M3_Ansiedad <= 2.5) +
+                    (r.EX1_Proposito <= 2.5) + 
+                    (r.EX2_MetasSentido <= 2.5) + 
+                    (r.EX3_Direccion_Invertido <= 2.5) +
+                    (r.F1_PreocupacionGastos <= 2.5) + 
+                    (r.F2_ManejoDinero <= 2.5) + 
+                    (r.F3_AhorrosEmergencia <= 2.5) +
+                    (r.ENV1_BarrioSaludable <= 2.5) + 
+                    (r.ENV2_AccesoVerde <= 2.5) + 
+                    (r.ENV3_Seguridad <= 2.5) +
+                    (r.S1_ApoyoFamilia <= 2.5) + 
+                    (r.S2_AmistadesConfianza <= 2.5) + 
+                    (r.S3_ParticipacionComunitaria <= 2.5) +
+                    (r.FR1 <= 2.5) + 
+                    (r.FR2 <= 2.5) + 
+                    (r.FR3 <= 2.5)
+                 ) >= 3
+            THEN 'Medio riesgo'
+            
+            WHEN r.Composite_Score_pct = 4
+            THEN 'Bajo riesgo'
+            
+            ELSE 'Riesgo normal'
+        END AS nivel_riesgo,
+
+        (
+            (r.P3_Suenio < 2.5) +
+            (r.E2_AlegriaEntusiasmo < 2.5) +
+            (r.E3_EstresPreocupacion < 2.5) +
+            (r.M1_Utilidad_Afrontar < 2.5) +
+            (r.M2_Tristeza < 2.5) +
+            (r.M3_Ansiedad < 2.5) +
+            (r.EX1_Proposito < 2.5) +
+            (r.F3_AhorrosEmergencia < 2.5) +
+            (r.ENV3_Seguridad < 2.5) +
+            (r.S1_ApoyoFamilia < 2.5)
+        ) AS respuestas_criticas_bajas,
+        (
+            (r.P1_ActividadFisica <= 2.5) + 
+            (r.P2_Energia <= 2.5) + 
+            (r.P3_Suenio <= 2.5) +
+            (r.E1_SatisfaccionVida <= 2.5) + 
+            (r.E2_AlegriaEntusiasmo <= 2.5) + 
+            (r.E3_EstresPreocupacion <= 2.5) +
+            (r.M1_Utilidad_Afrontar <= 2.5) + 
+            (r.M2_Tristeza <= 2.5) + 
+            (r.M3_Ansiedad <= 2.5) +
+            (r.EX1_Proposito <= 2.5) + 
+            (r.EX2_MetasSentido <= 2.5) + 
+            (r.EX3_Direccion_Invertido <= 2.5) +
+            (r.F1_PreocupacionGastos <= 2.5) + 
+            (r.F2_ManejoDinero <= 2.5) + 
+            (r.F3_AhorrosEmergencia <= 2.5) +
+            (r.ENV1_BarrioSaludable <= 2.5) + 
+            (r.ENV2_AccesoVerde <= 2.5) + 
+            (r.ENV3_Seguridad <= 2.5) +
+            (r.S1_ApoyoFamilia <= 2.5) + 
+            (r.S2_AmistadesConfianza <= 2.5) + 
+            (r.S3_ParticipacionComunitaria <= 2.5) +
+            (r.FR1 <= 2.5) + 
+            (r.FR2 <= 2.5) + 
+            (r.FR3 <= 2.5)
+        ) AS total_respuestas_bajas
+
+    FROM railway.RespuestasResil r
+    INNER JOIN railway.usuarios u ON r.usuario_id = u.numero_identificacion;
+    """
+    
+    cursor.execute(query)
+    resultados = cursor.fetchall()
+    
+    # Obtener nombres de columnas
+    column_names = [desc[0] for desc in cursor.description]
+    
+    # Crear DataFrame
+    df = pd.DataFrame(resultados, columns=column_names)
+    conn.close()
+    
+    # Crear archivo Excel en memoria
+    output = io.BytesIO()
+    
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        # Hoja principal con todos los datos
+        df.to_excel(writer, sheet_name='Datos_Resiliencia', index=False)
+        
+        # Hoja con estadísticas resumidas
+        stats_data = {
+            'Métrica': [
+                'Total de Registros',
+                'Alto Riesgo', 
+                'Medio Riesgo',
+                'Bajo Riesgo',
+                'Riesgo Normal'
+            ],
+            'Cantidad': [
+                len(df),
+                len(df[df['nivel_riesgo'] == 'Alto riesgo']),
+                len(df[df['nivel_riesgo'] == 'Medio riesgo']),
+                len(df[df['nivel_riesgo'] == 'Bajo riesgo']),
+                len(df[df['nivel_riesgo'] == 'Riesgo normal'])
+            ],
+            'Porcentaje': [
+                '100%',
+                f"{(len(df[df['nivel_riesgo'] == 'Alto riesgo']) / len(df) * 100):.1f}%",
+                f"{(len(df[df['nivel_riesgo'] == 'Medio riesgo']) / len(df) * 100):.1f}%", 
+                f"{(len(df[df['nivel_riesgo'] == 'Bajo riesgo']) / len(df) * 100):.1f}%",
+                f"{(len(df[df['nivel_riesgo'] == 'Riesgo normal']) / len(df) * 100):.1f}%"
+            ]
+        }
+        
+        stats_df = pd.DataFrame(stats_data)
+        stats_df.to_excel(writer, sheet_name='Estadisticas', index=False)
+    
+    output.seek(0)
+    
+    # Generar nombre del archivo con fecha
+    fecha_actual = datetime.now().strftime("%Y-%m-%d_%H-%M")
+    filename = f"resiliencia_data_{fecha_actual}.xlsx"
+    
+    # Retornar el archivo Excel como respuesta
+    return Response(
+        content=output.getvalue(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+@app.get("/admin/folder/{folder_name}", response_class=HTMLResponse)
+def admin_folder_detail(folder_name: str):
+    import os
+    
+    statics_path = "statics"
+    folder_path = os.path.join(statics_path, folder_name)
+    
+    if not os.path.exists(folder_path):
+        return HTMLResponse("<h1>Carpeta no encontrada</h1>", status_code=404)
+    
+    files = os.listdir(folder_path)
+    user_id = folder_name.replace('user_', '')
+    
+    return f"""
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Carpeta de Usuario {user_id}</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <style>
+            * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+            body {{ font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }}
+            .container {{ max-width: 1200px; margin: 0 auto; }}
+            .header {{ background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
+            .back-btn {{ background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-bottom: 20px; }}
+            .files-grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }}
+            .file-card {{ background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
+            .file-icon {{ font-size: 2rem; margin-bottom: 10px; color: #e74c3c; }}
+            .file-name {{ font-weight: 500; margin-bottom: 5px; }}
+            .file-actions {{ display: flex; gap: 10px; margin-top: 15px; }}
+            .btn {{ background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }}
+            .btn:hover {{ background: #2980b9; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <button class="back-btn" onclick="window.location.href='/admin'">
+                <i class="fas fa-arrow-left"></i> Volver al Panel
+            </button>
+            
+            <div class="header">
+                <h1><i class="fas fa-folder"></i> Carpeta: {folder_name}</h1>
+                <p>Usuario ID: {user_id}</p>
+                <p>Total de archivos: {len(files)}</p>
+            </div>
+            
+            <div class="files-grid">
+                {"".join([f'''
+                <div class="file-card">
+                    <div class="file-icon">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <div class="file-name">{file}</div>
+                    <div class="file-actions">
+                        <button class="btn" onclick="window.open('/statics/{folder_name}/{file}', '_blank')">
+                            <i class="fas fa-eye"></i> Ver
+                        </button>
+                        <button class="btn" onclick="downloadFile('{folder_name}/{file}')">
+                            <i class="fas fa-download"></i> Descargar
+                        </button>
+                    </div>
+                </div>
+                ''' for file in files if file.endswith('.pdf')])}
+            </div>
+        </div>
+        
+        <script>
+            function downloadFile(filepath) {{
+                const link = document.createElement('a');
+                link.href = `/statics/${{filepath}}`;
+                link.download = filepath.split('/').pop();
+                link.click();
+            }}
+        </script>
+    </body>
+    </html>
+    """
 
 @app.get("/login", response_class=HTMLResponse)
 def login_form():
@@ -396,17 +2813,28 @@ def login(username: str = Form(...), password: str = Form(...)):
         "invitado": "invitado",
         "corevital": "Corevital",
         "advancevital": "AdvanceVital",
-        "premiumvital": "premiumVital"
+        "premiumvital": "premiumVital",
+        "participante": "Participante",
+        "admin": "Admin"  # Agregado el usuario Admin
     }
     clave = "Vital2025."
     
     user_key = username.lower()  # normalizamos para comparar
     
     if user_key in usuarios_validos and password == clave:
+        # Obtener el tipo de usuario con las mayúsculas/minúsculas correctas
+        user_type = usuarios_validos[user_key]
+        
+        # Determinar la URL de redirección según el tipo de usuario
+        if user_type.lower() == "admin":
+            redirect_url = "/admin"
+        else:
+            redirect_url = "/mostrar_pagina1"
+        
         # Crear respuesta de redirección
-        resp = RedirectResponse(url="/mostrar_pagina1", status_code=status.HTTP_302_FOUND)
+        resp = RedirectResponse(url=redirect_url, status_code=status.HTTP_302_FOUND)
         # Establecer cookie con el valor exacto (con mayúsculas/minúsculas correctas)
-        resp.set_cookie(key="user_type", value=usuarios_validos[user_key], httponly=True)
+        resp.set_cookie(key="user_type", value=user_type, httponly=True)
         return resp
     else:
         return HTMLResponse(
@@ -853,6 +3281,14 @@ def mostrar_pagina(request: Request):  # Añadir el parámetro request
             </div>
         </button>
         """
+    elif user_type == "Participante":
+        version_options = """
+        <!-- Versión Resiliencia -->
+        <button onclick="seleccionarVersion('Resiliencia')" style="padding: 15px 20px; border: none; border-radius: 10px; background: #E0F7FA; color: #006064; font-size: 16px; text-align: left; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer;">
+            <strong>🛡️ Versión Resiliencia</strong><br>
+            <span style="font-size: 14px; color: #004D40;">Evalúa tu capacidad de adaptación y recuperación.</span>
+        </button>
+        """
     elif user_type == "premiumVital":
         version_options = """
         <!-- Versión Premium -->
@@ -1073,7 +3509,7 @@ def mostrar_pagina(request: Request):  # Añadir el parámetro request
                         <input type="text" id="Profesion" name="Profesion" required>
                     </div>
                    <div class="form-group">
-                        <label for="Empresa">Empresa:</label>
+                        <label for="Empresa">Institucion:</label>
                         <select id="Empresa" name="Empresa" required onchange="toggleEmpresaInput(this)">
                             <option value="PARTICULAR">PARTICULAR</option>
                             <option value="SIES SALUD">SIES SALUD</option>
@@ -1173,19 +3609,25 @@ def mostrar_pagina(request: Request):  # Añadir el parámetro request
         }});
 
         function seleccionarVersion(version) {{
-        if (!fueClickEnRegistrar) return;
+            if (!fueClickEnRegistrar) return;
 
-        // Crear campo oculto con la versión seleccionada
-        const inputHidden = document.createElement("input");
-        inputHidden.type = "hidden";
-        inputHidden.name = "version";
-        inputHidden.value = version;
-        form.appendChild(inputHidden);
+            // Crear campo oculto con la versión seleccionada
+            const inputHidden = document.createElement("input");
+            inputHidden.type = "hidden";
+            inputHidden.name = "version";
+            inputHidden.value = version;
+            form.appendChild(inputHidden);
 
-        modal.style.display = "none";
-        fueClickEnRegistrar = false;
-        form.submit();
-    }}
+            modal.style.display = "none";
+            fueClickEnRegistrar = false;
+            // Si versión es Resiliencia, redirigir al cuestionario pasando usuario_id
+            if (version === 'Resiliencia') {{
+                const numId = document.getElementById('numero_identificacion').value;
+                window.location.href = '/cuestionario_resiliencia?usuario_id=' + numId;
+                return;
+            }}
+            form.submit();
+        }}
 
         function toggleEmpresaInput(select) {{
             const otraEmpresaGroup = document.getElementById("otraEmpresaGroup");
@@ -1319,16 +3761,49 @@ async def chat_with_gpt(request: Request):
         user_messages = data.get("messages", [])
         emotion = data.get("emotion", None)
 
-        if len(user_messages) >= 30:  # 15 interacciones * 2 (user + assistant)
+        if len(user_messages) >= 30:
             raise HTTPException(
                 status_code=400,
                 detail="Has alcanzado el límite máximo de 15 interacciones."
             )
+
+        # Verificar si el último mensaje es del bot (esperando respuesta)
+        last_message_is_bot = user_messages and user_messages[-1]["role"] == "assistant"
+        
+        # Si el último mensaje es del bot y el usuario no ha respondido, bloquear nuevas solicitudes
+        # PERO permitir si solo se está enviando emoción sin contenido de mensaje
+        if last_message_is_bot:
+            # Buscar el último mensaje del usuario
+            user_has_responded = False
+            for msg in reversed(user_messages):
+                if msg["role"] == "user":
+                    user_has_responded = True
+                    break
+                elif msg["role"] == "assistant":
+                    break
+            
+            if not user_has_responded:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Por favor, responde a mi última pregunta antes de continuar."
+                )
+
         # Construir mensajes
         messages = [
             {"role": "system", "content": get_system_prompt(get_emotion_context(emotion))},
             *user_messages
         ]
+
+        # Añadir instrucción para hacer una pregunta a la vez solo si hay conversación
+        if len(user_messages) > 0 and not last_message_is_bot:
+            messages.append({
+                "role": "system", 
+                "content": """IMPORTANTE: 
+                - Haz solo UNA pregunta a la vez y espera la respuesta del usuario antes de continuar.
+                - No hagas múltiples preguntas seguidas.
+                - Si el usuario no responde directamente a tu pregunta, guíalo suavemente de vuelta al tema.
+                - Las emociones detectadas son solo para contexto, no las menciones directamente a menos que sea relevante."""
+            })
 
         # Ajustar historial
         messages = trim_messages(
@@ -1354,7 +3829,7 @@ async def chat_with_gpt(request: Request):
         })
 
     except Exception as e:
-        print(f"Error en chat-api: {str(e)}")  # Log del error
+        print(f"Error en chat-api: {str(e)}")
         raise HTTPException(
             status_code=500,
             detail=f"Error al procesar tu solicitud: {str(e)}"
@@ -1697,7 +4172,7 @@ async def chat_interactivo():
     </style>
 </head>
 <body>
-    <div class="main-container">
+   <div class="main-container">
         <h4 class="mb-4">CimaBot - Videochat con Chat Integrado</h4>
         
         <!-- Alerta para permisos -->
@@ -1790,10 +4265,16 @@ async def chat_interactivo():
         let isSpeechRecognitionOn = false;
         let speechRecognizer = null;
         let finalTranscript = '';
-        let avatarState = 'idle'; // Estados: idle, listening, speaking, processing
+        let avatarState = 'idle';
         let avatarAnimationInterval = null;
         let interactionCount = 0;
         const MAX_INTERACTIONS = 15;
+        
+        // NUEVAS VARIABLES PARA CONTROL DE CONVERSACIÓN
+        let isWaitingForUserResponse = false;
+        let lastBotQuestion = "";
+        let responseReminderInterval = null;
+        let lastUserActivityTime = Date.now();
         
         // Traducción de emociones
         const emociones_es = {
@@ -1832,7 +4313,6 @@ async def chat_interactivo():
         function updateInteractionCounter() {
             interactionCounter.textContent = `Interacciones: ${interactionCount}/${MAX_INTERACTIONS}`;
             
-            // Cambiar color cuando se acerca al límite
             if (interactionCount >= MAX_INTERACTIONS - 3) {
                 interactionCounter.style.backgroundColor = 'rgba(255, 193, 7, 0.8)';
             }
@@ -1845,17 +4325,19 @@ async def chat_interactivo():
         // Verificar si se alcanzó el límite de interacciones
         function checkInteractionLimit() {
             if (interactionCount >= MAX_INTERACTIONS) {
-                // Deshabilitar el chat
                 messageInput.disabled = true;
                 sendButton.disabled = true;
                 chatContainer.classList.add('disabled-chat');
                 
-                // Desactivar reconocimiento de voz si está activo
                 if (isSpeechRecognitionOn) {
                     toggleSpeechRecognition();
                 }
                 
-                // Mostrar mensaje de límite alcanzado
+                // Detener recordatorios
+                if (responseReminderInterval) {
+                    clearInterval(responseReminderInterval);
+                }
+                
                 const limitMessage = document.createElement('div');
                 limitMessage.className = 'limit-reached';
                 limitMessage.innerHTML = `
@@ -1876,7 +4358,6 @@ async def chat_interactivo():
                 
             avatarState = state;
             
-            // Remover todas las clases de animación primero
             cimaBotAvatar.classList.remove(
                 'avatar-breathing', 
                 'avatar-listening', 
@@ -1885,53 +4366,107 @@ async def chat_interactivo():
                 'avatar-idle'
             );
             
-            // Aplicar las animaciones correspondientes al nuevo estado
             switch(state) {
                 case 'idle':
-                    // Animación de respiración + parpadeo + movimiento suave
                     setTimeout(() => {
                         cimaBotAvatar.classList.add('avatar-breathing', 'avatar-blinking', 'avatar-idle');
                     }, 100);
                     break;
-                    
                 case 'listening':
-                    // Animación de escucha (movimiento vertical)
                     setTimeout(() => {
                         cimaBotAvatar.classList.add('avatar-listening');
                     }, 100);
                     break;
-                    
                 case 'speaking':
-                    // Animación de habla (pulsación más pronunciada)
                     setTimeout(() => {
                         cimaBotAvatar.classList.add('avatar-speaking');
                     }, 100);
                     break;
-                    
                 case 'processing':
-                    // Similar a escuchar pero con respiración
                     setTimeout(() => {
                         cimaBotAvatar.classList.add('avatar-listening', 'avatar-breathing');
                     }, 100);
                     break;
+                case 'waiting':
+                    // Estado especial cuando espera respuesta del usuario
+                    setTimeout(() => {
+                        cimaBotAvatar.classList.add('avatar-breathing', 'avatar-blinking');
+                    }, 100);
+                    break;
+            }
+        }
+        
+        // Mostrar indicador de que el bot está esperando respuesta
+        function showWaitingIndicator() {
+            // Remover indicadores anteriores
+            const existingIndicator = document.getElementById('waitingForResponse');
+            if (existingIndicator) {
+                existingIndicator.remove();
             }
             
-            console.log("Avatar state changed to:", state);
+            const waitingDiv = document.createElement('div');
+            waitingDiv.id = 'waitingForResponse';
+            waitingDiv.className = 'waiting-indicator';
+            waitingDiv.innerHTML = `
+                <i class="bi bi-clock"></i> 
+                Esperando tu respuesta... Puedes escribir en el chat o hablar con el micrófono.
+            `;
+            chatBody.appendChild(waitingDiv);
+            chatBody.scrollTop = chatBody.scrollHeight;
         }
-                
+        
+        // Remover indicador de espera
+        function hideWaitingIndicator() {
+            const waitingIndicator = document.getElementById('waitingForResponse');
+            if (waitingIndicator) {
+                waitingIndicator.remove();
+            }
+        }
+        
+        // Sistema de recordatorios
+        function setupResponseReminder() {
+            if (responseReminderInterval) {
+                clearInterval(responseReminderInterval);
+            }
+            
+            responseReminderInterval = setInterval(() => {
+                if (isWaitingForUserResponse && !checkInteractionLimit()) {
+                    const timeSinceLastActivity = Date.now() - lastUserActivityTime;
+                    // Si han pasado más de 45 segundos sin respuesta
+                    if (timeSinceLastActivity > 45000) {
+                        const reminderMessages = [
+                            "¿Te gustaría responder a mi pregunta? Puedes escribirla o decírmela por voz.",
+                            "¿Hay algo en lo que pueda ayudarte? Estoy aquí para conversar contigo.",
+                            "¿Quieres que hablemos de algo específico? Puedes responder cuando quieras."
+                        ];
+                        
+                        const reminder = reminderMessages[Math.floor(Math.random() * reminderMessages.length)];
+                        addMessageToChat('assistant', reminder);
+                        chatHistory.push({role: 'assistant', content: reminder});
+                        
+                        // Actualizar el tiempo de actividad para no spammear
+                        lastUserActivityTime = Date.now();
+                    }
+                }
+            }, 30000); // Revisar cada 30 segundos
+        }
+        
+        // Actualizar tiempo de actividad del usuario
+        function updateUserActivity() {
+            lastUserActivityTime = Date.now();
+        }
+        
         // Animación aleatoria para mantener vivo el avatar
         function startRandomAvatarAnimations() {
             if (avatarAnimationInterval) clearInterval(avatarAnimationInterval);
             
             avatarAnimationInterval = setInterval(() => {
-                if (avatarState === 'idle') {
-                    // Pequeñas animaciones aleatorias mientras está inactivo
+                if (avatarState === 'idle' || avatarState === 'waiting') {
                     const random = Math.random();
                     if (random < 0.3) {
-                        // Parpadeo extra
                         cimaBotAvatar.style.animation = 'blinking 4s infinite ease-in-out';
                         setTimeout(() => {
-                            if (avatarState === 'idle') {
+                            if (avatarState === 'idle' || avatarState === 'waiting') {
                                 cimaBotAvatar.style.animation = 'breathing 4s infinite ease-in-out, blinking 4s infinite ease-in-out, idleMovement 8s infinite ease-in-out';
                             }
                         }, 200);
@@ -1940,22 +4475,19 @@ async def chat_interactivo():
             }, 5000);
         }
         
-        // Cargar modelos de face-api.js desde CDN alternativo
+        // Cargar modelos de face-api.js
         async function loadModels() {
             try {
                 emotionProgress.classList.remove('hidden');
                 emotionProgress.textContent = "Cargando modelos: 0%";
                 
-                // Configurar la ruta base para los modelos (usando un CDN público)
                 faceapi.env.monkeyPatch({
                     createCanvasElement: () => document.createElement('canvas'),
                     createImageElement: () => document.createElement('img')
                 });
                 
-                // URLs de los modelos desde un CDN público
                 const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
                 
-                // Cargar modelos con progreso
                 const modelsToLoad = [
                     faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
                     faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
@@ -1986,7 +4518,6 @@ async def chat_interactivo():
                     'No se pudieron cargar los modelos de análisis de emociones. ' +
                     'La función de reconocimiento facial no estará disponible.');
                 
-                // Desactivar el botón de emociones
                 toggleEmotionBtn.disabled = true;
                 toggleEmotionBtn.title = "Funcionalidad no disponible";
             }
@@ -1998,8 +4529,8 @@ async def chat_interactivo():
             
             try {
                 const options = new faceapi.TinyFaceDetectorOptions({
-                    inputSize: 512,  // Tamaño mayor para mejor precisión
-                    scoreThreshold: 0.5  // Umbral de confianza
+                    inputSize: 512,
+                    scoreThreshold: 0.5
                 });
                 
                 const detections = await faceapi.detectAllFaces(
@@ -2016,11 +4547,9 @@ async def chat_interactivo():
                     const confidence = expressions[dominantEmotion];
                     const emotionText = emociones_es[dominantEmotion] || dominantEmotion;
                     
-                    // Mostrar emoción con porcentaje de confianza
                     emotionDisplay.textContent = `Emoción: ${emotionText} (${Math.round(confidence * 100)}%)`;
                     emotionDisplay.classList.remove('hidden');
                     
-                    // Guardar en historial (últimas 5 emociones)
                     emotionHistory.push({
                         emotion: emotionText,
                         confidence: confidence,
@@ -2031,7 +4560,6 @@ async def chat_interactivo():
                         emotionHistory.shift();
                     }
                     
-                    // Mostrar historial formateado
                     const historyText = emotionHistory.map(e => 
                         `${e.emotion} (${Math.round(e.confidence * 100)}%)`
                     ).join(' → ');
@@ -2039,55 +4567,16 @@ async def chat_interactivo():
                     emotionHistoryDisplay.textContent = `Historial: ${historyText}`;
                     emotionHistoryDisplay.classList.remove('hidden');
                     
-                    // Adaptar respuesta del bot según emoción
-                    adaptBotResponse(dominantEmotion, confidence);
+                    // ACTUALIZADO: Las emociones ya NO adaptan la respuesta del bot
+                    // Solo actualizan la emoción actual para contexto
+                    currentEmotion = dominantEmotion;
+                    
                 } else {
                     emotionDisplay.textContent = 'No se detectó rostro';
                 }
             } catch (error) {
                 console.error('Error detectando emociones:', error);
                 emotionDisplay.textContent = 'Error en análisis';
-            }
-        }
-        
-        // Adaptar respuesta del bot según la emoción detectada
-        function adaptBotResponse(emotion, confidence) {
-            currentEmotion = emotion;
-            // Solo adaptar si la confianza es mayor al 60%
-            if (confidence > 0.6) {
-                let response = "";
-                
-                switch(emotion) {
-                    case "happy":
-                        response = "Pareces estar de buen humor hoy. ¿Te gustaría compartir qué te hace sentir así?";
-                        break;
-                    case "sad":
-                        response = "Noto que podrías estar sintiéndote un poco triste. ¿Quieres hablar sobre ello?";
-                        break;
-                    case "angry":
-                        response = "Percibo que podrías estar molesto. ¿Hay algo en particular que te esté molestando?";
-                        break;
-                    case "surprised":
-                        response = "¡Vaya! Pareces sorprendido. ¿Qué ha ocurrido?";
-                        break;
-                    case "fearful":
-                        response = "Noto cierta preocupación en ti. ¿Hay algo que te esté causando ansiedad?";
-                        break;
-                    default:
-                        // No hacer nada para emociones neutrales o con baja confianza
-                        return;
-                }
-                
-                // Agregar mensaje del bot si no hay mensajes recientes
-                const lastMessages = Array.from(chatBody.querySelectorAll('.message')).slice(-3);
-                const hasRecentBotMessage = lastMessages.some(msg => 
-                    msg.classList.contains('bot-message') && 
-                    msg.textContent.includes(response.substring(0, 20))
-                );
-                
-                if (!hasRecentBotMessage) {
-                    addMessageToChat('assistant', response);
-                }
             }
         }
         
@@ -2111,15 +4600,13 @@ async def chat_interactivo():
                 emotionDisplay.classList.remove('hidden');
                 emotionHistoryDisplay.classList.remove('hidden');
                 
-                // Iniciar detección cada 1 segundo (para mejor rendimiento)
                 emotionDetectionInterval = setInterval(detectEmotions, 1000);
-                addMessageToChat('system', 'Análisis de emociones activado. Ahora puedo detectar tus expresiones faciales.');
+                addMessageToChat('system', 'Análisis de emociones activado. Ahora puedo detectar tus expresiones faciales (solo como contexto).');
             } else {
                 toggleEmotionBtn.innerHTML = `<i class="bi bi-emoji-smile"></i>`;
                 emotionDisplay.classList.add('hidden');
                 emotionHistoryDisplay.classList.add('hidden');
                 
-                // Detener detección
                 if (emotionDetectionInterval) {
                     clearInterval(emotionDetectionInterval);
                     emotionDetectionInterval = null;
@@ -2131,7 +4618,6 @@ async def chat_interactivo():
         
         // Inicializar reconocimiento de voz
         function initSpeechRecognition() {
-            // Verificar si el navegador soporta reconocimiento de voz
             if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
                 addMessageToChat('system', 'Tu navegador no soporta reconocimiento de voz. Usa Chrome o Edge para esta función.');
                 toggleSpeechRecognitionBtn.disabled = true;
@@ -2139,16 +4625,13 @@ async def chat_interactivo():
                 return;
             }
             
-            // Crear instancia de reconocimiento de voz
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             speechRecognizer = new SpeechRecognition();
             
-            // Configurar reconocimiento de voz
             speechRecognizer.continuous = true;
             speechRecognizer.interimResults = true;
             speechRecognizer.lang = 'es-ES';
             
-            // Evento para resultados del reconocimiento
             speechRecognizer.onresult = (event) => {
                 let interimTranscript = '';
                 
@@ -2157,33 +4640,29 @@ async def chat_interactivo():
                     if (event.results[i].isFinal) {
                         finalTranscript += transcript;
                         
-                        // Enviar automáticamente cuando se detecta una frase completa
                         if (transcript.trim().length > 0) {
                             sendMessageFromVoice(transcript);
-                            finalTranscript = ''; // Resetear después de enviar
+                            finalTranscript = '';
                         }
                     } else {
                         interimTranscript += transcript;
                     }
                 }
                 
-                // Cambiar animación del avatar cuando se detecta voz
                 if (interimTranscript.length > 0) {
                     setAvatarState('listening');
                 }
             };
             
-            // Manejar errores
             speechRecognizer.onerror = (event) => {
                 console.error('Error en reconocimiento de voz:', event.error);
                 speechStatus.textContent = `Error: ${event.error}`;
                 setTimeout(() => speechStatus.classList.add('hidden'), 2000);
             };
             
-            // Cuando termina el reconocimiento (por pausa)
             speechRecognizer.onend = () => {
                 if (isSpeechRecognitionOn) {
-                    speechRecognizer.start(); // Reiniciar si aún está activo
+                    speechRecognizer.start();
                 }
             };
         }
@@ -2206,7 +4685,7 @@ async def chat_interactivo():
                 }
                 
                 try {
-                    finalTranscript = ''; // Resetear el transcript
+                    finalTranscript = '';
                     speechRecognizer.start();
                     toggleSpeechRecognitionBtn.innerHTML = `<i class="bi bi-mic-fill"></i>`;
                     speechStatus.textContent = "Escuchando...";
@@ -2223,10 +4702,9 @@ async def chat_interactivo():
                 toggleSpeechRecognitionBtn.innerHTML = `<i class="bi bi-mic-mute"></i>`;
                 speechStatus.textContent = "Reconocimiento pausado";
                 setTimeout(() => speechStatus.classList.add('hidden'), 2000);
-                setAvatarState('idle');
+                setAvatarState(isWaitingForUserResponse ? 'waiting' : 'idle');
                 addMessageToChat('system', 'Reconocimiento de voz desactivado.');
                 
-                // Si hay texto no enviado, enviarlo
                 if (finalTranscript.trim().length > 0) {
                     sendMessageFromVoice(finalTranscript);
                     finalTranscript = '';
@@ -2234,29 +4712,31 @@ async def chat_interactivo():
             }
         }
         
+        // Función para enviar mensajes desde voz
         async function sendMessageFromVoice(transcript) {
             if (!transcript || transcript.trim().length === 0) return;
             
-            // Verificar límite de interacciones
             if (checkInteractionLimit()) return;
             
-            // Agregar mensaje del usuario al chat
+            // ACTUALIZADO: Registrar actividad del usuario
+            updateUserActivity();
+            
             addMessageToChat('user', transcript);
             chatHistory.push({role: 'user', content: transcript});
             
-            // Incrementar contador de interacciones
+            // ACTUALIZADO: El usuario ha respondido, dejar de esperar
+            isWaitingForUserResponse = false;
+            hideWaitingIndicator();
+            
             interactionCount++;
             updateInteractionCounter();
             
-            // Cambiar a estado de procesamiento
             setAvatarState('processing');
             
-            // Mostrar indicador de que el bot está escribiendo
             typingIndicator.style.display = 'block';
             chatBody.scrollTop = chatBody.scrollHeight;
             
             try {
-                // Llamar a la API de ChatGPT (usando el mismo endpoint que el chat normal)
                 const response = await fetch('/chat-api', {
                     method: 'POST',
                     headers: {
@@ -2275,27 +4755,29 @@ async def chat_interactivo():
                 const data = await response.json();
                 typingIndicator.style.display = 'none';
                 
-                // Cambiar a estado de habla
                 setAvatarState('speaking');
                 
-                // Agregar respuesta al chat y al historial
                 addMessageToChat('assistant', data.response);
                 chatHistory.push({role: 'assistant', content: data.response});
                 
-                // Verificar si hemos alcanzado el límite después de esta interacción
+                // ACTUALIZADO: Ahora el bot espera respuesta del usuario
+                isWaitingForUserResponse = true;
+                lastBotQuestion = data.response;
+                showWaitingIndicator();
+                setAvatarState('waiting');
+                
                 checkInteractionLimit();
                 
-                // Volver a estado de escucha después de un tiempo
                 setTimeout(() => {
                     if (avatarState === 'speaking') {
-                        setAvatarState(isSpeechRecognitionOn ? 'listening' : 'idle');
+                        setAvatarState('waiting');
                     }
                 }, 3000);
                 
             } catch (error) {
                 console.error('Error al obtener respuesta:', error);
                 typingIndicator.style.display = 'none';
-                setAvatarState('idle');
+                setAvatarState('waiting');
                 
                 const fallbackResponses = [
                     "Lo siento, estoy teniendo dificultades técnicas. ¿Podrías repetir tu último mensaje?",
@@ -2307,7 +4789,10 @@ async def chat_interactivo():
                 addMessageToChat('assistant', fallbackResponse);
                 chatHistory.push({role: 'assistant', content: fallbackResponse});
                 
-                // Verificar si hemos alcanzado el límite después de esta interacción
+                // ACTUALIZADO: También esperar respuesta después de error
+                isWaitingForUserResponse = true;
+                showWaitingIndicator();
+                
                 checkInteractionLimit();
             }
         }
@@ -2315,7 +4800,6 @@ async def chat_interactivo():
         // Inicializar cámara y micrófono
         async function initMedia() {
             try {
-                // Solicitar permisos
                 localStream = await navigator.mediaDevices.getUserMedia({ 
                     video: {
                         width: { ideal: 1280 },
@@ -2329,45 +4813,41 @@ async def chat_interactivo():
                 localVideo.srcObject = localStream;
                 connectionStatus.textContent = "Conectando...";
                 
-                // Configurar controles iniciales
                 toggleVideoBtn.innerHTML = `<i class="bi bi-camera-video"></i>`;
                 toggleEmotionBtn.innerHTML = `<i class="bi bi-emoji-smile"></i>`;
                 toggleSpeechRecognitionBtn.innerHTML = `<i class="bi bi-mic-mute"></i>`;
                 
-                // Iniciar animaciones del avatar
                 setAvatarState('idle');
                 startRandomAvatarAnimations();
                 
-                // Inicializar contador de interacciones
                 updateInteractionCounter();
                 
-                // Cargar modelos de reconocimiento facial
                 await loadModels();
                 
-                // Inicializar reconocimiento de voz (pero no activarlo aún)
                 initSpeechRecognition();
                 
-                // Simular conexión con el bot (en una implementación real usarías WebRTC)
+                // Iniciar sistema de recordatorios
+                setupResponseReminder();
+                
                 setTimeout(() => {
                     connectionStatus.textContent = "Conectado";
                     
-                    // Mensaje de bienvenida del bot
                     addMessageToChat('assistant', 
                         '¡Hola! Soy CimaBot. Estamos conectados por video. ' +
                         'Puedes hablarme directamente (activa el micrófono con el botón verde) ' +
                         'o escribirme en el chat. ¿En qué puedo ayudarte hoy?');
+                    
+                    // ACTUALIZADO: Después del mensaje de bienvenida, esperar respuesta del usuario
+                    isWaitingForUserResponse = true;
+                    showWaitingIndicator();
+                    setAvatarState('waiting');
+                    
                 }, 2000);
                 
             } catch (error) {
                 console.error('Error al acceder a los dispositivos:', error);
-                
-                // Mostrar alerta de permisos
                 permissionAlert.classList.remove('hidden');
-                
-                // Actualizar estado de conexión
                 connectionStatus.textContent = "Permisos denegados";
-                
-                // Mostrar mensaje de error en el chat
                 addMessageToChat('system', 
                     'No se pudo acceder a la cámara o micrófono. ' +
                     'Por favor, otorga los permisos necesarios para continuar.');
@@ -2383,7 +4863,6 @@ async def chat_interactivo():
                     isVideoOn = videoTrack.enabled;
                     toggleVideoBtn.innerHTML = `<i class="bi bi-camera-video${isVideoOn ? '' : '-off'}"></i>`;
                     
-                    // Si el video se apaga, también apagar detección de emociones
                     if (!isVideoOn && isEmotionDetectionOn) {
                         toggleEmotionDetection();
                     }
@@ -2403,35 +4882,36 @@ async def chat_interactivo():
             initMedia();
         });
         
-        // Función para enviar mensajes
+        // Función para enviar mensajes por chat
         async function sendMessage(event) {
             event.preventDefault();
             
-            // Verificar límite de interacciones
             if (checkInteractionLimit()) return;
             
             const message = messageInput.value.trim();
             
             if (!message) return;
             
-            // Agregar mensaje del usuario al chat
+            // ACTUALIZADO: Registrar actividad del usuario
+            updateUserActivity();
+            
             addMessageToChat('user', message);
             chatHistory.push({role: 'user', content: message});
             messageInput.value = '';
             
-            // Incrementar contador de interacciones
+            // ACTUALIZADO: El usuario ha respondido, dejar de esperar
+            isWaitingForUserResponse = false;
+            hideWaitingIndicator();
+            
             interactionCount++;
             updateInteractionCounter();
             
-            // Cambiar a estado de procesamiento
             setAvatarState('processing');
             
-            // Mostrar indicador de que el bot está escribiendo
             typingIndicator.style.display = 'block';
             chatBody.scrollTop = chatBody.scrollHeight;
             
             try {
-                // Llamar a la API de ChatGPT
                 const response = await fetch('/chat-api', {
                     method: 'POST',
                     headers: {
@@ -2439,7 +4919,7 @@ async def chat_interactivo():
                     },
                     body: JSON.stringify({
                         messages: chatHistory,
-                        emotion: currentEmotion // Opcional: pasar emoción detectada
+                        emotion: currentEmotion
                     })
                 });
                 
@@ -2450,29 +4930,30 @@ async def chat_interactivo():
                 const data = await response.json();
                 typingIndicator.style.display = 'none';
                 
-                // Cambiar a estado de habla
                 setAvatarState('speaking');
                 
-                // Agregar respuesta al chat y al historial
                 addMessageToChat('assistant', data.response);
                 chatHistory.push({role: 'assistant', content: data.response});
                 
-                // Verificar si hemos alcanzado el límite después de esta interacción
+                // ACTUALIZADO: Ahora el bot espera respuesta del usuario
+                isWaitingForUserResponse = true;
+                lastBotQuestion = data.response;
+                showWaitingIndicator();
+                setAvatarState('waiting');
+                
                 checkInteractionLimit();
                 
-                // Volver a estado inactivo después de un tiempo
                 setTimeout(() => {
                     if (avatarState === 'speaking') {
-                        setAvatarState('idle');
+                        setAvatarState('waiting');
                     }
                 }, 3000);
                 
             } catch (error) {
                 console.error('Error al obtener respuesta:', error);
                 typingIndicator.style.display = 'none';
-                setAvatarState('idle');
+                setAvatarState('waiting');
                 
-                // Respuesta de respaldo si falla la API
                 const fallbackResponses = [
                     "Lo siento, estoy teniendo dificultades técnicas. ¿Podrías repetir tu última pregunta?",
                     "Parece que hay un problema con mi conexión. Intentemos nuevamente.",
@@ -2483,7 +4964,10 @@ async def chat_interactivo():
                 addMessageToChat('assistant', fallbackResponse);
                 chatHistory.push({role: 'assistant', content: fallbackResponse});
                 
-                // Verificar si hemos alcanzado el límite después de esta interacción
+                // ACTUALIZADO: También esperar respuesta después de error
+                isWaitingForUserResponse = true;
+                showWaitingIndicator();
+                
                 checkInteractionLimit();
             }
         }
@@ -2507,7 +4991,6 @@ async def chat_interactivo():
         
         // Inicializar la aplicación cuando el DOM esté listo
         document.addEventListener('DOMContentLoaded', function() {
-            // Verificar si el navegador soporta los APIs necesarios
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 addMessageToChat('system', 
                     'Tu navegador no soporta las características necesarias para el videochat. ' +
@@ -2515,7 +4998,6 @@ async def chat_interactivo():
                 return;
             }
             
-            // Iniciar medios
             initMedia();
         });
     </script>
