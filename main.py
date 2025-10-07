@@ -4466,12 +4466,12 @@ async def chat_interactivo():
                 if (isWaitingForUserResponse && !checkInteractionLimit()) {
                     const timeSinceLastActivity = Date.now() - lastUserActivityTime;
                     // Si han pasado más de 45 segundos sin respuesta
-                    if (timeSinceLastActivity > 45000) {
-                        const reminderMessages = [
-                            "¿Te gustaría responder a mi pregunta? Puedes escribirla o decírmela por voz.",
-                            "¿Hay algo en lo que pueda ayudarte? Estoy aquí para conversar contigo.",
-                            "¿Quieres que hablemos de algo específico? Puedes responder cuando quieras."
-                        ];
+                    if (timeSinceLastActivity > 300000) { // 5 minutos sin actividad
+                    const reminderMessages = [
+                        "¿Te gustaría responder a mi pregunta? Puedes escribirla o decírmela por voz.",
+                        "¿Hay algo en lo que pueda ayudarte? Estoy aquí para conversar contigo.",
+                        "¿Quieres que hablemos de algo específico? Puedes responder cuando quieras."
+                    ];
                         
                         const reminder = reminderMessages[Math.floor(Math.random() * reminderMessages.length)];
                         addMessageToChat('assistant', reminder);
