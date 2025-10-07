@@ -2924,6 +2924,7 @@ def mostrar_pagina1(request: Request):
             name="numero_identificacion" 
             placeholder="Ingresa tu número" 
             required
+            maxlength="10"
             inputmode="numeric"
             oninput="this.value = this.value.replace(/[^0-9]/g, '')"
             >
